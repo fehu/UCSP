@@ -27,7 +27,7 @@ git checkout gh-pages &&\
     git add "$TARGET" &&\
     git commit -m "Created/Updated $TARGET" &&\
     git push origin gh-pages &&\
-    git checkout master
 
 
+git checkout master
 
