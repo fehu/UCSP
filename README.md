@@ -14,7 +14,7 @@ When opening an `*.lhs` file, accept local variables application.
 
 To build Haskell code, use <kbd>SPC H c b</kbd>.
 
-To generate `dvi` document, use <kbd>SPC m b</kbd>.
+To generate `pdf` document, use <kbd>SPC m b</kbd>.
 
 To view the generated document, use <kbd>SPC m v</kbd>.
 
