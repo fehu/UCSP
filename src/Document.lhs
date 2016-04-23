@@ -145,27 +145,51 @@ class (Ord t, Bounded t, Show t) => DiscreteTime t where
   toMinutes    :: t -> Int
   fromMinutes  :: Int -> t
  
-class (DiscreteTime time) => Timetable tt x time  |  tt  -> time
-                                                  ,  x   -> time
-  where  classesOn  :: tt -> Day   -> [x]
-         classesAt  :: tt -> time  -> [(Day, x)]
-         
-         classAt    :: tt -> Day -> time -> Maybe x
-         
+class (DiscreteTime time) => Timetable tt e time  |  tt  -> time
+                                                  ,  tt  -> e
+                                                  ,  e   -> time
+  where  listEvents  :: tt -> [e]
+         eventsOn    :: tt -> Day   -> [e]
+         eventsAt    :: tt -> time  -> [(Day, e)]
+         eventAt     :: tt -> Day   -> time -> Maybe e
+\end{code}
 
-class (Timetable tt x time) => TimetableM tt m x time
-  where  putClass :: tt -> 
+One should distinguish the resulting timetables, shown in figure
+\ref{fig:timetables} and the timetable entity that holds an agent
+during the negotiation. The first one is immutable and is the
+result of agent's participation in the negotiation.
+The set of such timetables, produced by every the participant,
+is the \textbf{university schedule} for given academic period.
+
+During the negotiation, an agent's inner timetable gets changed
+on the fly, in order to record agreements made.
+This means that we are dealing with \emph{side effects}, that
+need to be explicitly denoted in Haskell. The following
+definition leaves it free to choose the monad abstraction for
+those effects.
+        
+ 
+\begin{code}
+class (DiscreteTime time, Monad m) =>
+      TimetableM tt m e time  |  tt  -> time
+                              ,  tt  -> e
+                              ,  e   -> time
+  where  putEvent    :: tt -> e -> m tt
+         delEvent    :: tt -> e -> m tt
+         ttSnapshot  :: (Timetable ts x time) => tt -> m ts
+         
   
 
 \end{code}
 
+
+
+ 
 \end{document}
-
-
 
 %%% Local Variables:
 %%% latex-build-command: "lhsTeX"
 %%% eval: (haskell-indentation-mode)
-%%% eval: (haskell-session-change)
+%%% eval: (when (not (haskell-session-maybe)) (haskell-session-change))
 %%% eval: (load (concat (file-name-as-directory (projectile-project-root)) "publish-pdf.el"))
 %%% End:
