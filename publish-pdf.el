@@ -10,4 +10,3 @@
     )
   )
 (local-set-key "\C-c\M-p" 'publish-pdf)
-(message "TTT")
