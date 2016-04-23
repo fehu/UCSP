@@ -39,7 +39,9 @@ to the problem, while trying to consider \emph{personal preferences}
 of the represented people and institutions.
 
 
-\section{University Classes}
+\section{Implementation}
+
+\subsection{University Classes}
 
 A class is an en event, that brings together a \emph{group of students},
 and a \emph{professor} in certain \emph{classroom} in order to
@@ -183,7 +185,51 @@ class (DiscreteTime time, Monad m) =>
 \end{code}
 
 
+\subsection{Negotiating Agents}
+As it was mentioned before, the schedule is formed in
+a negotiation between \emph{professors}, \emph{groups}
+and \emph{classrooms}. To distinguish those three types
+of participants, agent's \underline{role} is introduced.
+The role:
+\begin{enumerate*}[1)]
+  \item identifies the kind of person/entity, represented
+    by the agent;
+  \item defines agent's reaction on the messages received;
+  \item defines agent's \underline{goal}.
+\end{enumerate*}
 
+A \emph{representing agent} is a computational entity, that
+represents a \emph{real person or object} in it's virtual environment.
+In current case, it represents one's interests in a \emph{negotiation}.
+Such an agent must
+\begin{enumerate}[(1)]
+  \item\label{itm:goal} pursue the \emph{common goal} -- it must consider
+                                    the \underline{common benefits}, while
+                                    being egoistic enough to achieve it's own goal;
+  \item respond to the messages received in correspondence with \ref{itm:goal};
+  \item initiate conversations (send messages, that are not responses),
+    driven by \ref{itm:goal};
+  \item become more susceptible (less egoistic) with passage of time.
+\end{enumerate}
+
+\subsubsection{Common Goal}
+
+\subsubsection{Messaging}
+
+
+\subsection{Coherence}
+
+ \subsubsection{Contexts}
+
+ \subsubsection{Obligations}
+ \subsubsection{Preferences}
+ \subsubsection{External}
+
+ \subsubsection{Decision}
+
+
+\subsection{Agent}
+ Here follows \emph{agents} implementation.
  
 \end{document}
 
