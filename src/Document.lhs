@@ -2,7 +2,7 @@
 
 %include polycode.fmt
 
-\usepackage{subcaption}
+\usepackage{subcaption, hyperref}
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
 
@@ -44,11 +44,10 @@ of the represented people and institutions.
 A class is an en event, that brings together a \emph{group of students},
 and a \emph{professor} in certain \emph{classroom} in order to
 learn/teach the specified \emph{discipline}.
-
 It happens \underline{periodically}, usually weekly,
 at the established \emph{day of week} and \emph{time}.
 
-
+%if False
 \begin{code}
 
 data GroupRef      = GroupRef String
@@ -61,11 +60,10 @@ data Discipline  = DisciplineClass  { disciplineId :: String
                  | DisciplineLab    { disciplineId :: String
                                     , disciplineMinutesPerWeek :: Int
                                     }
+\end{code}
+%endif
 
--- redefined 'System.Time.Day' - no 'Sunday'
-data Day  =  Monday | Tuesday | Wednesday
-          | Thursday | Friday | Saturday
- deriving (Eq, Ord, Enum, Bounded, Ix, Read, Show)
+\begin{code}
 
 data Class time = Class  { classDay        :: Day
                          , classBegins     :: time
@@ -76,15 +74,20 @@ data Class time = Class  { classDay        :: Day
                          , classRoom       :: ClassroomRef
                          }
 
+-- redefined 'System.Time.Day' -- no 'Sunday'
+data Day  =  Monday | Tuesday | Wednesday
+          | Thursday | Friday | Saturday
+  deriving (Eq, Ord, Enum, Bounded, Ix, Read, Show)
+
 \end{code}
-  
+
+
 The classes are negotiated by the interested parties:
 \begin{enumerate*}[1)]
   \item students / groups,
   \item professors,
   \item classrooms.
 \end{enumerate*}
-
 Each negotiation participant has a \emph{timetable}, holding a
 schedule for one week, that repeats throughout the academic period.
 The \emph{timetable} is actually a table:
@@ -142,13 +145,17 @@ class (Ord t, Bounded t, Show t) => DiscreteTime t where
   toMinutes    :: t -> Int
   fromMinutes  :: Int -> t
  
-class (DiscreteTime time) => Timetable tt x time  | tt  -> time
-                                                  , x   -> time
-  where  classesOn  :: tt -> Day   -> [Class time]
-         classesAt  :: tt -> time  -> [(Day, Maybe x)]
+class (DiscreteTime time) => Timetable tt x time  |  tt  -> time
+                                                  ,  x   -> time
+  where  classesOn  :: tt -> Day   -> [x]
+         classesAt  :: tt -> time  -> [(Day, x)]
          
          classAt    :: tt -> Day -> time -> Maybe x
          
+
+class (Timetable tt x time) => TimetableM tt m x time
+  where  putClass :: tt -> 
+  
 
 \end{code}
 
@@ -160,4 +167,5 @@ class (DiscreteTime time) => Timetable tt x time  | tt  -> time
 %%% latex-build-command: "lhsTeX"
 %%% eval: (haskell-indentation-mode)
 %%% eval: (haskell-session-change)
+%%% eval: (load (concat (file-name-as-directory (projectile-project-root)) "publish-pdf.el"))
 %%% End:

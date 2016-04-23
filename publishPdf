@@ -8,7 +8,7 @@ FILE_FULL_NAME="${FILE##*/}"
 FILE_NAME="${FILE_FULL_NAME%.*}"
 FILE_EXT="${FILE_FULL_NAME##*.}"
 
-if [ "${FILE_EXT,,}" -ne "pdf" ]; then
+if [ ! "${FILE_EXT,,}" = "pdf" ]; then
     echo "[ERROR] provide *.pdf file as first argument"
     exit 1
 fi
