@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# http://stackoverflow.com/questions/59895/can-a-bash-script-tell-what-directory-its-stored-in
+ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+FILE="$1"
+FILE_FULL_NAME="${FILE##*/}"
+FILE_NAME="${FILE_FULL_NAME%.*}"
+FILE_EXT="${FILE_FULL_NAME##*.}"
+
+if [ "${FILE_EXT,,}" -ne "pdf" ]; then
+    echo "[ERROR] provide *.pdf file as first argument"
+    exit 1
+fi
+
+cd $ROOT
+
+
+
+if [[ "${FILE_NAME##*.}" = "lhs" ]];
+then TARGET="${FILE_NAME%.*}.pdf"
+else TARGET="$FILE_NAME.pdf"
+fi
+
+git checkout gh-pages &&\
+    cp "$FILE" "$TARGET"  &&\
+    git add "$TARGET" &&\
+    git commit -m "Created/Updated $TARGET" &&\
+#    git push origin gh-pages &&\
+    git checkout master
+
+
+
