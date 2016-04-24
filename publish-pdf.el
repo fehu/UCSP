@@ -4,9 +4,10 @@
   (when (y-or-n-p
          (concat "Publish " (file-name-base)
                  ".pdf on gh-pages?"))
-    (shell-command
+    (start-process-shell-command "publish-pdf" "*Messages*"
      (concat (file-name-as-directory (projectile-project-root))
-             "publishPdf " (buffer-file-name) ".pdf"))
+             "publishPdf " (buffer-file-name) ".pdf")
+     )
     )
   )
 (local-set-key "\C-c\M-p" 'publish-pdf)
