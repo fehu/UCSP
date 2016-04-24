@@ -157,7 +157,7 @@ class (DiscreteTime time) => Timetable tt e time  |  tt  -> time
 \end{code}
 
 One should distinguish the resulting timetables, shown in figure
-\ref{fig:timetables} and the timetable entity that holds an agent
+\ref{fig:timetables} and the timetable, held an agent
 during the negotiation. The first one is immutable and is the
 result of agent's participation in the negotiation.
 The set of such timetables, produced by every the participant,
@@ -213,9 +213,19 @@ Such an agent must
 \end{enumerate}
 
 \subsubsection{Common Goal}
+Agent's own \emph{goal} represents its egoistical interests.
+They may (and will) contradict another agent's interests, thus
+creating \emph{incoherence}. The general rule is this case is
+to strive for solutions, benefiting the whole schedule.
+Because the schedule doesn't yet exist as a whole during the negotiation,
+an agent should consider instead the benefits, obtained by itself and
+the rest of the agents.
+
+The \emph{common goal} is incorporated in the \emph{contexts}
+mechanism, and is discussed in section \ref{subsec:context-external}.
 
 \subsubsection{Messaging}
-
+ \textbf{Is this section really needed?}
 
 \subsection{Coherence}
 
@@ -224,6 +234,7 @@ Such an agent must
  \subsubsection{Obligations}
  \subsubsection{Preferences}
  \subsubsection{External}
+  \label{subsec:context-external}
 
  \subsubsection{Decision}
 
