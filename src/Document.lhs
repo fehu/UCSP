@@ -229,8 +229,36 @@ mechanism, and is discussed in section \ref{subsec:context-external}.
 
 \subsection{Coherence}
 
+The coherence mechanism is based on \cite{Sindhu2010}.
+It uses the \emph{contexts} as means of separating (and further prioritizing)
+different \emph{cognitive aspects}. The contexts used are based on BDI
+agent architecture.
+
+The \emph{combined coherence} is used as the a measure of goal achievement.
+It's combined of coherence values, calculated by agent's contexts.
+
+The coherence is calculated over an \emph{information graph}, that represents
+some aspect of agent's knowledge. In order to use coherence for information
+\emph{assessment}, the concepts of \emph{context-specific information} and
+\emph{assessed information} are introduced.
+The context-specific one holds the information, already known/accepted by the
+agent, and is relevant for the context in question.
+The assessed one is \emph{assumed} during the evaluation process.
+
+
+To assess some information, it's propagated through the contexts, in the
+\emph{specified order}, that stands for contexts priority. Each context
+should have a \emph{coherence threshold} specified; after the assessed
+information's coherence has been estimated, it's compared against the
+threshold and either \texttt{Success} or \texttt{Failure} is returned,
+along with the evaluated coherence value.
+The information, that has successfully passed a context, is propagated
+further; otherwise the failure is returned.
+  
  \subsubsection{Contexts}
 
+ 
+  
  \subsubsection{Obligations}
  \subsubsection{Preferences}
  \subsubsection{External}
