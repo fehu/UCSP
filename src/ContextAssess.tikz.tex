@@ -1,0 +1,25 @@
+\begin{tikzpicture}
+
+\tikzstyle{assessed}=[draw, circle, fill=blue!30];
+\tikzstyle{innerKn}=[draw, circle, fill=brown!30];
+
+\node[assessed] (a1) at (-2,0) {$A_1$};
+\node[assessed] (a2) at (0, 1) {$A_2$};
+\node[assessed] (a3) at (0,-1) {$A_3$};
+\node[assessed] (a4) at (2, 0) {$A_4$};
+
+\node[innerKn] (k1) at (2,-3) {$K_1$};
+\node[innerKn] (k2) at (2, 3) {$K_2$};
+\node[innerKn] (k3) at (-2,3) {$K_3$};
+
+\begin{scope}[color=yellow!80!black]
+ \foreach \i in {1,...,4}
+  \foreach \j in {\i,...,4}{
+   \ifthenelse{\NOT \(2 = \i \AND \(4 = \j \OR 3 = \j\)\) }
+              { \draw (a\i) -- (a\j); }
+              {}}
+\end{scope}
+
+
+\end{tikzpicture}
+

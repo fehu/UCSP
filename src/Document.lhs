@@ -6,8 +6,8 @@
 
 %include polycode.fmt
 %include forall.fmt
- 
-\usepackage{subcaption, hyperref}
+
+\usepackage{subcaption, hyperref, tikz, ifthen}
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
 
@@ -24,6 +24,7 @@ module Document where
 
 import Data.Ix
 import Data.Typeable
+import Data.Either
 
 \end{code}
 %endif
@@ -38,10 +39,10 @@ import Data.Typeable
 \medskip
 \noindent
 
-This article proposes a system for generating possible 
+This article proposes a system for generating possible
 \emph{University Classes Schedules}.
-It uses multi-agent negotiation to find satisfactory solutions 
-to the problem, while trying to consider \emph{personal preferences} 
+It uses multi-agent negotiation to find satisfactory solutions
+to the problem, while trying to consider \emph{personal preferences}
 of the represented people and institutions.
 
 
@@ -120,10 +121,10 @@ Actual timetable structure may vary, as can be seen in figure
       11:30 -- 12:00 & ~ & ~ & ~ & ~ & ~ & ~ \\ \hline
       \vdots \qquad\quad \vdots & ~ & ~ & ~ & ~ & ~ & ~ \\ \hline
     \end{tabular}
-    
+
     \caption{Timetable without recesses.}
   \end{subfigure}
-  
+
   \begin{subfigure}{\textwidth}
     \centering
     \begin{tabular}{||c||c||c||c||c||c||c||}
@@ -152,7 +153,7 @@ Actual timetable structure may vary, as can be seen in figure
 class (Ord t, Bounded t, Show t) => DiscreteTime t where
   toMinutes    :: t -> Int
   fromMinutes  :: Int -> t
- 
+
 class (DiscreteTime time) => Timetable tt e time  |  tt  -> time
                                                   ,  tt  -> e
                                                   ,  e   -> time
@@ -175,8 +176,8 @@ This means that we are dealing with \emph{side effects}, that
 need to be explicitly denoted in Haskell. The following
 definition leaves it free to choose the monad abstraction for
 those effects.
-        
- 
+
+
 \begin{code}
 class (DiscreteTime time, Monad m) =>
       TimetableM tt m e time  |  tt  -> time
@@ -185,8 +186,8 @@ class (DiscreteTime time, Monad m) =>
   where  putEvent    :: tt -> e -> m tt
          delEvent    :: tt -> e -> m tt
          ttSnapshot  :: (Timetable ts x time) => tt -> m ts
-         
-  
+
+
 
 \end{code}
 
@@ -301,23 +302,7 @@ class (Typeable i) => InformationPiece i
 
 data Information = forall i . InformationPiece i => Information i
 
-\end{code}
-
-\begin{code}
-
-data RelationType = RelationBinary | RelationWhole
- 
-class InformationRelation (r :: * -> *) where
-  type RelType r :: RelationType
-
-
-
-
-
-
-type family RelValue (t :: RelationType) a :: *
-  where  RelValue  RelationBinary  a  = RelValsBetween a
-         RelValue  RelationWhole   a  = RelValWhole a
+-- -----------------------------------------------
 
 data RelValBetween a = RelValBetween {
      relBetween     :: (Information, Information)
@@ -329,30 +314,36 @@ type RelValsBetween a = [RelValBetween a]
 newtype RelValWhole a = RelValWhole a
 unwrapRelValWhole (RelValWhole a) = a
 
+-- -----------------------------------------------
 
-  
-class BinaryRelation r a where
+class BinaryRelation r where
   binRelValue :: r a -> Information -> Information -> Maybe a
 
-class WholeRelation r a where wholeRelValue :: r a -> IGraph -> a
- 
-data IRelation a  =  forall r .  BinaryRelation r a =>  RelBin (r a)
-                  |  forall r .  WholeRelation  r a =>  RelWhole (r a)
+class WholeRelation r where wholeRelValue :: r a -> IGraph -> a
 
 
-\end{code}
+data IRelation a  =  forall r .  BinaryRelation r =>  RelBin (r a)
+                  |  forall r .  WholeRelation  r =>  RelWhole (r a)
 
-\begin{code}
-  
+
+type RelValue a = Either (RelValsBetween a) (RelValWhole a)
+
+-- -----------------------------------------------
+
 class InformationGraph g where
   graphNodes  :: g -> [Information]
-  relationOn  :: (InformationRelation r) =>
-              r a -> g -> RelValue (RelType r) a
+  graphJoin   :: g -> [Information] -> g
+  relationOn  :: IRelation a -> g -> RelValue a
 
 data IGraph = forall g . InformationGraph g => IGraph g
 
+instance InformationGraph IGraph where
+    graphNodes    (IGraph g)  = graphNodes g
+    graphJoin     (IGraph g)  = IGraph . graphJoin g
+    relationOn r  (IGraph g)  = r `relationOn` g
+
 \end{code}
- 
+
 \subsubsection{Contexts}
 In order to use contexts for information \emph{coherence assessment},
 the concepts of \emph{context-specific information graph} and
@@ -361,10 +352,13 @@ The context-specific graph holds the information, already known/accepted by the
 agent, and is relevant for the context in question.
 The assessed one is \emph{assumed} during the evaluation process.
 
-
+\begin{centering}
+\input{ContextAssess.tikz}
+\end{centering}
+ 
 To assess some information, it's propagated through the contexts, in the
 \emph{specified order}, that stands for contexts priority. Each context
-should have a \emph{coherence threshold} specified; after the assessed
+xshould have a \emph{coherence threshold} specified; after the assessed
 information's coherence has been estimated, it's compared against the
 threshold and either \texttt{Success} or \texttt{Failure} is returned,
 along with the evaluated coherence value.
@@ -373,23 +367,42 @@ further; otherwise the failure is returned.
 
 \begin{code}
 
- 
 class Context c a | c -> a where
   contextName         :: c -> String
   contextInformation  :: c -> IGraph
   contextRelations    :: c -> [IRelation a]
   contextThreshold    :: c -> IO a
 
-data AssessmentDetails a -- TODO 
+  combineBinRels      :: c -> RelValsBetween a  -> Maybe (BinRelsCombined a)
+  combineWholeRels    :: c -> [RelValWhole a]   -> WholeRelsCombined a
+  combineRels         :: c -> BinRelsCombined a -> WholeRelsCombined a -> a
+
+
+
+newtype BinRelsCombined a    = BinRelsCombined a
+newtype WholeRelsCombined a  = WholeRelsCombined a
+
+
+data AssessmentDetails a -- TODO
 
 data SomeContext a = forall c . Context c a => SomeContext c
+
+-- -----------------------------------------------
 
 assessWithin' ::  (Context c a) =>
                   [Information] -> c -> (Maybe a, AssessmentDetails a)
 
-assessWithin' inf c = undefined -- TODO
+assessWithin' inf c = (assessed, undefined) -- TODO
+  where  assumed = contextInformation c `graphJoin` inf
+         (bins, whole)  = partitionEithers
+                        $ (`relationOn` assumed) <$> contextRelations c
 
+         rBinMb  = c `combineBinRels`  concat bins
+         rWhole  = c `combineWholeRels` whole
 
+         assessed = flip (combineRels c) rWhole <$> rBinMb
+
+-- -----------------------------------------------
 
 data AssessedCandidate a = AssessedCandidate {
        assessedAt       :: SomeContext a
@@ -404,14 +417,24 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
                                ,  candidate      :: [Information]
                                }
 
-assessWithin :: (Context c a) => Candidate a -> c -> IO (Candidate a)
-assessWithin s@Success{} c = undefined -- TODO
+-- -----------------------------------------------
+
+assessWithin ::  (Context c a, Ord a) =>
+                 Candidate a -> c -> IO (Candidate a)
+
 assessWithin f@Failure{} _ = return f
+assessWithin (Success hist c) cxt = do
+  let  (mbA, details) = c `assessWithin'` cxt
+       ac = AssessedCandidate (SomeContext cxt) mbA details
+  threshold <- contextThreshold cxt
+  return $  if mbA > Just threshold
+            then  Success  (ac : hist) c
+            else  Failure  (ac : hist) c
 
 
 \end{code}
 
- 
+
 \subsubsection{Capabilities}
 \subsubsection{Beliefs}
 \subsubsection{Obligations}
@@ -420,11 +443,11 @@ assessWithin f@Failure{} _ = return f
  \label{subsec:context-external}
 
 \subsubsection{Decision}
- 
+
 
 \subsection{Agent}
  Here follows \emph{agents} implementation.
- 
+
 \end{document}
 
 %%% Local Variables:
