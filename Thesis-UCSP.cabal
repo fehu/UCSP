@@ -26,3 +26,6 @@ library
   default-language:    Haskell2010
   default-extensions:  MultiParamTypeClasses
                        FunctionalDependencies
+                       ExistentialQuantification
+                       TypeFamilies
+                       DataKinds

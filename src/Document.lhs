@@ -1,7 +1,12 @@
 \documentclass{article}
 
-%include polycode.fmt
+%format family = "\textbf{family}"
 
+ % format :: = "\textbf{::}"
+
+%include polycode.fmt
+%include forall.fmt
+ 
 \usepackage{subcaption, hyperref}
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
@@ -18,6 +23,7 @@
 module Document where
 
 import Data.Ix
+import Data.Typeable
 
 \end{code}
 %endif
@@ -231,17 +237,127 @@ mechanism, and is discussed in section \ref{subsec:context-external}.
 
 The coherence mechanism is based on \cite{Sindhu2010}.
 It uses the \emph{contexts} as means of separating (and further prioritizing)
-different \emph{cognitive aspects}. The contexts used are based on BDI
+different \emph{cognitive aspects}. The contexts used are based on \emph{BDI}
 agent architecture.
 
 The \emph{combined coherence} is used as the a measure of goal achievement.
 It's combined of coherence values, calculated by agent's contexts.
 
+\subsubsection{Information and Relations}
 The coherence is calculated over an \emph{information graph}, that represents
-some aspect of agent's knowledge. In order to use coherence for information
-\emph{assessment}, the concepts of \emph{context-specific information} and
+some aspect of agent's knowledge. The nodes of the graph are some
+\emph{pieces of information} and the edges represent some \emph{relations}
+between theese pieces.
+
+The proposed system makes use of the following information:
+\begin{enumerate}
+
+ \item \textbf{Personal knowledge}, known only by one actor.
+  \begin{enumerate}
+    \item \textbf{Capabilites}: information about what an agent can do,
+          what kind of arrangments it can make.
+    \item \textbf{Obligations}: information about \emph{strong restrictions},
+          imposed over the agent.
+    \item \textbf{Preferences}: information about \emph{weak restrictions}.
+  \end{enumerate}
+
+ \item \textbf{Shared knowledge}, obtained in the negotiation.
+  \begin{enumerate}
+    \item \textbf{Others' capabilities} -- information about the counterpart
+          agents, that are known to be (un-)capable of doing something.
+    \item \textbf{Classes proposals}:
+          \begin{enumerate}
+            \item \textbf{Complete} -- references all three representing
+                  agents: a \emph{group}, a \emph{professor} and a
+                  \emph{classroom}.
+            \item \textbf{Partial} -- references less then three representing
+                  agents.
+          \end{enumerate}
+    \item \textbf{Classes decisions}:
+          \begin{enumerate}
+            \item \textbf{Class acceptance} -- a mark for
+                  \emph{accepted classes proposals}. Only \emph{complete}
+                  proposals can be accepted; all the three mentioned agents
+                  must accept it, or none.
+            \item \textbf{Class rejection} -- a mark for
+                  \emph{ignored classes proposals}, a result of \emph{yield}
+                  decision, discussed in section \ref{subsec:yield}.
+          \end{enumerate}
+  \end{enumerate}
+
+\end{enumerate}
+
+\medskip\noindent
+The \emph{binary relations} connect some information pieces, assigning to
+the edge some value. The \emph{whole graph relations}, on the other side,
+are applied to the graph as a whole and produce a single value.
+
+The relations used, as well as the information in the graph,
+depend on the \emph{context}.
+
+\begin{code}
+
+class (Typeable i) => InformationPiece i
+
+data Information = forall i . InformationPiece i => Information i
+
+\end{code}
+
+\begin{code}
+
+data RelationType = RelationBinary | RelationWhole
+ 
+class InformationRelation (r :: * -> *) where
+  type RelType r :: RelationType
+
+
+
+
+
+
+type family RelValue (t :: RelationType) a :: *
+  where  RelValue  RelationBinary  a  = RelValsBetween a
+         RelValue  RelationWhole   a  = RelValWhole a
+
+data RelValBetween a = RelValBetween {
+     relBetween     :: (Information, Information)
+  ,  relValBetween  :: a
+  }
+
+type RelValsBetween a = [RelValBetween a]
+
+newtype RelValWhole a = RelValWhole a
+unwrapRelValWhole (RelValWhole a) = a
+
+
+  
+class BinaryRelation r a where
+  binRelValue :: r a -> Information -> Information -> Maybe a
+
+class WholeRelation r a where wholeRelValue :: r a -> IGraph -> a
+ 
+data IRelation a  =  forall r .  BinaryRelation r a =>  RelBin (r a)
+                  |  forall r .  WholeRelation  r a =>  RelWhole (r a)
+
+
+\end{code}
+
+\begin{code}
+  
+class InformationGraph g where
+  graphNodes  :: g -> [Information]
+  relationOn  :: (InformationRelation r) =>
+              r a -> g -> RelValue (RelType r) a
+
+data IGraph = forall g . InformationGraph g => IGraph g
+
+\end{code}
+ 
+\subsubsection{Contexts}
+In order to use contexts for information \emph{coherence assessment},
+the concepts of \emph{context-specific information graph} and
 \emph{assessed information} are introduced.
-The context-specific one holds the information, already known/accepted by the
+The context-specific graph holds the information, already known/accepted by the
 agent, and is relevant for the context in question.
 The assessed one is \emph{assumed} during the evaluation process.
 
@@ -254,18 +370,57 @@ threshold and either \texttt{Success} or \texttt{Failure} is returned,
 along with the evaluated coherence value.
 The information, that has successfully passed a context, is propagated
 further; otherwise the failure is returned.
-  
- \subsubsection{Contexts}
+
+\begin{code}
 
  
-  
- \subsubsection{Obligations}
- \subsubsection{Preferences}
- \subsubsection{External}
-  \label{subsec:context-external}
+class Context c a | c -> a where
+  contextName         :: c -> String
+  contextInformation  :: c -> IGraph
+  contextRelations    :: c -> [IRelation a]
+  contextThreshold    :: c -> IO a
 
- \subsubsection{Decision}
+data AssessmentDetails a -- TODO 
 
+data SomeContext a = forall c . Context c a => SomeContext c
+
+assessWithin' ::  (Context c a) =>
+                  [Information] -> c -> (Maybe a, AssessmentDetails a)
+
+assessWithin' inf c = undefined -- TODO
+
+
+
+data AssessedCandidate a = AssessedCandidate {
+       assessedAt       :: SomeContext a
+    ,  assessedVal      :: Maybe a
+    ,  assessedDelails  :: AssessmentDetails a
+    }
+
+data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
+                               ,  candidate      :: [Information]
+                               }
+                   |  Failure  {  assessHistory  :: [AssessedCandidate a]
+                               ,  candidate      :: [Information]
+                               }
+
+assessWithin :: (Context c a) => Candidate a -> c -> IO (Candidate a)
+assessWithin s@Success{} c = undefined -- TODO
+assessWithin f@Failure{} _ = return f
+
+
+\end{code}
+
+ 
+\subsubsection{Capabilities}
+\subsubsection{Beliefs}
+\subsubsection{Obligations}
+\subsubsection{Preferences}
+\subsubsection{External}
+ \label{subsec:context-external}
+
+\subsubsection{Decision}
+ 
 
 \subsection{Agent}
  Here follows \emph{agents} implementation.
