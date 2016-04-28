@@ -7,7 +7,8 @@
 %include polycode.fmt
 %include forall.fmt
 
-\usepackage{subcaption, hyperref, tikz, ifthen}
+\usepackage{subcaption, hyperref, float}
+\usepackage{tikz, ifthen}
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
 
@@ -352,9 +353,14 @@ The context-specific graph holds the information, already known/accepted by the
 agent, and is relevant for the context in question.
 The assessed one is \emph{assumed} during the evaluation process.
 
-\begin{centering}
-\input{ContextAssess.tikz}
-\end{centering}
+\begin{figure}[H]
+  \centering
+  \fbox{ \input{ContextAssess.tikz} }
+  \caption{Binary relations within an information graph. One can
+           distinguish the relations between the assessed information pieces
+           and the relations between assessed and the known ones.
+          }
+\end{figure}
  
 To assess some information, it's propagated through the contexts, in the
 \emph{specified order}, that stands for contexts priority. Each context
@@ -367,30 +373,31 @@ further; otherwise the failure is returned.
 
 \begin{code}
 
-class Context c a | c -> a where
-  contextName         :: c -> String
-  contextInformation  :: c -> IGraph
-  contextRelations    :: c -> [IRelation a]
-  contextThreshold    :: c -> IO a
+class Context (c :: * -> *) where
+  contextName         :: c a -> String
+  contextInformation  :: c a -> IGraph
+  contextRelations    :: c a -> [IRelation a]
+  contextThreshold    :: c a -> IO a
 
-  combineBinRels      :: c -> RelValsBetween a  -> Maybe (BinRelsCombined a)
-  combineWholeRels    :: c -> [RelValWhole a]   -> WholeRelsCombined a
-  combineRels         :: c -> BinRelsCombined a -> WholeRelsCombined a -> a
+  combineBinRels      :: c a -> RelValsBetween a    -> Maybe (CBin a)
+  combineWholeRels    :: c a -> [RelValWhole a]     -> CWhole a
+  combineRels         :: c a -> CBin a -> CWhole a  -> a
 
 
-
-newtype BinRelsCombined a    = BinRelsCombined a
-newtype WholeRelsCombined a  = WholeRelsCombined a
+newtype CBin a    = CBin a
+newtype CWhole a  = CWhole a
 
 
 data AssessmentDetails a -- TODO
 
-data SomeContext a = forall c . Context c a => SomeContext c
+data SomeContext a = forall c . Context c => SomeContext (c a)
 
 -- -----------------------------------------------
 
-assessWithin' ::  (Context c a) =>
-                  [Information] -> c -> (Maybe a, AssessmentDetails a)
+assessWithin' ::  (Context c) =>
+                  [Information]
+              ->  c a
+              ->  (Maybe a, AssessmentDetails a)
 
 assessWithin' inf c = (assessed, undefined) -- TODO
   where  assumed = contextInformation c `graphJoin` inf
@@ -419,8 +426,8 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
 
 -- -----------------------------------------------
 
-assessWithin ::  (Context c a, Ord a) =>
-                 Candidate a -> c -> IO (Candidate a)
+assessWithin ::  (Context c, Ord a) =>
+                 Candidate a -> c a -> IO (Candidate a)
 
 assessWithin f@Failure{} _ = return f
 assessWithin (Success hist c) cxt = do
@@ -435,7 +442,24 @@ assessWithin (Success hist c) cxt = do
 \end{code}
 
 
+\medskip\noindent
+Some contexts might also be capable of split
+information graphs into \emph{valid candidates} --
+the sub-graphs, that are \emph{valid} at the context.
+The candidates can be assessed by the rest of the contexts.
+
+\begin{code}
+
+class (Context c) => SplittingContext c where
+  splitGraph :: c a -> IGraph -> [Candidate a]
+  
+ 
+\end{code}
+
 \subsubsection{Capabilities}
+
+ 
+ 
 \subsubsection{Beliefs}
 \subsubsection{Obligations}
 \subsubsection{Preferences}
