@@ -76,6 +76,7 @@ data Discipline  = DisciplineClass  { disciplineId :: String
                  | DisciplineLab    { disciplineId :: String
                                     , disciplineMinutesPerWeek :: Int
                                     }
+                 deriving (Eq, Typeable)
 \end{code}
 %endif
 
@@ -232,6 +233,16 @@ Such an agent must
   \item become more susceptible (less egoistic) with passage of time.
 \end{enumerate}
 
+\begin{code}
+
+data NegotiationRole  = GroupRole
+                      | FullTimeProfRole
+                      | PartTimeProfRole
+                      | ClassroomRole
+    deriving (Show, Typeable)
+ 
+\end{code}
+ 
 \subsubsection{Common Goal}
 Agent's own \emph{goal} represents its egoistical interests.
 They may (and will) contradict another agent's interests, thus
@@ -485,6 +496,47 @@ An agent should mark any other agent, that has declined some proposal for
 \emph{capabilities} reasons, describing the reason. It should
 futher avoid making same kind of proposals to the uncapable agent.
 
+
+\begin{code}
+
+ 
+data ProfessorCapabilities = ProfessorCapabilities{
+  canTeach :: [Discipline]
+  }
+  deriving Typeable
+
+data GroupCapabilities = GroupCapabilities {
+  needsDisciplines :: [Discipline]
+  }
+  deriving Typeable
+
+data ClassroomCapabilities = ClassroomCapabilities {
+    roomMaxCapacity  :: Int
+  , roomEquipedFor   :: Discipline -> Bool
+  }
+  deriving Typeable
+
+
+-- TODO: Part-time professorah
+type family CapabilitiesOf (r :: NegotiationRole) :: *
+  where  CapabilitiesOf GroupRole         = GroupCapabilities
+         CapabilitiesOf FullTimeProfRole  = ProfessorCapabilities
+         CapabilitiesOf ClassroomRole     = ClassroomCapabilities
+
+
+newtype Capabilities (r :: NegotiationRole) = Capabilities (CapabilitiesOf r)
+  deriving Typeable
+
+instance (Typeable r) => InformationPiece (Capabilities r)
+
+newtype Capabilities' r a = Capabilities' (Capabilities r)
+
+instance Context (Capabilities' r) where
+  contextName = const "Capabilities"
+  contextInformation = undefined -- TODO
+
+\end{code}
+
  
 \subsubsection{Beliefs}
 The beliefs is a \emph{splitting} context, that uses as it's internal
@@ -503,11 +555,11 @@ pair of \emph{different} proposals. If any of the coherence values
 $\not= 1$, then the graph is invalid and the assessment is $-1$. In case
 that all coherence values are (strongly) positive, the result is $1$.
  
-% \begin{enumerate}
-%  \item Confirm the proposal hasn't been yielded.
-%  \item Confirm the proposal doesn't contradict
-% \end{enumerate}
 
+\begin{code}
+
+
+\end{code}
  
 \subsubsection{Obligations}
 Obligations determine the rest \emph{strong restrictions} over the classes.
@@ -515,7 +567,11 @@ Possible obligations might depend on agent's role and are usually determined by
 the institution. For example: maximum classes per day, lunch recess,
 lower/upper class time limit, two classes must/cannot follow etc.
 
- 
+\begin{code}
+
+
+\end{code}
+
 \subsubsection{Preferences}
 Preferences determine \emph{weak restrictions}, that are intended to be
 set by the represented person (the institution in case of the classroom).
@@ -524,7 +580,12 @@ set by the represented person (the institution in case of the classroom).
 
 The context should disminus its influence over time to avoid possible
 over-restrictions due to conflicting personal interests.
- 
+
+\begin{code}
+
+
+\end{code}
+  
 \subsubsection{External}
  \label{subsec:context-external}
 
@@ -533,7 +594,12 @@ agents that are referenced by the solution candidate.
 It is responsible for \emph{common goal} assessment.
 The assessment must be \emph{objective} --- it must give no preference
 to agent's own interests.                        
- 
+
+
+\begin{code}
+
+
+\end{code}
   
 \subsubsection{Decision}
 
