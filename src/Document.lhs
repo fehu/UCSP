@@ -477,7 +477,7 @@ would never have been accepted.
   \item \emph{Group}: ``Am I interested in the discipline?''
   \item \emph{Professor}: ``Am I qualified to teach the disciple?''
   \item \emph{Classroom}: ``Do I suit the disciple?'',
-                          ``Do I the capacity required?''
+                          ``Do I have the capacity required?''
 \end{itemize}
 
 \noindent
@@ -510,13 +510,31 @@ that all coherence values are (strongly) positive, the result is $1$.
 
  
 \subsubsection{Obligations}
-
+Obligations determine the rest \emph{strong restrictions} over the classes.
+Possible obligations might depend on agent's role and are usually determined by
+the institution. For example: maximum classes per day, lunch recess,
+lower/upper class time limit, two classes must/cannot follow etc.
 
  
 \subsubsection{Preferences}
+Preferences determine \emph{weak restrictions}, that are intended to be
+set by the represented person (the institution in case of the classroom).
+
+
+
+The context should disminus its influence over time to avoid possible
+over-restrictions due to conflicting personal interests.
+ 
 \subsubsection{External}
  \label{subsec:context-external}
+
+External contexts take into account the \emph{opinions} of the
+agents that are referenced by the solution candidate.
+It is responsible for \emph{common goal} assessment.
+The assessment must be \emph{objective} --- it must give no preference
+to agent's own interests.                        
  
+  
 \subsubsection{Decision}
 
 
