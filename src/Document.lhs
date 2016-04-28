@@ -7,7 +7,7 @@
 %include polycode.fmt
 %include forall.fmt
 
-\usepackage{subcaption, hyperref, float}
+\usepackage{subcaption, hyperref, float, amsmath}
 \usepackage{tikz, ifthen}
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
@@ -57,6 +57,12 @@ learn/teach the specified \emph{discipline}.
 It happens \underline{periodically}, usually weekly,
 at the established \emph{day of week} and \emph{time}.
 
+For inner usage, the classes are divided into
+\begin{itemize}
+ \item \emph{abstract} --- without day and time;
+ \item \emph{concrete} --- with full time information.
+\end{itemize}
+
 %if False
 \begin{code}
 
@@ -75,14 +81,20 @@ data Discipline  = DisciplineClass  { disciplineId :: String
 
 \begin{code}
 
-data Class time = Class  { classDay        :: Day
-                         , classBegins     :: time
-                         , classEnds       :: time
-                         , classDiscipline :: Discipline
-                         , classGroup      :: GroupRef
-                         , classProfessor  :: ProfessorRef
-                         , classRoom       :: ClassroomRef
-                         }
+class AbstractClass c where  classDiscipline :: c -> Discipline
+                             classGroup      :: c -> GroupRef
+                             classProfessor  :: c -> ProfessorRef
+                             classRoom       :: c -> ClassroomRef
+                             classNumber     :: c -> Word
+
+class (AbstractClass c) => ConcreteClass c time | c -> time
+  where  classDay     :: c -> Day
+         classBegins  :: c -> time
+         classEnds    :: c -> time
+
+data Class time  = forall c  . ConcreteClass c time  => Class c
+data SomeClass   = forall c  . AbstractClass c => SomeClass c
+
 
 -- redefined 'System.Time.Day' -- no 'Sunday'
 data Day  =  Monday | Tuesday | Wednesday
@@ -443,7 +455,7 @@ assessWithin (Success hist c) cxt = do
 
 
 \medskip\noindent
-Some contexts might also be capable of split
+Some contexts might also be capable of \emph{splitting}
 information graphs into \emph{valid candidates} --
 the sub-graphs, that are \emph{valid} at the context.
 The candidates can be assessed by the rest of the contexts.
@@ -475,10 +487,32 @@ futher avoid making same kind of proposals to the uncapable agent.
 
  
 \subsubsection{Beliefs}
+The beliefs is a \emph{splitting} context, that uses as it's internal
+knowledge the state of the timetable at the moment.
+
+\textbf{Assessing} yields one of three values $$ 
+\begin{cases}
+ -1 & \mbox{if two proposals intersect in time} \\
+  0 & \mbox{if both proposals have the same \emph{abstract} part} \\
+  1 & \mbox{otherwise}
+\end{cases} $$
+         
+The assessment of \emph{concrete proposals} (containing concrete classes)
+in the graph consists in finding \emph{time coherence} for every possible
+pair of \emph{different} proposals. If any of the coherence values
+$\not= 1$, then the graph is invalid and the assessment is $-1$. In case
+that all coherence values are (strongly) positive, the result is $1$.
+ 
+% \begin{enumerate}
+%  \item Confirm the proposal hasn't been yielded.
+%  \item Confirm the proposal doesn't contradict
+% \end{enumerate}
 
  
- 
 \subsubsection{Obligations}
+
+
+ 
 \subsubsection{Preferences}
 \subsubsection{External}
  \label{subsec:context-external}
