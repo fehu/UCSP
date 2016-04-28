@@ -457,15 +457,32 @@ class (Context c) => SplittingContext c where
 \end{code}
 
 \subsubsection{Capabilities}
+The capabilities context handles question ``Am I able to do it?''.
+It's main purpose is to discard immediately any proposal that
+would never have been accepted.
+
+\begin{itemize}
+  \item \emph{Group}: ``Am I interested in the discipline?''
+  \item \emph{Professor}: ``Am I qualified to teach the disciple?''
+  \item \emph{Classroom}: ``Do I suit the disciple?'',
+                          ``Do I the capacity required?''
+\end{itemize}
+
+\noindent
+An agent should mark any other agent, that has declined some proposal for
+\emph{capabilities} reasons, describing the reason. It should
+futher avoid making same kind of proposals to the uncapable agent.
+
+ 
+\subsubsection{Beliefs}
 
  
  
-\subsubsection{Beliefs}
 \subsubsection{Obligations}
 \subsubsection{Preferences}
 \subsubsection{External}
  \label{subsec:context-external}
-
+ 
 \subsubsection{Decision}
 
 
