@@ -26,6 +26,10 @@ module Document where
 import Data.Ix
 import Data.Typeable
 import Data.Either
+import Data.Function (on)
+
+import Data.Set (Set, union)
+import qualified Data.Set as Set
 
 \end{code}
 %endif
@@ -76,7 +80,7 @@ data Discipline  = DisciplineClass  { disciplineId :: String
                  | DisciplineLab    { disciplineId :: String
                                     , disciplineMinutesPerWeek :: Int
                                     }
-                 deriving (Eq, Typeable)
+                 deriving (Typeable, Show, Eq, Ord)
 \end{code}
 %endif
 
@@ -240,9 +244,9 @@ data NegotiationRole  = GroupRole
                       | PartTimeProfRole
                       | ClassroomRole
     deriving (Show, Typeable)
- 
+
 \end{code}
- 
+
 \subsubsection{Common Goal}
 Agent's own \emph{goal} represents its egoistical interests.
 They may (and will) contradict another agent's interests, thus
@@ -322,9 +326,18 @@ depend on the \emph{context}.
 
 \begin{code}
 
-class (Typeable i) => InformationPiece i
+-- 'Ord' instance is mainly needed to create 'Set's.
+class (Typeable i, Eq i, Ord i) => InformationPiece i
 
 data Information = forall i . InformationPiece i => Information i
+
+instance Eq Information where
+  (Information i1) == (Information i2) =
+    case cast i1 of  Just x  -> x == i2
+                     _       -> False
+
+instance Ord Information where
+  (Information i1) `compare` (Information i2) = undefined
 
 -- -----------------------------------------------
 
@@ -354,17 +367,21 @@ type RelValue a = Either (RelValsBetween a) (RelValWhole a)
 
 -- -----------------------------------------------
 
-class InformationGraph g where
-  graphNodes  :: g -> [Information]
-  graphJoin   :: g -> [Information] -> g
-  relationOn  :: IRelation a -> g -> RelValue a
+newtype IGraph = IGraph (Set Information)
 
-data IGraph = forall g . InformationGraph g => IGraph g
+graphNodes :: IGraph -> [Information]
+graphNodes (IGraph inf) = Set.toList inf
 
-instance InformationGraph IGraph where
-    graphNodes    (IGraph g)  = graphNodes g
-    graphJoin     (IGraph g)  = IGraph . graphJoin g
-    relationOn r  (IGraph g)  = r `relationOn` g
+graphJoin :: IGraph -> [Information] -> IGraph
+graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
+
+fromNodes :: [Information] -> IGraph
+fromNodes = IGraph . Set.fromList
+
+relationOn :: IRelation a -> IGraph -> RelValue a
+relationOn rel (IGraph inf) = undefined -- TODO
+
+
 
 \end{code}
 
@@ -384,7 +401,7 @@ The assessed one is \emph{assumed} during the evaluation process.
            and the relations between assessed and the known ones.
           }
 \end{figure}
- 
+
 To assess some information, it's propagated through the contexts, in the
 \emph{specified order}, that stands for contexts priority. Each context
 xshould have a \emph{coherence threshold} specified; after the assessed
@@ -475,8 +492,8 @@ The candidates can be assessed by the rest of the contexts.
 
 class (Context c) => SplittingContext c where
   splitGraph :: c a -> IGraph -> [Candidate a]
-  
- 
+
+
 \end{code}
 
 \subsubsection{Capabilities}
@@ -499,22 +516,29 @@ futher avoid making same kind of proposals to the uncapable agent.
 
 \begin{code}
 
- 
+
 data ProfessorCapabilities = ProfessorCapabilities{
   canTeach :: [Discipline]
   }
-  deriving Typeable
+  deriving (Typeable, Eq, Ord)
 
 data GroupCapabilities = GroupCapabilities {
   needsDisciplines :: [Discipline]
   }
-  deriving Typeable
+  deriving (Typeable, Eq, Ord)
 
 data ClassroomCapabilities = ClassroomCapabilities {
     roomMaxCapacity  :: Int
   , roomEquipedFor   :: Discipline -> Bool
   }
   deriving Typeable
+
+-- Actual equivalence/order are not important for the implementation,
+-- but they are needed by 'Set', that is 'IGraph' underlying data.
+instance Eq ClassroomCapabilities where
+  (==) = (==) `on` roomMaxCapacity
+instance Ord ClassroomCapabilities where
+  compare = compare `on` roomMaxCapacity
 
 
 -- TODO: Part-time professorah
@@ -524,43 +548,57 @@ type family CapabilitiesOf (r :: NegotiationRole) :: *
          CapabilitiesOf ClassroomRole     = ClassroomCapabilities
 
 
-newtype Capabilities (r :: NegotiationRole) = Capabilities (CapabilitiesOf r)
+newtype Capabilities (r :: NegotiationRole) =
+        Capabilities { getCapabilities ::  CapabilitiesOf r }
   deriving Typeable
 
-instance (Typeable r) => InformationPiece (Capabilities r)
+instance (Eq (CapabilitiesOf r)) => Eq (Capabilities r) where
+  (==) = (==) `on` getCapabilities
+instance (Ord (CapabilitiesOf r)) => Ord (Capabilities r) where
+  compare = compare `on` getCapabilities
 
-newtype Capabilities' r a = Capabilities' (Capabilities r)
 
-instance Context (Capabilities' r) where
-  contextName = const "Capabilities"
-  contextInformation = undefined -- TODO
+
+instance (Ord (CapabilitiesOf r), Typeable r) => InformationPiece (Capabilities r)
+
+newtype Capabilities' r a = Capabilities' {
+  getCapabilities' :: Capabilities r
+  }
+
+instance (Ord (CapabilitiesOf r), Typeable r) =>
+  Context (Capabilities' r) where
+    contextName = const "Capabilities"
+    contextInformation  = IGraph . Set.singleton
+                        .  Information . getCapabilities'
+    
+--    contextThreshold
 
 \end{code}
 
- 
+
 \subsubsection{Beliefs}
 The beliefs is a \emph{splitting} context, that uses as it's internal
 knowledge the state of the timetable at the moment.
 
-\textbf{Assessing} yields one of three values $$ 
+\textbf{Assessing} yields one of three values $$
 \begin{cases}
  -1 & \mbox{if two proposals intersect in time} \\
   0 & \mbox{if both proposals have the same \emph{abstract} part} \\
   1 & \mbox{otherwise}
 \end{cases} $$
-         
+
 The assessment of \emph{concrete proposals} (containing concrete classes)
 in the graph consists in finding \emph{time coherence} for every possible
 pair of \emph{different} proposals. If any of the coherence values
 $\not= 1$, then the graph is invalid and the assessment is $-1$. In case
 that all coherence values are (strongly) positive, the result is $1$.
- 
+
 
 \begin{code}
 
 
 \end{code}
- 
+
 \subsubsection{Obligations}
 Obligations determine the rest \emph{strong restrictions} over the classes.
 Possible obligations might depend on agent's role and are usually determined by
@@ -585,7 +623,7 @@ over-restrictions due to conflicting personal interests.
 
 
 \end{code}
-  
+
 \subsubsection{External}
  \label{subsec:context-external}
 
@@ -593,14 +631,14 @@ External contexts take into account the \emph{opinions} of the
 agents that are referenced by the solution candidate.
 It is responsible for \emph{common goal} assessment.
 The assessment must be \emph{objective} --- it must give no preference
-to agent's own interests.                        
+to agent's own interests.
 
 
 \begin{code}
 
 
 \end{code}
-  
+
 \subsubsection{Decision}
 
 
