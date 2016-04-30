@@ -31,4 +31,6 @@ library
                        TypeFamilies
                        DataKinds
                        FlexibleContexts
+                       FlexibleInstances
                        UndecidableInstances
+                       -- GeneralizedNewtypeDeriving

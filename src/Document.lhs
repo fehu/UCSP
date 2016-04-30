@@ -413,7 +413,7 @@ further; otherwise the failure is returned.
 
 \begin{code}
 
-class Context (c :: * -> *) where
+class Context (c :: * -> *) a where
   contextName         :: c a -> String
   contextInformation  :: c a -> IGraph
   contextRelations    :: c a -> [IRelation a]
@@ -430,7 +430,7 @@ newtype CWhole a  = CWhole a
 
 data AssessmentDetails a -- TODO
 
-data SomeContext a = forall c . Context c => SomeContext (c a)
+data SomeContext a = forall c . Context c a => SomeContext (c a)
 
 -- -----------------------------------------------
 
@@ -490,7 +490,7 @@ The candidates can be assessed by the rest of the contexts.
 
 \begin{code}
 
-class (Context c) => SplittingContext c where
+class (Context c a) => SplittingContext c a where
   splitGraph :: c a -> IGraph -> [Candidate a]
 
 
@@ -516,60 +516,85 @@ futher avoid making same kind of proposals to the uncapable agent.
 
 \begin{code}
 
+data family Capabilities (r :: NegotiationRole) :: * -> *
 
-data ProfessorCapabilities = ProfessorCapabilities{
-  canTeach :: [Discipline]
-  }
-  deriving (Typeable, Eq, Ord)
-
-data GroupCapabilities = GroupCapabilities {
+data instance Capabilities GroupRole a = GroupCapabilities {
   needsDisciplines :: [Discipline]
   }
-  deriving (Typeable, Eq, Ord)
-
-data ClassroomCapabilities = ClassroomCapabilities {
-    roomMaxCapacity  :: Int
-  , roomEquipedFor   :: Discipline -> Bool
-  }
-  deriving Typeable
-
--- Actual equivalence/order are not important for the implementation,
--- but they are needed by 'Set', that is 'IGraph' underlying data.
-instance Eq ClassroomCapabilities where
-  (==) = (==) `on` roomMaxCapacity
-instance Ord ClassroomCapabilities where
-  compare = compare `on` roomMaxCapacity
+--  deriving (Typeable, Eq, Ord)
 
 
--- TODO: Part-time professorah
-type family CapabilitiesOf (r :: NegotiationRole) :: *
-  where  CapabilitiesOf GroupRole         = GroupCapabilities
-         CapabilitiesOf FullTimeProfRole  = ProfessorCapabilities
-         CapabilitiesOf ClassroomRole     = ClassroomCapabilities
+newtype Needs = Needs (Set Discipline) deriving (Eq, Ord, Show, Typeable)
+instance InformationPiece Needs
 
 
-newtype Capabilities (r :: NegotiationRole) =
-        Capabilities { getCapabilities ::  CapabilitiesOf r }
-  deriving Typeable
-
-instance (Eq (CapabilitiesOf r)) => Eq (Capabilities r) where
-  (==) = (==) `on` getCapabilities
-instance (Ord (CapabilitiesOf r)) => Ord (Capabilities r) where
-  compare = compare `on` getCapabilities
+data CanTeachRel a = CanTeachRel
+instance BinaryRelation CanTeachRel
 
 
+instance (Num a) => Context (Capabilities GroupRole) a where
+  contextName _ = "Capabilities"
+  contextInformation  = fromNodes . (:[])
+                      . Information . Needs
+                      . Set.fromList . needsDisciplines
+  contextRelations _ = [RelBin CanTeachRel]
+  contextThreshold _ = return 0
+  
+  combineBinRels = undefined
+    
+-- data ProfessorCapabilities = ProfessorCapabilities{
+--   canTeach :: [Discipline]
+--   }
+--   deriving (Typeable, Eq, Ord)
 
-instance (Ord (CapabilitiesOf r), Typeable r) => InformationPiece (Capabilities r)
+-- data GroupCapabilities = GroupCapabilities {
+--   needsDisciplines :: [Discipline]
+--   }
+--   deriving (Typeable, Eq, Ord)
 
-newtype Capabilities' r a = Capabilities' {
-  getCapabilities' :: Capabilities r
-  }
+-- data ClassroomCapabilities = ClassroomCapabilities {
+--     roomMaxCapacity  :: Int
+--   , roomEquipedFor   :: Discipline -> Bool
+--   }
+--   deriving Typeable
 
-instance (Ord (CapabilitiesOf r), Typeable r) =>
-  Context (Capabilities' r) where
-    contextName = const "Capabilities"
-    contextInformation  = IGraph . Set.singleton
-                        .  Information . getCapabilities'
+-- -- Actual equivalence/order are not important for the implementation,
+-- -- but they are needed by 'Set', that is 'IGraph' underlying data.
+-- instance Eq ClassroomCapabilities where
+--   (==) = (==) `on` roomMaxCapacity
+-- instance Ord ClassroomCapabilities where
+--   compare = compare `on` roomMaxCapacity
+
+
+-- -- TODO: Part-time professorah
+-- type family CapabilitiesOf (r :: NegotiationRole) :: *
+--   where  CapabilitiesOf GroupRole         = GroupCapabilities
+--          CapabilitiesOf FullTimeProfRole  = ProfessorCapabilities
+--          CapabilitiesOf ClassroomRole     = ClassroomCapabilities
+
+
+-- newtype Capabilities (r :: NegotiationRole) =
+--         Capabilities { getCapabilities ::  CapabilitiesOf r }
+--   deriving Typeable
+
+-- instance (Eq (CapabilitiesOf r)) => Eq (Capabilities r) where
+--   (==) = (==) `on` getCapabilities
+-- instance (Ord (CapabilitiesOf r)) => Ord (Capabilities r) where
+--   compare = compare `on` getCapabilities
+
+
+
+-- instance (Ord (CapabilitiesOf r), Typeable r) => InformationPiece (Capabilities r)
+
+-- newtype Capabilities' r a = Capabilities' {
+--   getCapabilities' :: Capabilities r
+--   }
+
+-- instance (Ord (CapabilitiesOf r), Typeable r) =>
+--   Context (Capabilities' r) where
+--     contextName = const "Capabilities"
+--     contextInformation  = IGraph . Set.singleton
+--                         .  Information . getCapabilities'
     
 --    contextThreshold
 
