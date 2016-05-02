@@ -28,8 +28,16 @@ import Data.Typeable
 import Data.Either
 import Data.Function (on)
 
-import Data.Set (Set, union)
+import Data.Set (Set, union, member)
 import qualified Data.Set as Set
+
+import Data.Map (Map)
+import qualified Data.Map as Map
+
+import Control.Arrow
+import Control.Applicative
+
+import GHC.Exts (groupWith)
 
 \end{code}
 %endif
@@ -70,10 +78,6 @@ For inner usage, the classes are divided into
 %if False
 \begin{code}
 
-data GroupRef      = GroupRef String
-data ProfessorRef  = ProfessorRef String
-data ClassroomRef  = ClassroomRef String
-
 data Discipline  = DisciplineClass  { disciplineId :: String
                                     , disciplineMinutesPerWeek :: Int
                                     }
@@ -86,19 +90,21 @@ data Discipline  = DisciplineClass  { disciplineId :: String
 
 \begin{code}
 
-class AbstractClass c where  classDiscipline :: c -> Discipline
-                             classGroup      :: c -> GroupRef
-                             classProfessor  :: c -> ProfessorRef
-                             classRoom       :: c -> ClassroomRef
-                             classNumber     :: c -> Word
+class (Ord c, Show c, Typeable c) =>
+    AbstractClass c where  classDiscipline :: c -> Discipline
+                           classGroup      :: c -> GroupRef
+                           classProfessor  :: c -> ProfessorRef
+                           classRoom       :: c -> ClassroomRef
+                           classNumber     :: c -> Word
 
-class (AbstractClass c) => ConcreteClass c time | c -> time
-  where  classDay     :: c -> Day
-         classBegins  :: c -> time
-         classEnds    :: c -> time
+class (AbstractClass c, DiscreteTime time) =>
+  ConcreteClass c time | c -> time
+    where  classDay     :: c -> Day
+           classBegins  :: c -> time
+           classEnds    :: c -> time
 
-data Class time  = forall c  . ConcreteClass c time  => Class c
-data SomeClass   = forall c  . AbstractClass c => SomeClass c
+data Class      = forall c time  . ConcreteClass c time  => Class c
+data SomeClass  = forall c       . AbstractClass c       => SomeClass c
 
 
 -- redefined 'System.Time.Day' -- no 'Sunday'
@@ -168,7 +174,7 @@ Actual timetable structure may vary, as can be seen in figure
 
 \begin{code}
 
-class (Ord t, Bounded t, Show t) => DiscreteTime t where
+class (Ord t, Bounded t, Show t, Typeable t) => DiscreteTime t where
   toMinutes    :: t -> Int
   fromMinutes  :: Int -> t
 
@@ -278,6 +284,26 @@ some aspect of agent's knowledge. The nodes of the graph are some
 \emph{pieces of information} and the edges represent some \emph{relations}
 between theese pieces.
 
+
+\begin{code}
+
+
+newtype IGraph = IGraph (Set Information)
+
+graphNodes :: IGraph -> [Information]
+graphNodes (IGraph inf) = Set.toList inf
+
+graphJoin :: IGraph -> [Information] -> IGraph
+graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
+
+fromNodes :: [Information] -> IGraph
+fromNodes = IGraph . Set.fromList
+
+relationOn :: IRelation a -> IGraph -> RelValue a
+relationOn rel (IGraph inf) = undefined -- TODO
+
+\end{code}
+
 The proposed system makes use of the following information:
 \begin{enumerate}
 
@@ -316,20 +342,45 @@ The proposed system makes use of the following information:
 
 \end{enumerate}
 
-\medskip\noindent
-The \emph{binary relations} connect some information pieces, assigning to
-the edge some value. The \emph{whole graph relations}, on the other side,
-are applied to the graph as a whole and produce a single value.
-
-The relations used, as well as the information in the graph,
-depend on the \emph{context}.
-
 \begin{code}
+
+data InformationScope = Personal | Shared
 
 -- 'Ord' instance is mainly needed to create 'Set's.
 class (Typeable i, Eq i, Ord i) => InformationPiece i
+    where type IScope i :: InformationScope
+
+
+class (InformationPiece i, Personal ~ IScope i)  => PersonalInformation i
+class (InformationPiece i, Shared ~ IScope i)    => SharedInformation i
+    where sharedBetween :: i -> Set AgentRef
+
+-- -----------------------------------------------
+
+instance Eq   SomeClass where
+    (SomeClass a) == (SomeClass b) = cast a == Just b
+
+                                                                            -- TODO
+instance Ord  SomeClass
+instance InformationPiece SomeClass where
+    type IScope SomeClass = Shared
+
+instance SharedInformation SomeClass
+
+-- -----------------------------------------------
+
+instance Eq   Class
+instance Ord  Class
+instance InformationPiece Class where type IScope Class = Shared
+instance SharedInformation Class
+
+
+-- -----------------------------------------------
 
 data Information = forall i . InformationPiece i => Information i
+
+collectInf :: (Typeable a) => Information -> Maybe a
+collectInf (Information i) = cast i
 
 instance Eq Information where
   (Information i1) == (Information i2) =
@@ -341,46 +392,67 @@ instance Ord Information where
 
 -- -----------------------------------------------
 
+newtype Needs = Needs(Set Discipline)
+    deriving ( Eq, Ord, Show, Typeable )
+
+newtype CanTeach = CanTeach  (Set Discipline)
+    deriving ( Eq, Ord, Show, Typeable )
+
+instance InformationPiece Needs
+instance InformationPiece CanTeach
+
+
+\end{code}
+
+\medskip\noindent
+The \emph{binary relations} connect some information pieces, assigning to
+the edge some value. The \emph{whole graph relations}, on the other side,
+are applied to the graph as a whole and produce a single value.
+
+The relations used, as well as the information in the graph,
+depend on the \emph{context}.
+
+\begin{code}
+
 data RelValBetween a = RelValBetween {
      relBetween     :: (Information, Information)
   ,  relValBetween  :: a
   }
 
-type RelValsBetween a = [RelValBetween a]
+type RelValsBetween a = Map (IRelation a) [RelValBetween a]
+
 
 newtype RelValWhole a = RelValWhole a
 unwrapRelValWhole (RelValWhole a) = a
 
+type RelValsWhole a = Map (IRelation a) (RelValWhole a)
+
+
 -- -----------------------------------------------
 
-class BinaryRelation r where
-  binRelValue :: r a -> Information -> Information -> Maybe a
+class InformationRelation r where relationName :: r a -> String
 
-class WholeRelation r where wholeRelValue :: r a -> IGraph -> a
+class InformationRelation r =>
+    BinaryRelation r where
+        binRelValue :: (Num a) => r a -> Information -> Information -> Maybe a
 
+class InformationRelation r =>
+    WholeRelation r where
+        wholeRelValue :: r a -> IGraph -> a
+
+-- -----------------------------------------------
 
 data IRelation a  =  forall r .  BinaryRelation r =>  RelBin (r a)
                   |  forall r .  WholeRelation  r =>  RelWhole (r a)
 
+relName (RelBin a)    = relationName a
+relName (RelWhole a)  = relationName a
 
-type RelValue a = Either (RelValsBetween a) (RelValWhole a)
+instance Eq (IRelation a) where (==) = (==) `on` relName
 
--- -----------------------------------------------
+instance Ord (IRelation a) where compare = compare `on` relName
 
-newtype IGraph = IGraph (Set Information)
-
-graphNodes :: IGraph -> [Information]
-graphNodes (IGraph inf) = Set.toList inf
-
-graphJoin :: IGraph -> [Information] -> IGraph
-graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
-
-fromNodes :: [Information] -> IGraph
-fromNodes = IGraph . Set.fromList
-
-relationOn :: IRelation a -> IGraph -> RelValue a
-relationOn rel (IGraph inf) = undefined -- TODO
-
+type RelValue a = Either [RelValBetween a] (RelValWhole a)
 
 
 \end{code}
@@ -420,7 +492,7 @@ class Context (c :: * -> *) a where
   contextThreshold    :: c a -> IO a
 
   combineBinRels      :: c a -> RelValsBetween a    -> Maybe (CBin a)
-  combineWholeRels    :: c a -> [RelValWhole a]     -> CWhole a
+  combineWholeRels    :: c a -> RelValsWhole a      -> Maybe (CWhole a)
   combineRels         :: c a -> CBin a -> CWhole a  -> a
 
 
@@ -434,7 +506,13 @@ data SomeContext a = forall c . Context c a => SomeContext (c a)
 
 -- -----------------------------------------------
 
-assessWithin' ::  (Context c) =>
+type AnyFunc1 res = forall a . a -> res a
+
+mapEither :: AnyFunc1 r -> Either a b -> Either (r a) (r b)
+mapEither f (Left a)   = Left $ f a
+mapEither f (Right a)  = Right $ f a
+
+assessWithin' ::  (Context c a) =>
                   [Information]
               ->  c a
               ->  (Maybe a, AssessmentDetails a)
@@ -442,12 +520,11 @@ assessWithin' ::  (Context c) =>
 assessWithin' inf c = (assessed, undefined) -- TODO
   where  assumed = contextInformation c `graphJoin` inf
          (bins, whole)  = partitionEithers
-                        $ (`relationOn` assumed) <$> contextRelations c
-
-         rBinMb  = c `combineBinRels`  concat bins
-         rWhole  = c `combineWholeRels` whole
-
-         assessed = flip (combineRels c) rWhole <$> rBinMb
+                        $ (\r -> mapEither ((,) r) $ r `relationOn` assumed)
+                        <$> contextRelations c
+         assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
+                        rWhole  <- c `combineWholeRels`  Map.fromList whole
+                        return  $ combineRels c rBin rWhole
 
 -- -----------------------------------------------
 
@@ -466,7 +543,7 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
 
 -- -----------------------------------------------
 
-assessWithin ::  (Context c, Ord a) =>
+assessWithin ::  (Context c a, Ord a) =>
                  Candidate a -> c a -> IO (Candidate a)
 
 assessWithin f@Failure{} _ = return f
@@ -511,7 +588,7 @@ would never have been accepted.
 \noindent
 An agent should mark any other agent, that has declined some proposal for
 \emph{capabilities} reasons, describing the reason. It should
-futher avoid making same kind of proposals to the uncapable agent.
+further avoid making same kind of proposals to the uncapable agent.
 
 
 \begin{code}
@@ -521,82 +598,76 @@ data family Capabilities (r :: NegotiationRole) :: * -> *
 data instance Capabilities GroupRole a = GroupCapabilities {
   needsDisciplines :: [Discipline]
   }
---  deriving (Typeable, Eq, Ord)
 
+data instance Capabilities FullTimeProfRole a = FullTimeProfCapabilities {
+  canTeachFullTime :: [Discipline]
+  }
 
-newtype Needs = Needs (Set Discipline) deriving (Eq, Ord, Show, Typeable)
-instance InformationPiece Needs
-
+-- -----------------------------------------------
 
 data CanTeachRel a = CanTeachRel
-instance BinaryRelation CanTeachRel
 
+instance InformationRelation CanTeachRel where
+    relationName _ = "CanTeach"
+instance BinaryRelation CanTeachRel where
+    binRelValue _ a b =
+     let v ds c = if classDiscipline c `member` ds then 1 else 0
+     in case collectInf a of
+        Just (CanTeach ds)  -> let
+            r1  = case collectInf b of Just (SomeClass c)  -> Just $ v ds c
+            r2  = case collectInf b of Just (Class c)      -> Just $ v ds c
+            in  r1 <|> r2
+        _                   -> Nothing
+
+-- -----------------------------------------------
+
+data NeedsDisciplineRel a = NeedsDisciplineRel
+
+instance InformationRelation NeedsDisciplineRel where  -- TODO
+instance BinaryRelation NeedsDisciplineRel where       -- TODO
+
+-- -----------------------------------------------
+
+  -- Every capability must be coherent. 0*X = 0
+
+combineBinRelsStrict _ bRels  | null bRels = Nothing
+combineBinRelsStrict _ bRels  = Just . CBin . product
+                              . concatMap (map relValBetween)
+                              $ Map.elems bRels
+
+combineWholeRelsStrict _ wRels  | null wRels = Nothing
+combineWholeRelsStrict _ wRels  = Just . CWhole . product
+                                . map unwrapRelValWhole
+                                $ Map.elems wRels
+
+combineRelsStrict _ (CBin b) (CWhole w) = b * w
+
+-- -----------------------------------------------
 
 instance (Num a) => Context (Capabilities GroupRole) a where
-  contextName _ = "Capabilities"
+  contextName _       = "Capabilities"
   contextInformation  = fromNodes . (:[])
                       . Information . Needs
                       . Set.fromList . needsDisciplines
-  contextRelations _ = [RelBin CanTeachRel]
-  contextThreshold _ = return 0
-  
-  combineBinRels = undefined
-    
--- data ProfessorCapabilities = ProfessorCapabilities{
---   canTeach :: [Discipline]
---   }
---   deriving (Typeable, Eq, Ord)
+  contextRelations _  = [RelBin NeedsDisciplineRel]
+  contextThreshold _  = return 0
 
--- data GroupCapabilities = GroupCapabilities {
---   needsDisciplines :: [Discipline]
---   }
---   deriving (Typeable, Eq, Ord)
-
--- data ClassroomCapabilities = ClassroomCapabilities {
---     roomMaxCapacity  :: Int
---   , roomEquipedFor   :: Discipline -> Bool
---   }
---   deriving Typeable
-
--- -- Actual equivalence/order are not important for the implementation,
--- -- but they are needed by 'Set', that is 'IGraph' underlying data.
--- instance Eq ClassroomCapabilities where
---   (==) = (==) `on` roomMaxCapacity
--- instance Ord ClassroomCapabilities where
---   compare = compare `on` roomMaxCapacity
+  combineWholeRels    = combineWholeRelsStrict
+  combineBinRels      = combineBinRelsStrict
+  combineRels         = combineRelsStrict
 
 
--- -- TODO: Part-time professorah
--- type family CapabilitiesOf (r :: NegotiationRole) :: *
---   where  CapabilitiesOf GroupRole         = GroupCapabilities
---          CapabilitiesOf FullTimeProfRole  = ProfessorCapabilities
---          CapabilitiesOf ClassroomRole     = ClassroomCapabilities
+instance (Num a) => Context (Capabilities FullTimeProfRole) a where
+  contextName _       = "Capabilities"
+  contextInformation  = fromNodes . (:[])
+                      . Information . Needs
+                      . Set.fromList . canTeachFullTime
+  contextRelations _  = [RelBin CanTeachRel]
+  contextThreshold _  = return 0
 
-
--- newtype Capabilities (r :: NegotiationRole) =
---         Capabilities { getCapabilities ::  CapabilitiesOf r }
---   deriving Typeable
-
--- instance (Eq (CapabilitiesOf r)) => Eq (Capabilities r) where
---   (==) = (==) `on` getCapabilities
--- instance (Ord (CapabilitiesOf r)) => Ord (Capabilities r) where
---   compare = compare `on` getCapabilities
-
-
-
--- instance (Ord (CapabilitiesOf r), Typeable r) => InformationPiece (Capabilities r)
-
--- newtype Capabilities' r a = Capabilities' {
---   getCapabilities' :: Capabilities r
---   }
-
--- instance (Ord (CapabilitiesOf r), Typeable r) =>
---   Context (Capabilities' r) where
---     contextName = const "Capabilities"
---     contextInformation  = IGraph . Set.singleton
---                         .  Information . getCapabilities'
-    
---    contextThreshold
+  combineWholeRels    = combineWholeRelsStrict
+  combineBinRels      = combineBinRelsStrict
+  combineRels         = combineRelsStrict
 
 \end{code}
 
@@ -669,6 +740,27 @@ to agent's own interests.
 
 \subsection{Agent}
  Here follows \emph{agents} implementation.
+
+\begin{code}
+
+
+class AgentComm ag where
+
+class (AgentComm ag) => CommAgentRef ref ag where
+
+    agRef   :: ag -> ref ag
+    agComm  :: ref ag -> ag
+
+data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
+
+
+-- -----------------------------------------------
+
+data GroupRef      = GroupRef String
+data ProfessorRef  = ProfessorRef String
+data ClassroomRef  = ClassroomRef String
+
+\end{code}
 
 \end{document}
 
