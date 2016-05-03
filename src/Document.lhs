@@ -14,6 +14,7 @@
 
 \usepackage{showframe}
 
+\usetikzlibrary{fit, calc, arrows, shapes}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -660,7 +661,7 @@ instance (Num a) => Context (Capabilities GroupRole) a where
 instance (Num a) => Context (Capabilities FullTimeProfRole) a where
   contextName _       = "Capabilities"
   contextInformation  = fromNodes . (:[])
-                      . Information . Needs
+                      . Information . CanTeach
                       . Set.fromList . canTeachFullTime
   contextRelations _  = [RelBin CanTeachRel]
   contextThreshold _  = return 0
@@ -676,6 +677,7 @@ instance (Num a) => Context (Capabilities FullTimeProfRole) a where
 The beliefs is a \emph{splitting} context, that uses as it's internal
 knowledge the state of the timetable at the moment.
 
+\bigskip\noindent
 \textbf{Assessing} yields one of three values $$
 \begin{cases}
  -1 & \mbox{if two proposals intersect in time} \\
@@ -683,11 +685,36 @@ knowledge the state of the timetable at the moment.
   1 & \mbox{otherwise}
 \end{cases} $$
 
+\begin{figure}[h]
+  \centering
+  \input{BeliefsNewProposal.tikz}  
+  \caption{Assessing proposal coherence, starting from \emph{Beliefs} context.}
+  \label{fig:AssessBeliefs}
+\end{figure}
+ 
 The assessment of \emph{concrete proposals} (containing concrete classes)
-in the graph consists in finding \emph{time coherence} for every possible
-pair of \emph{different} proposals. If any of the coherence values
-$\not= 1$, then the graph is invalid and the assessment is $-1$. In case
-that all coherence values are (strongly) positive, the result is $1$.
+in the graph consists in
+\begin{enumerate}
+  \item \emph{assuming} the proposal information;
+  \item \emph{splitting} the assumed information graph into valid candidates;
+  \item \emph{propagating} of the candidates through the rest of the contexts;
+  \item comparing the \emph{best candidate} with the previous \emph{best}.
+\end{enumerate}
+
+The proposal is accepted (and the assumed graph becomes the new information graph
+                         of \emph{beliefs} context)
+if it's assumption causes better candidate generation.
+It's rejected otherwise (and the assumed graph is discarded).
+
+
+\bigskip\noindent
+\textbf{Splitting} can be ...
+  
+
+% finding \emph{time coherence} for every possible
+% pair of \emph{different} proposals. If any of the coherence values
+% $\not= 1$, then the graph is invalid and the assessment is $-1$. In case
+% that all coherence values are (strongly) positive, the result is $1$.
 
 
 \begin{code}

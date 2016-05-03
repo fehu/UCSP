@@ -1,0 +1,52 @@
+\begin{tikzpicture}
+ 
+\tikzstyle{cp} = [draw, circle, blue, fill=blue!60];
+
+\node[cp] (S1) at (6, 0) {};
+\node[cp] (S2) at (8, 0) {};
+\node[cp] (S3) at (6, -2) {};
+\node[cp] (S4) at (8, -2) {};
+
+\node[cp] (O1) at (0, 0) {};
+\node[cp] (O2) at (2, 0) {};
+\node[cp] (O3) at (0, -2) {};
+\node[cp] (O4) at (2, -2) {};
+
+\node[cp] (N1) at (3,-4) {};
+\node[cp] (N2) at (4,-4) {};
+\node[cp] (N3) at (5,-4) {};
+
+\node[draw, fit=(S1)(S2)(S3)(S4)] (FS) {self-generated proposals};
+\node[draw, fit=(O1)(O2)(O3)(O4)] (FO) {others' proposals};
+\node[draw, fit=(FO.south west) (FO.north west)
+                (FS.north east) (FS.south east)] (FP) {old proposals};
+
+\node[draw, fit={(N1.south west)([shift={(0,0.4)}]N1.north west)
+                 ([shift={(0,0.4)}]N3.north east)(N3.south east)}
+          , label={[yshift=-0.5cm]new proposals}
+     ] (FN) {};
+
+\draw[->, thick,double,>=stealth] (FN) -- (FP) node[midway, right] {\textbf{assume}};
+
+
+\node[draw, thick, fit={(-0.5,1)(8.5,1)(8.5,-4.5)(-0.5,-4.5)}
+          , label={[yshift=-0.5cm] \underline{Beliefs context}}
+     ] (CB) {};
+
+\tikzstyle{cxt} = [draw, thick, 
+                   minimum width={width("Obligations")+2pt}];
+
+\node[cxt] (CO) at (10, -2) {\underline{Obligations}};
+\node[cxt] (CP) at (10, -3) {\underline{Preferences}};
+\node[cxt] (CE) at (10, -4) {\underline{External}};
+
+
+\draw[->, thick, double, >=stealth] ($(CB.east) + (0,2cm) $) -| (10, -1)
+    node[midway, above, text width=2cm] {\small \textbf{Propagate candidates}} -- (CO);
+\draw[->, thick, double, >=stealth] (CO)-- (CP);
+\draw[->, thick, double, >=stealth] (CP) -- (CE);
+
+\node[draw, ellipse] (best) at (10, -5) {\textbf{Best} candidate};
+\draw[->, thick, double, >=stealth] (CE) -- (best);
+
+\end{tikzpicture}
