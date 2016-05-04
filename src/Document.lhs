@@ -2,8 +2,20 @@
 
 %format family = "\textbf{family}"
 
- % format :: = "\textbf{::}"
+%format `union` = "\cup"
+%format `compare` = "\lesseqqgtr"
+%format `member` = "\in"
 
+%format <|> = "\mathrel{\mathord{<}\mathord{|}\mathord{>}}"
+%format <$> = "\mathrel{\mathord{<}\mathord{\$}\mathord{>}}"
+%format <*> = "\mathrel{\mathord{<}\mathord{*}\mathord{>}}"
+%format &&& = "\mathrel{\mathord{\&}\mathord{\&}\mathord{\&}}"
+
+
+%format i1 = "i_1"
+%format i2 = "i_2"
+%format AnyFunc1 = "\mathrm{AnyFunc}_1"
+ 
 %include polycode.fmt
 %include forall.fmt
 
@@ -50,18 +62,15 @@ import GHC.Exts (groupWith)
 
 \begin{document}
 
-
-\emph{\textbf{\Large Abstract}}
-
-\medskip
-\noindent
-
+\begin{abstract}
+  
 This article proposes a system for generating possible
 \emph{University Classes Schedules}.
 It uses multi-agent negotiation to find satisfactory solutions
 to the problem, while trying to consider \emph{personal preferences}
 of the represented people and institutions.
 
+\end{abstract}
 
 \section{Implementation}
 
@@ -111,7 +120,7 @@ data Class      = forall c time  . ConcreteClass c time  => Class c
 data SomeClass  = forall c       . AbstractClass c       => SomeClass c
 
 
--- redefined 'System.Time.Day' -- no 'Sunday'
+-- redefined 'System.Time.Day' --- no 'Sunday'
 data Day  =  Monday | Tuesday | Wednesday
           | Thursday | Friday | Saturday
   deriving (Eq, Ord, Enum, Bounded, Ix, Read, Show)
@@ -128,7 +137,7 @@ The classes are negotiated by the interested parties:
 Each negotiation participant has a \emph{timetable}, holding a
 schedule for one week, that repeats throughout the academic period.
 The \emph{timetable} is actually a table:
-the columns represent days of week; the rows -- discrete time intervals.
+the columns represent days of week; the rows --- discrete time intervals.
 Actual timetable structure may vary, as can be seen in figure
 \ref{fig:timetables}.
 
@@ -238,12 +247,12 @@ represents a \emph{real person or object} in it's virtual environment.
 In current case, it represents one's interests in a \emph{negotiation}.
 Such an agent must
 \begin{enumerate}[(1)]
-  \item\label{itm:goal} pursue the \emph{common goal} -- it must consider
+  \item\label{itm:goal} pursue the \emph{common goal} --- it must consider
                                     the \underline{common benefits}, while
                                     being egoistic enough to achieve it's own goal;
-  \item respond to the messages received in correspondence with \ref{itm:goal};
+  \item respond to the messages received in correspondence with~\ref{itm:goal};
   \item initiate conversations (send messages, that are not responses),
-    driven by \ref{itm:goal};
+    driven by~\ref{itm:goal};
   \item become more susceptible (less egoistic) with passage of time.
 \end{enumerate}
 
@@ -260,26 +269,26 @@ data NegotiationRole  = GroupRole
 \subsubsection{Common Goal}
 Agent's own \emph{goal} represents its egoistical interests.
 They may (and will) contradict another agent's interests, thus
-creating \emph{incoherence}. The general rule is this case is
+creating \emph{incoherence}. The general rule in this case is
 to strive for solutions, benefiting the whole schedule.
 Because the schedule doesn't yet exist as a whole during the negotiation,
 an agent should consider instead the benefits, obtained by itself and
 the rest of the agents.
 
 The \emph{common goal} is incorporated in the \emph{contexts}
-mechanism, and is discussed in section \ref{subsec:context-external}.
+mechanism, and is discussed in Section~\ref{subsec:context-external}.
 
 \subsubsection{Messaging}
  \textbf{Is this section really needed?}
 
 \subsection{Coherence}
 
-The coherence mechanism is based on \cite{Sindhu2010}.
+The coherence mechanism is based on~\cite{Sindhu2010}.
 It uses the \emph{contexts} as means of separating (and further prioritizing)
 different \emph{cognitive aspects}. The contexts used are based on \emph{BDI}
 agent architecture.
 
-The \emph{combined coherence} is used as the a measure of goal achievement.
+The \emph{combined coherence} is used as a measure of goal achievement.
 It's combined of coherence values, calculated by agent's contexts.
 
 \subsubsection{Information and Relations}
@@ -322,25 +331,35 @@ The proposed system makes use of the following information:
 
  \item \textbf{Shared knowledge}, obtained in the negotiation.
   \begin{enumerate}
-    \item \textbf{Others' capabilities} -- information about the counterpart
-          agents, that are known to be (un-)capable of doing something.
+    \item \textbf{Others' capabilities} --- information about the counterpart
+          agents, that are known to be (un-) capable of doing something.
     \item \textbf{Classes proposals}:
           \begin{enumerate}
-            \item \textbf{Complete} -- references all three representing
+            \item
+              \begin{itemize}[leftmargin=2cm]
+                \item[\textbf{Abstract}] --- has no specific time assigned.
+                \item[\textbf{Concrete}] --- has a specific time defined.
+              \end{itemize}
+            \item
+              \begin{itemize}[leftmargin=2cm]
+                \item[\textbf{Complete}] --- references all three representing
                   agents: a \emph{group}, a \emph{professor} and a
                   \emph{classroom}.
-            \item \textbf{Partial} -- references less then three representing
+                \item[\textbf{Partial}] --- references less then three representing
                   agents.
+
+              \end{itemize}
+
           \end{enumerate}
     \item \textbf{Classes decisions}:
           \begin{enumerate}
-            \item \textbf{Class acceptance} -- a mark for
+            \item \textbf{Class acceptance} --- a mark for
                   \emph{accepted classes proposals}. Only \emph{complete}
                   proposals can be accepted; all the three mentioned agents
                   must accept it, or none.
-            \item \textbf{Class rejection} -- a mark for
+            \item \textbf{Class rejection} --- a mark for
                   \emph{ignored classes proposals}, a result of \emph{yield}
-                  decision, discussed in section \ref{subsec:yield}.
+                  decision, discussed in Section~\ref{subsec:yield}.
           \end{enumerate}
   \end{enumerate}
 
@@ -350,7 +369,7 @@ The proposed system makes use of the following information:
 
 data InformationScope = Personal | Shared
 
--- 'Ord' instance is mainly needed to create 'Set's.
+-- ``Ord'' instance is mainly needed to create ``Set''s.
 class (Typeable i, Eq i, Ord i) => InformationPiece i
     where type IScope i :: InformationScope
 
@@ -480,7 +499,7 @@ The assessed one is \emph{assumed} during the evaluation process.
 
 To assess some information, it's propagated through the contexts, in the
 \emph{specified order}, that stands for contexts priority. Each context
-xshould have a \emph{coherence threshold} specified; after the assessed
+should have a \emph{coherence threshold} specified; after the assessed
 information's coherence has been estimated, it's compared against the
 threshold and either \texttt{Success} or \texttt{Failure} is returned,
 along with the evaluated coherence value.
@@ -580,7 +599,7 @@ class (Context c a) => SplittingContext c a where
 \subsubsection{Capabilities}
 The capabilities context handles question ``Am I able to do it?''.
 It's main purpose is to discard immediately any proposal that
-would never have been accepted.
+would never be accepted.
 
 \begin{itemize}
   \item \emph{Group}: ``Am I interested in the discipline?''
