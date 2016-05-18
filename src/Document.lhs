@@ -15,7 +15,7 @@
 %format i1 = "i_1"
 %format i2 = "i_2"
 %format AnyFunc1 = "\mathrm{AnyFunc}_1"
- 
+
 %include polycode.fmt
 %include forall.fmt
 
@@ -30,7 +30,9 @@
 
 \newcommand{\red}[1]{{\color{red} #1}}
 \newcommand{\todo}[1]{\red{\{ \textbf{TODO:} #1 \}}}
- 
+
+\newcommand{\crule}[2][1pt]{\begin{center}\rule{#2\textwidth}{#1}\end{center}}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -63,7 +65,7 @@ import GHC.Exts (groupWith)
 \begin{document}
 
 \begin{abstract}
-  
+
 This article proposes a system for generating possible
 \emph{University Classes Schedules}.
 It uses multi-agent negotiation to find satisfactory solutions
@@ -82,24 +84,32 @@ learn/teach the specified \emph{discipline}.
 It happens \underline{periodically}, usually weekly,
 at the established \emph{day of week} and \emph{time}.
 
+A \emph{discipline} should describe an atomic (not dividable) educational
+activity. For example, if the students are required to take a normal class
+and also do some specific laboratory practice, then two disciplines should
+be created, one of them describing the required lab equipment.
+
+
+\begin{code}
+
+data Discipline  = Discipline  {  disciplineId              :: String
+                               ,  disciplineMinutesPerWeek  :: Int
+                               ,  disciplineRequirements    :: Set Requirement
+                               }
+                 deriving (Typeable, Show, Eq, Ord)
+
+
+newtype Requirement = Requirement String deriving (Show, Eq, Ord)
+
+\end{code}
+
+
+\medskip\noindent
 For inner usage, the classes are divided into
 \begin{itemize}
  \item \emph{abstract} --- without day and time;
  \item \emph{concrete} --- with full time information.
 \end{itemize}
-
-%if False
-\begin{code}
-
-data Discipline  = DisciplineClass  { disciplineId :: String
-                                    , disciplineMinutesPerWeek :: Int
-                                    }
-                 | DisciplineLab    { disciplineId :: String
-                                    , disciplineMinutesPerWeek :: Int
-                                    }
-                 deriving (Typeable, Show, Eq, Ord)
-\end{code}
-%endif
 
 \begin{code}
 
@@ -119,8 +129,11 @@ class (AbstractClass c, DiscreteTime time) =>
 data Class      = forall c time  . ConcreteClass c time  => Class c
 data SomeClass  = forall c       . AbstractClass c       => SomeClass c
 
+\end{code}
 
--- redefined 'System.Time.Day' --- no 'Sunday'
+The ``System.Time.Day'' is redefined, dropping the ``Sunday''.
+
+\begin{code}
 data Day  =  Monday | Tuesday | Wednesday
           | Thursday | Friday | Saturday
   deriving (Eq, Ord, Enum, Bounded, Ix, Read, Show)
@@ -510,8 +523,8 @@ further; otherwise the failure is returned.
 
 class Context (c :: * -> *) a where
   contextName         :: c a -> String
-  contextInformation  :: c a -> IGraph
-  contextRelations    :: c a -> [IRelation a]
+  contextInformation  :: c a -> IO IGraph
+  contextRelations    :: c a -> IO [IRelation a]
   contextThreshold    :: c a -> IO a
 
   combineBinRels      :: c a -> RelValsBetween a    -> Maybe (CBin a)
@@ -538,16 +551,21 @@ mapEither f (Right a)  = Right $ f a
 assessWithin' ::  (Context c a) =>
                   [Information]
               ->  c a
-              ->  (Maybe a, AssessmentDetails a)
+              ->  IO (Maybe a, AssessmentDetails a)
 
-assessWithin' inf c = (assessed, undefined) -- TODO
-  where  assumed = contextInformation c `graphJoin` inf
-         (bins, whole)  = partitionEithers
-                        $ (\r -> mapEither ((,) r) $ r `relationOn` assumed)
-                        <$> contextRelations c
-         assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
-                        rWhole  <- c `combineWholeRels`  Map.fromList whole
-                        return  $ combineRels c rBin rWhole
+assessWithin' inf c = do
+  contextInf   <- contextInformation c
+  contextRels  <- contextRelations c
+
+  let  assumed = contextInf `graphJoin` inf
+       (bins, whole)  =    partitionEithers
+                      $    (\r -> mapEither ((,) r) $ r `relationOn` assumed)
+                      <$>  contextRels
+
+       assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
+                      rWhole  <- c `combineWholeRels`  Map.fromList whole
+                      return  $ combineRels c rBin rWhole
+  return (assessed, undefined)
 
 -- -----------------------------------------------
 
@@ -571,9 +589,10 @@ assessWithin ::  (Context c a, Ord a) =>
 
 assessWithin f@Failure{} _ = return f
 assessWithin (Success hist c) cxt = do
-  let  (mbA, details) = c `assessWithin'` cxt
-       ac = AssessedCandidate (SomeContext cxt) mbA details
-  threshold <- contextThreshold cxt
+  (mbA, details)  <- c `assessWithin'` cxt
+  threshold       <- contextThreshold cxt
+  let ac = AssessedCandidate (SomeContext cxt) mbA details
+
   return $  if mbA > Just threshold
             then  Success  (ac : hist) c
             else  Failure  (ac : hist) c
@@ -669,10 +688,10 @@ combineRelsStrict _ (CBin b) (CWhole w) = b * w
 
 instance (Num a) => Context (Capabilities GroupRole) a where
   contextName _       = "Capabilities"
-  contextInformation  = fromNodes . (:[])
+  contextInformation  = return . fromNodes . (:[])
                       . Information . Needs
                       . Set.fromList . needsDisciplines
-  contextRelations _  = [RelBin NeedsDisciplineRel]
+  contextRelations _  = return [RelBin NeedsDisciplineRel]
   contextThreshold _  = return 0
 
   combineWholeRels    = combineWholeRelsStrict
@@ -682,10 +701,10 @@ instance (Num a) => Context (Capabilities GroupRole) a where
 
 instance (Num a) => Context (Capabilities FullTimeProfRole) a where
   contextName _       = "Capabilities"
-  contextInformation  = fromNodes . (:[])
+  contextInformation  = return . fromNodes . (:[])
                       . Information . CanTeach
                       . Set.fromList . canTeachFullTime
-  contextRelations _  = [RelBin CanTeachRel]
+  contextRelations _  = return [RelBin CanTeachRel]
   contextThreshold _  = return 0
 
   combineWholeRels    = combineWholeRelsStrict
@@ -716,11 +735,11 @@ knowledge:
 
 \begin{figure}[h]
   \centering
-  \input{BeliefsNewProposal.tikz}  
+  \input{BeliefsNewProposal.tikz}
   \caption{Assessing proposal coherence, starting from \emph{Beliefs} context.}
   \label{fig:AssessBeliefs}
 \end{figure}
- 
+
 The assessment of \emph{concrete proposals} (containing concrete classes)
 in the graph consists in
 \begin{enumerate}
@@ -745,7 +764,7 @@ The splitting can be achieved with one of two following strategies:
   \item \emph{Joining} proposals while validness is preserved.
   \item \emph{Partitioning} of proposals until validness is achieved.
 \end{enumerate}
-  
+
 First strategy is used in this project, due to less memory consumption
 (it doesn't have to generate or store big invalid graphs,
 that would be present at the first steps of the second strategy).
@@ -762,9 +781,15 @@ The splitting is implemented as follows:
 % $\not= 1$, then the graph is invalid and the assessment is $-1$. In case
 % that all coherence values are (strongly) positive, the result is $1$.
 
+\crule{0.5}
 
 \begin{code}
 
+data Beliefs a = Beliefs
+
+instance (Num a) => Context Beliefs a where
+  contextName _  = "Beliefs"
+  contextInformation _ = undefined
 
 \end{code}
 
