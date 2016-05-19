@@ -45,6 +45,8 @@ import Data.Ix
 import Data.Typeable
 import Data.Either
 import Data.Function (on)
+import Data.IORef
+import Data.Maybe
 
 import Data.Set (Set, union, member)
 import qualified Data.Set as Set
@@ -54,6 +56,7 @@ import qualified Data.Map as Map
 
 import Control.Arrow
 import Control.Applicative
+import Control.Monad.Fix
 
 import GHC.Exts (groupWith)
 
@@ -204,6 +207,17 @@ class (Ord t, Bounded t, Show t, Typeable t) => DiscreteTime t where
   toMinutes    :: t -> Int
   fromMinutes  :: Int -> t
 
+data SomeTime = forall t . (DiscreteTime t) => SomeTime t
+
+someTimeMinutes (SomeTime t) = toMinutes t
+
+instance Eq   SomeTime where  (==)     = (==)     `on` someTimeMinutes
+instance Ord  SomeTime where  compare  = compare  `on` someTimeMinutes
+
+\end{code}
+
+
+\begin{code}
 class (DiscreteTime time) => Timetable tt e time  |  tt  -> time
                                                   ,  tt  -> e
                                                   ,  e   -> time
@@ -558,9 +572,9 @@ assessWithin' inf c = do
   contextRels  <- contextRelations c
 
   let  assumed = contextInf `graphJoin` inf
-       (bins, whole)  =    partitionEithers
-                      $    (\r -> mapEither ((,) r) $ r `relationOn` assumed)
-                      <$>  contextRels
+       (bins, whole)  = partitionEithers
+                      $ (\r -> mapEither ((,) r) $ r `relationOn` assumed)
+                      <$> contextRels
 
        assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
                       rWhole  <- c `combineWholeRels`  Map.fromList whole
@@ -610,7 +624,7 @@ The candidates can be assessed by the rest of the contexts.
 \begin{code}
 
 class (Context c a) => SplittingContext c a where
-  splitGraph :: c a -> IGraph -> [Candidate a]
+  splitGraph :: c a -> IGraph -> IO [Candidate a]
 
 
 \end{code}
@@ -757,7 +771,7 @@ It's rejected otherwise (and the assumed graph is discarded).
 
 
 \bigskip\noindent
-\textbf{Splitting} is a process of acceptable sub-graphs extraction,
+\textbf{Splitting} is a process of extraction of \emph{acceptable} sub-graphs,
 that compares the coherence values at graph's edges against a threshold.
 The splitting can be achieved with one of two following strategies:
 \begin{enumerate}
@@ -772,9 +786,26 @@ that would be present at the first steps of the second strategy).
 The splitting is implemented as follows:
 \begin{align*}
   \mbox{Let } & C=\lbrace c \rbrace \text{ be a set of \emph{class proposals}}.\\
-            ~ & V_i=\lbrace v_i \rbrace \text{ be a set of \emph{valid candidates},
-                                         composed of } i \text{ proposals.}
+            ~ & A_i=\lbrace a_i \rbrace \text{ be a set of \emph{acceptable candidates},
+                                         composed of } i \text{ proposals.}\\
+            ~ & A=\bigcup\limits_{i} A_i \text{ be a set of \emph{acceptable candidates}}.
 \end{align*}
+
+\begin{enumerate}
+  \item Each single candidate is acceptable:
+    $A_1 = \lbrace [ c ] ~||~ \forall ~ c \in C \rbrace$.
+  \item Form $A_2$ by extending each candidate $[c'] = a_1 \in A_1$ with $c \in C$,
+    if and only if $c'$ and $c$ do not intersect. If $A_1 \not= \emptyset$,
+    then try to form $A_2$.
+  \item[\vdots]
+  \item[i.] Form $A_i$ by extending each candidate $[c'_1, \dots, c'_{i-1}] = a_{i-1}
+    \in A_{i-1}$ with $c \in C$, if and only if $\forall c' \in a_{i-1}, ~c'$
+    and $c$ do not intersect. If $A_i \not= \emptyset$, then try to form $A_{i+1}$.
+   \item[\vdots]
+   \item[n.] $A_n = \emptyset \implies$ all the \emph{acceptable candidates}
+     were generated. Done.
+
+\end{enumerate}
 
 % finding \emph{time coherence} for every possible
 % pair of \emph{different} proposals. If any of the coherence values
@@ -783,15 +814,71 @@ The splitting is implemented as follows:
 
 \crule{0.5}
 
+% 'SomeTime' is removed from shown code to reduce visible expressions length
+%{
+%format SomeTime (x) = x
 \begin{code}
+data Beliefs a = Beliefs  {  knownProposals  :: IORef IGraph
+--                          ,  bestCandidate   :: IORef (Candidate a, a)
+                          }
 
-data Beliefs a = Beliefs
+data TimeConsistency a = TimeConsistency
+
+instance InformationRelation TimeConsistency where
+  relationName _ = "TimeConsistency"
+
+instance BinaryRelation TimeConsistency where
+  binRelValue _ i1 i2 = do
+    Class c1  <- collectInf i1
+    Class c2  <- collectInf i2
+
+    let  sameParticipant  =   classGroup c1      ==  classGroup c2
+                          ||  classProfessor c1  ==  classProfessor c2
+                          ||  classRoom c1       ==  classRoom c2
+         sameDay = classDay c1 == classDay c2
+         timeIntersects  x y  = SomeTime (classBegins x)  <= SomeTime  (classBegins y)
+                             && SomeTime (classEnds x)    >= SomeTime  (classBegins y)
+
+         intersect  =   sameParticipant
+                    &&  sameDay
+                    &&  (timeIntersects c1 c2 || timeIntersects c2 c1)
+
+    return $ if intersect then 0 else 1
 
 instance (Num a) => Context Beliefs a where
-  contextName _  = "Beliefs"
-  contextInformation _ = undefined
+  contextName _       = "Beliefs"
+  contextInformation  = readIORef . knownProposals
+  contextRelations _  = return [RelBin TimeConsistency]
+  contextThreshold _  = return 0
+
+  combineWholeRels    = combineWholeRelsStrict
+  combineBinRels      = combineBinRelsStrict
+  combineRels         = combineRelsStrict
+
+
+instance (Num a) => SplittingContext Beliefs a where
+  splitGraph b gr = do
+    iGraph <- readIORef $ knownProposals b
+    let  cNodes = catMaybes $ collectInf <$> graphNodes gr
+         consistent x y = binRelValue TimeConsistency x y == Just 1
+         extendCandidate Failure{} = []
+         extendCandidate Success{candidate=inf} = do
+             c <- cNodes
+             [  Success{assessHistory = [], candidate = graphNodes gr ++ [c]}
+                | all (consistent c) inf
+                ]
+
+         a1 = Success [] . (:[]) <$> cNodes
+
+    return $ fix (\f (acc, last) ->  let ext = concatMap extendCandidate last
+                                     in  if null ext
+                                         then acc
+                                         else f (acc ++ ext, ext)
+             ) (a1, a1)
+
 
 \end{code}
+%}
 
 \subsubsection{Obligations}
 Obligations determine the rest \emph{strong restrictions} over the classes.
@@ -854,17 +941,19 @@ data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
 
 -- -----------------------------------------------
 
-data GroupRef      = GroupRef String
-data ProfessorRef  = ProfessorRef String
-data ClassroomRef  = ClassroomRef String
+data GroupRef      = GroupRef      String  deriving (Show, Eq, Ord)
+data ProfessorRef  = ProfessorRef  String  deriving (Show, Eq, Ord)
+data ClassroomRef  = ClassroomRef  String  deriving (Show, Eq, Ord)
 
 \end{code}
 
 \end{document}
 
+ % eval: (when (not (haskell-session-maybe)) (haskell-session-change))
+
 %%% Local Variables:
 %%% latex-build-command: "lhsTeX"
 %%% eval: (haskell-indentation-mode)
-%%% eval: (when (not (haskell-session-maybe)) (haskell-session-change))
+%%% eval: (interactive-haskell-mode)
 %%% eval: (load (concat (file-name-as-directory (projectile-project-root)) "publish-pdf.el"))
 %%% End:
