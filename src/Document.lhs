@@ -65,8 +65,21 @@ import GHC.Exts (groupWith)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\title{ \\[5em]
+        UCSP: Implementation
+        \\[3em]
+      }
+\author{Dmitry K.}
+\date{ \vfill\today }
+ 
 \begin{document}
 
+
+\begin{titlepage}
+\maketitle
+\thispagestyle{empty}
+\end{titlepage}
+ 
 \begin{abstract}
 
 This article proposes a system for generating possible
@@ -76,7 +89,14 @@ to the problem, while trying to consider \emph{personal preferences}
 of the represented people and institutions.
 
 \end{abstract}
+\bigskip
+\tableofcontents
+\newpage
 
+
+ 
+
+ 
 \section{Implementation}
 
 \subsection{University Classes}
@@ -754,6 +774,8 @@ knowledge:
   \label{fig:AssessBeliefs}
 \end{figure}
 
+\red{should be written in another place, not in this context}
+
 The assessment of \emph{concrete proposals} (containing concrete classes)
 in the graph consists in
 \begin{enumerate}
@@ -763,7 +785,7 @@ in the graph consists in
   \item comparing the \emph{best candidate} with the previous \emph{best}.
 \end{enumerate}
 
-The proposal is called \emph{interesting} and is
+\red{?} The proposal is called \emph{interesting} and is
 accepted (and the assumed graph becomes the new information graph
 of \emph{beliefs} context)
 if it's assumption causes better candidate generation.
@@ -806,11 +828,6 @@ The splitting is implemented as follows:
      were generated. Done.
 
 \end{enumerate}
-
-% finding \emph{time coherence} for every possible
-% pair of \emph{different} proposals. If any of the coherence values
-% $\not= 1$, then the graph is invalid and the assessment is $-1$. In case
-% that all coherence values are (strongly) positive, the result is $1$.
 
 \crule{0.5}
 
@@ -887,7 +904,6 @@ the institution. For example: maximum classes per day, lunch recess,
 lower/upper class time limit, two classes must/cannot follow etc.
 
 \begin{code}
-
 
 \end{code}
 
