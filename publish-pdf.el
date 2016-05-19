@@ -10,4 +10,4 @@
      )
     )
   )
-(local-set-key "\C-c\M-p" 'publish-pdf)
+(local-set-key "\C-c\M-P" 'publish-pdf)
