@@ -71,7 +71,7 @@ import GHC.Exts (groupWith)
       }
 \author{Dmitry K.}
 \date{ \vfill\today }
- 
+
 \begin{document}
 
 
@@ -79,7 +79,7 @@ import GHC.Exts (groupWith)
 \maketitle
 \thispagestyle{empty}
 \end{titlepage}
- 
+
 \begin{abstract}
 
 This article proposes a system for generating possible
@@ -94,9 +94,9 @@ of the represented people and institutions.
 \newpage
 
 
- 
 
- 
+
+
 \section{Implementation}
 
 \subsection{University Classes}
@@ -882,17 +882,15 @@ instance (Num a) => SplittingContext Beliefs a where
          extendCandidate Success{candidate=inf} = do
              c <- cNodes
              [  Success{assessHistory = [], candidate = graphNodes gr ++ [c]}
-                | all (consistent c) inf
-                ]
+                | all (consistent c) inf ]
 
          a1 = Success [] . (:[]) <$> cNodes
 
-    return $ fix (\f (acc, last) ->  let ext = concatMap extendCandidate last
-                                     in  if null ext
-                                         then acc
-                                         else f (acc ++ ext, ext)
-             ) (a1, a1)
-
+    return $ fix (\f acc last ->  let ext = concatMap extendCandidate last
+                                    in  if null ext
+                                        then acc
+                                        else f (acc ++ ext) ext
+             ) a1 a1
 
 \end{code}
 %}
