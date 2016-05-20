@@ -856,11 +856,18 @@ instance BinaryRelation TimeConsistency where
          timeIntersects  x y  = SomeTime (classBegins x)  <= SomeTime  (classBegins y)
                              && SomeTime (classEnds x)    >= SomeTime  (classBegins y)
 
+         sameAbstract  =   classDiscipline c1  ==  classDiscipline c2
+                       &&  classGroup c1       ==  classGroup c2
+                       &&  classProfessor c1   ==  classProfessor c2
+                       &&  classRoom c1        ==  classRoom c2
+                       &&  classNumber c1      ==  classNumber c2
+
          intersect  =   sameParticipant
                     &&  sameDay
                     &&  (timeIntersects c1 c2 || timeIntersects c2 c1)
 
-    return $ if intersect then 0 else 1
+    return $ if sameAbstract  then 0
+                              else if intersect then -1 else 1
 
 instance (Num a) => Context Beliefs a where
   contextName _       = "Beliefs"
@@ -902,6 +909,11 @@ the institution. For example: maximum classes per day, lunch recess,
 lower/upper class time limit, two classes must/cannot follow etc.
 
 \begin{code}
+
+-- data family Obligations (r :: NegotiationRole) :: * -> *
+
+
+
 
 \end{code}
 
@@ -951,7 +963,6 @@ class (AgentComm ag) => CommAgentRef ref ag where
     agComm  :: ref ag -> ag
 
 data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
-
 
 -- -----------------------------------------------
 
