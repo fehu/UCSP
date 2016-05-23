@@ -47,6 +47,7 @@ import Data.Either
 import Data.Function (on)
 import Data.IORef
 import Data.Maybe
+import Data.Coerce
 
 import Data.Set (Set, union, member)
 import qualified Data.Set as Set
@@ -500,7 +501,9 @@ type RelValsWhole a = Map (IRelation a) (RelValWhole a)
 
 -- -----------------------------------------------
 
-class InformationRelation r where relationName :: r a -> String
+class InformationRelation r where
+  relationName    :: r a -> String
+  coerceRelation  :: (Coercible a b) => r a -> r b
 
 class InformationRelation r =>
     BinaryRelation r where
@@ -522,8 +525,14 @@ instance Eq (IRelation a) where (==) = (==) `on` relName
 
 instance Ord (IRelation a) where compare = compare `on` relName
 
-type RelValue a = Either [RelValBetween a] (RelValWhole a)
 
+coerceIRelation :: (Coercible a b) => IRelation a -> IRelation b
+coerceIRelation (RelBin r)    = RelBin (coerceRelation r)
+coerceIRelation (RelWhole r)  = RelWhole (coerceRelation r)
+
+-- -----------------------------------------------
+
+type RelValue a = Either [RelValBetween a] (RelValWhole a)
 
 \end{code}
 
@@ -631,7 +640,6 @@ assessWithin (Success hist c) cxt = do
             then  Success  (ac : hist) c
             else  Failure  (ac : hist) c
 
-
 \end{code}
 
 
@@ -685,6 +693,8 @@ data CanTeachRel a = CanTeachRel
 
 instance InformationRelation CanTeachRel where
     relationName _ = "CanTeach"
+    coerceRelation = coerce
+
 instance BinaryRelation CanTeachRel where
     binRelValue _ a b =
      let v ds c = if classDiscipline c `member` ds then 1 else 0
@@ -835,14 +845,13 @@ The splitting is implemented as follows:
 %{
 %format SomeTime (x) = x
 \begin{code}
-data Beliefs a = Beliefs  {  knownProposals  :: IORef IGraph
---                          ,  bestCandidate   :: IORef (Candidate a, a)
-                          }
+data Beliefs a = Beliefs  {  knownProposals  :: IORef IGraph }
 
 data TimeConsistency a = TimeConsistency
 
 instance InformationRelation TimeConsistency where
   relationName _ = "TimeConsistency"
+  coerceRelation = coerce
 
 instance BinaryRelation TimeConsistency where
   binRelValue _ i1 i2 = do
@@ -908,12 +917,33 @@ Possible obligations might depend on agent's role and are usually determined by
 the institution. For example: maximum classes per day, lunch recess,
 lower/upper class time limit, two classes must/cannot follow etc.
 
+The expected values are
+\begin{itemize}
+  \item[0] if the obligation is broken;
+  \item[1] otherwise.
+\end{itemize}
+
+All the obligations must comply over a candidate.
+
 \begin{code}
 
--- data family Obligations (r :: NegotiationRole) :: * -> *
+data Obligations a  = Obligations  { obligationsInfo  :: [Information]
+                                   , obligationsRels  :: [IRelation (ZeroOrOne a)]
+                                   }
 
+instance (Num a) => Context Obligations a where
+  contextName _ = "Obligations"
+  contextInformation  = return . fromNodes . obligationsInfo
+  contextRelations    =  return . map coerceIRelation . obligationsRels
+  contextThreshold _  = return 0
 
+  combineBinRels    = combineBinRelsStrict
+  combineWholeRels  = combineWholeRelsStrict
+  combineRels       = combineRelsStrict
 
+newtype ZeroOrOne a = ZeroOrOne a -- This constructor should be hidden.
+complies  = ZeroOrOne 0
+fails     = ZeroOrOne 1
 
 \end{code}
 
@@ -921,13 +951,60 @@ lower/upper class time limit, two classes must/cannot follow etc.
 Preferences determine \emph{weak restrictions}, that are intended to be
 set by the represented person (the institution in case of the classroom).
 
+The expected value must be inside $[0,1]$ (unit) interval. They are combined
+as follows:
+\begin{itemize}[leftmargin=3cm]
+ \item[Binary:]
+   \begin{flalign*}
+     \forall & \text{ pair of nodes } \langle n_1, n_2  \rangle & \\
+     \forall & \text{ binary preference relation } \mathrm{pref_i} \implies & \\
+     ~ & P_\mathrm{bin}[n_1, n_2] = \prod\limits_{i} \mathrm{pref}_i(n_1, n_2);
+     \quad P_\mathrm{bin} \in [0,1] &\\
+     \\
+     ~ & P_\mathrm{bin} = \dfrac{\sum\limits_{\langle n_1, n_2 \rangle } P_\mathrm{bin}(n_1,n_2)}
+                              { || \lbrace \langle n_1, n_2 \rangle \rbrace || }
+                              & \\
+   \end{flalign*}
+ \item[Whole:]
+   \begin{flalign*}
+     \forall & \text{ whole graph relation } \mathrm{pref}_i & \\
+     ~ & P_\mathrm{whole} = \prod\limits_i \mathrm{pref}_i(\mathrm{graph}) & \\
+   \end{flalign*}
+ \item[Combined:] $ P = P_\mathrm{whole} \times P_\mathrm{bin} $
+\end{itemize}
 
-
-The context should disminus its influence over time to avoid possible
+The context should diminish its influence over time to avoid possible
 over-restrictions due to conflicting personal interests.
 
 \begin{code}
 
+data Preferences a = Preferences  {
+  preferencesInfo       :: [Information],
+  preferencesRels       :: [IRelation (InUnitInterval a)],
+  preferencesThreshold  :: IORef a
+  }
+
+instance Context Preferences a where
+  contextName _ = "Preferences"
+  contextInformation  = return . fromNodes . preferencesInfo
+  contextRelations    = return . map coerceIRelation . preferencesRels
+  contextThreshold    = readIORef . preferencesThreshold
+
+  combineBinRels    = undefined
+  combineWholeRels  = undefined
+  combineRels       = undefined
+
+
+-- -----------------------------------------------
+
+newtype InUnitInterval a = InUnitInterval a
+
+inUnitInterval :: (Fractional a, Ord a) => a -> Maybe (InUnitInterval a)
+inUnitInterval x  |   x >= 0
+                  &&  x <= 1  = Just $ InUnitInterval x
+inUnitInterval _  = Nothing
+
+fromUnitInterval (InUnitInterval x) = x
 
 \end{code}
 
