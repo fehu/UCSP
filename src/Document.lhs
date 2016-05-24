@@ -927,9 +927,10 @@ All the obligations must comply over a candidate.
 
 \begin{code}
 
-data Obligations a  = Obligations  { obligationsInfo  :: [Information]
-                                   , obligationsRels  :: [IRelation (ZeroOrOne a)]
-                                   }
+data Obligations a  = Obligations  {
+  obligationsInfo  :: [Information],
+  obligationsRels  :: [IRelation (ZeroOrOne a)]
+  }
 
 instance (Num a) => Context Obligations a where
   contextName _ = "Obligations"
@@ -941,7 +942,8 @@ instance (Num a) => Context Obligations a where
   combineWholeRels  = combineWholeRelsStrict
   combineRels       = combineRelsStrict
 
-newtype ZeroOrOne a = ZeroOrOne a -- This constructor should be hidden.
+-- This constructor should be hidden.
+newtype ZeroOrOne a = ZeroOrOne a
 complies  = ZeroOrOne 0
 fails     = ZeroOrOne 1
 
@@ -1015,8 +1017,9 @@ combineBinRelsMeansProd' = foldr f Nothing
          f xs acc@(Just _)  = ((*) <$> acc <*> mean' xs) <|> acc
          f xs _             = mean' xs
 
-combineWholeRelsProd' mp | null mp = Nothing
-combineWholeRelsProd' mp = Just . product . map unwrapRelValWhole $ Map.elems mp
+combineWholeRelsProd' mp  | null mp = Nothing
+combineWholeRelsProd' mp  = Just . product . map unwrapRelValWhole
+                          $ Map.elems mp
 
 combineRelsProd _ (CBin bin) (CWhole whole) = bin * whole
 
