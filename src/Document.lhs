@@ -312,6 +312,32 @@ data NegotiationRole  = GroupRole
                       | ClassroomRole
     deriving (Show, Typeable)
 
+data Role' (r :: NegotiationRole) = Role'
+
+instance Show (Role' GroupRole) where
+  show _ = "Role: Group"
+instance Show (Role' FullTimeProfRole) where
+  show _ = "Role: Professor (full time)"
+instance Show (Role' PartTimeProfRole) where
+  show _ = "Role: Professor (part time)"
+instance Show (Role' ClassroomRole) where
+  show _ = "Role: Classroom"
+
+-- -----------------------------------------------
+
+class RoleIx r where roleIx :: Role' r -> Int
+
+-- -----------------------------------------------
+
+data  AnyRole = forall r . (Show (Role' r), RoleIx r) =>
+      AnyRole (Role' r)
+
+roleIx' (AnyRole r) = roleIx r
+
+instance Show  AnyRole where show (AnyRole r) = show r
+instance Eq    AnyRole where (==) = (==) `on` roleIx'
+instance Ord   AnyRole where compare = compare `on` roleIx'
+
 \end{code}
 
 \subsubsection{Common Goal}
@@ -674,6 +700,12 @@ An agent should mark any other agent, that has declined some proposal for
 \emph{capabilities} reasons, describing the reason. It should
 further avoid making same kind of proposals to the uncapable agent.
 
+\begin{figure}[h]
+  \centering
+  \input{Capabilities.tikz.tex}
+  \caption{Capabilities required to form a \emph{class}.}
+  \label{fig:capabilities}
+\end{figure}
 
 \begin{code}
 
@@ -1045,9 +1077,39 @@ It is responsible for \emph{common goal} assessment.
 The assessment must be \emph{objective} --- it must give no preference
 to agent's own interests.
 
+The \emph{context-specific information} consists of references to the known
+agents with cached information about their capabilities.
+
+There is a single binary relation in this context --- \emph{opinion}
+of agent $\mathrm{ag}^\mathrm{role}_i$ on class $c_i$, of which consists
+the proposal in question $p_k$.
 
 \begin{code}
 
+data KnownAgent a = forall (r :: NegotiationRole) . KnownAgent {
+  knownAgentRef           :: AgentRef,
+  knownAgentRole          :: Role' r,
+  knownAgentCapabilities  :: [Capabilities r a]
+  }
+  deriving Typeable
+
+instance Eq (KnownAgent a) where
+  (==) = (==) `on` knownAgentRef
+
+instance Ord (KnownAgent a) where
+  compare = compare `on` knownAgentRef
+
+instance (Typeable a) => InformationPiece (KnownAgent a)
+
+-- -----------------------------------------------
+
+data External a = External {
+  knownAgents  :: IORef [KnownAgent a]
+  }
+
+instance Context External a where
+  contextName _         = "External"
+  contextInformation _  = undefined -- TODO
 
 \end{code}
 
@@ -1059,21 +1121,46 @@ to agent's own interests.
 
 \begin{code}
 
+class Message msg where
 
-class AgentComm ag where
+class (Typeable ref, Ord ref) => AgentComm ref where
+  type AgentRole ref :: NegotiationRole
 
-class (AgentComm ag) => CommAgentRef ref ag where
+  agentId   :: ref -> String
+  send      :: (Message msg) => ref -> msg -> IO ()
+  askSync   :: (Message msg, Message resp) => ref -> msg -> IO resp
+--  askAsync  :: (Message msg, Message resp) => ref -> msg -> IO resp         TODO
 
-    agRef   :: ag -> ref ag
-    agComm  :: ref ag -> ag
 
-data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
+data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
+
+instance Eq AgentRef where
+  AgentRef a == AgentRef b = case cast a of  Just a'  -> a' == b
+                                             _        -> False
+
+instance Ord AgentRef where
+  AgentRef a `compare` AgentRef b = case cast a of  Just a'  -> a' `compare` b
+
+
+-- class (AgentComm ag) => CommAgentRef ref ag where
+--     agId    :: ag -> String
+--     agRef   :: ag -> ref ag
+--     agComm  :: ref ag -> ag
+
+-- data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
 
 -- -----------------------------------------------
 
 data GroupRef      = GroupRef      String  deriving (Show, Eq, Ord)
 data ProfessorRef  = ProfessorRef  String  deriving (Show, Eq, Ord)
 data ClassroomRef  = ClassroomRef  String  deriving (Show, Eq, Ord)
+
+-- -----------------------------------------------
+
+instance AgentComm GroupRef where -- TODO
+instance AgentComm ProfessorRef where -- TODO
+instance AgentComm ClassroomRef where -- TODO
+
 
 \end{code}
 
