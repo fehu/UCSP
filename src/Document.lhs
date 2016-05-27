@@ -1107,9 +1107,24 @@ data External a = External {
   knownAgents  :: IORef [KnownAgent a]
   }
 
-instance Context External a where
-  contextName _         = "External"
-  contextInformation _  = undefined -- TODO
+instance (Typeable a) => Context External a where
+  contextName _       = "External"
+  contextInformation  = fmap (fromNodes . map Information)
+                      . readIORef . knownAgents
+  contextRelations _  = return [RelBin OpinionRel] -- TODO
+
+-- -----------------------------------------------
+
+data OpinionRel a = OpinionRel
+
+instance InformationRelation OpinionRel where
+  relationName _  = "Opinion"
+  coerceRelation  = coerce
+
+instance BinaryRelation OpinionRel where
+--   binRelValue _ a b = do  knownAg  <- collectInf a
+--                           Class c  <- collectInf b
+
 
 \end{code}
 
