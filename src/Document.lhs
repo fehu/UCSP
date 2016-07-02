@@ -48,6 +48,8 @@ import Data.Function (on)
 import Data.IORef
 import Data.Maybe
 import Data.Coerce
+import Data.Functor.Identity
+import GHC.Int
 
 import Data.Set (Set, union, member)
 import qualified Data.Set as Set
@@ -386,8 +388,24 @@ graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
 fromNodes :: [Information] -> IGraph
 fromNodes = IGraph . Set.fromList
 
-relationOn :: IRelation a -> IGraph -> RelValue a
-relationOn rel (IGraph inf) = undefined -- TODO
+relationOn :: (Num a, Typeable a) => IRelation a -> IGraph -> IO (RelValue a)
+relationOn rel iGraph = case rel of
+    RelBin r -> return . Left $ do  i1  <- graphNodes iGraph
+                                    i2  <- graphNodes iGraph
+                                    if i1 == i2 then []
+                                    else maybeToList $
+                                         RelValBetween (i1, i2) <$>
+                                         binRelValue r i1 i2
+
+    RelBinIO r -> fmap (Left . concat) . sequence $ do
+                    i1  <- graphNodes iGraph
+                    i2  <- graphNodes iGraph
+                    return $ if i1 == i2  then return []
+                                          else fmap  ( maybeToList
+                                                     . fmap (RelValBetween (i1, i2)))
+                                                     (binRelIOValue r i1 i2)
+
+    RelWhole r -> return . Right . RelValWhole $ wholeRelValue r iGraph
 
 \end{code}
 
@@ -511,6 +529,26 @@ depend on the \emph{context}.
 
 \begin{code}
 
+class InformationRelation r where
+  relationName    :: r a -> String
+  coerceRelation  :: (Coercible a b) => r a -> r b
+
+class InformationRelation r =>
+    BinaryRelation r where
+        binRelValue :: (Num a) => r a -> Information -> Information -> Maybe a
+
+class InformationRelation r =>
+    WholeRelation r where
+        wholeRelValue :: r a -> IGraph -> a
+
+class InformationRelation r =>
+    BinaryIORelation r where
+        binRelIOValue :: (Num a, Typeable a) => r a -> Information -> Information -> IOMaybe a
+
+type IOMaybe a = IO (Maybe a)
+
+-- -----------------------------------------------
+
 data RelValBetween a = RelValBetween {
      relBetween     :: (Information, Information)
   ,  relValBetween  :: a
@@ -524,25 +562,11 @@ unwrapRelValWhole (RelValWhole a) = a
 
 type RelValsWhole a = Map (IRelation a) (RelValWhole a)
 
-
 -- -----------------------------------------------
 
-class InformationRelation r where
-  relationName    :: r a -> String
-  coerceRelation  :: (Coercible a b) => r a -> r b
-
-class InformationRelation r =>
-    BinaryRelation r where
-        binRelValue :: (Num a) => r a -> Information -> Information -> Maybe a
-
-class InformationRelation r =>
-    WholeRelation r where
-        wholeRelValue :: r a -> IGraph -> a
-
--- -----------------------------------------------
-
-data IRelation a  =  forall r .  BinaryRelation r =>  RelBin (r a)
-                  |  forall r .  WholeRelation  r =>  RelWhole (r a)
+data IRelation a  =  forall r .  BinaryRelation r    =>  RelBin (r a)
+                  |  forall r .  BinaryIORelation r  =>  RelBinIO (r a)
+                  |  forall r .  WholeRelation  r    =>  RelWhole (r a)
 
 relName (RelBin a)    = relationName a
 relName (RelWhole a)  = relationName a
@@ -617,7 +641,7 @@ mapEither :: AnyFunc1 r -> Either a b -> Either (r a) (r b)
 mapEither f (Left a)   = Left $ f a
 mapEither f (Right a)  = Right $ f a
 
-assessWithin' ::  (Context c a) =>
+assessWithin' ::  (Context c a, Num a, Typeable a) =>
                   [Information]
               ->  c a
               ->  IO (Maybe a, AssessmentDetails a)
@@ -626,12 +650,12 @@ assessWithin' inf c = do
   contextInf   <- contextInformation c
   contextRels  <- contextRelations c
 
-  let  assumed = contextInf `graphJoin` inf
-       (bins, whole)  = partitionEithers
-                      $ (\r -> mapEither ((,) r) $ r `relationOn` assumed)
-                      <$> contextRels
+  let  assumed  = contextInf `graphJoin` inf
+       relsIO   = sequence  $ (\r -> mapEither ((,) r) <$> r `relationOn` assumed)
+                            <$> contextRels
+  (bins, whole) <- partitionEithers <$> relsIO
 
-       assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
+  let  assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
                       rWhole  <- c `combineWholeRels`  Map.fromList whole
                       return  $ combineRels c rBin rWhole
   return (assessed, undefined)
@@ -653,7 +677,7 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
 
 -- -----------------------------------------------
 
-assessWithin ::  (Context c a, Ord a) =>
+assessWithin ::  (Context c a, Num a, Ord a, Typeable a) =>
                  Candidate a -> c a -> IO (Candidate a)
 
 assessWithin f@Failure{} _ = return f
@@ -1066,6 +1090,9 @@ inUnitInterval _  = Nothing
 
 fromUnitInterval (InUnitInterval x) = x
 
+instance Eq (InUnitInterval a) where
+instance Ord (InUnitInterval a) where
+
 \end{code}
 
 \subsubsection{External}
@@ -1089,9 +1116,36 @@ the proposal in question $p_k$.
 data KnownAgent a = forall (r :: NegotiationRole) . KnownAgent {
   knownAgentRef           :: AgentRef,
   knownAgentRole          :: Role' r,
-  knownAgentCapabilities  :: [Capabilities r a]
+  knownAgentCapabilities  :: [Capabilities r a],
+  knownAgentTypeEvidence  :: a
   }
   deriving Typeable
+
+askKnownAgent ::  ( Typeable a
+                  , Typeable msg
+                  , Typeable resp
+                  , Typeable res)  => KnownAgent a
+                                   -> (a -> msg a)
+                                   -> Millis
+                                   -> (resp a -> Maybe (res a))
+                                   -> IOMaybe (res a)
+askKnownAgent knownAg messageFromEvidence timeout extractResult =
+    case (knownAgentRef knownAg, knownAgentTypeEvidence knownAg) of
+     (AgentRef comm, ev)  -> do  resp <- askT comm (messageFromEvidence ev) timeout
+                                 return $ gcast resp >>= extractResult
+
+
+askKnownAgent' ::  ( Typeable a
+                   , Typeable msg
+                   , Typeable resp)  => KnownAgent a
+                                    -> (a -> msg a)
+                                    -> Millis
+                                    -> (resp a -> Maybe a)
+                                    -> IOMaybe a
+askKnownAgent' knownAg messageFromEvidence timeout extractResult =
+    let res = askKnownAgent knownAg messageFromEvidence timeout
+                (fmap Identity . extractResult)
+    in fmap (fmap runIdentity) res
 
 instance Eq (KnownAgent a) where
   (==) = (==) `on` knownAgentRef
@@ -1104,31 +1158,53 @@ instance (Typeable a) => InformationPiece (KnownAgent a)
 -- -----------------------------------------------
 
 data External a = External {
-  knownAgents  :: IORef [KnownAgent a]
+    knownAgents      :: IORef [KnownAgent a]
+  , opinionsTimeout  :: Millis
   }
+
+type Millis = Int64
 
 instance (Typeable a) => Context External a where
   contextName _       = "External"
   contextInformation  = fmap (fromNodes . map Information)
                       . readIORef . knownAgents
-  contextRelations _  = return [RelBin OpinionRel] -- TODO
+--  contextRelations r  = return [RelBinIO . OpinionRel $ opinionsTimeout r ]
+  -- TODO
 
 -- -----------------------------------------------
 
-data OpinionRel a = OpinionRel
+data OpinionRel a = OpinionRel { opinionTimeout :: Millis, someA1 :: a }
+
+--newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
+newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
+
+-- data MyOpinion = forall a . (Num a, Typeable a) =>
+--      MyOpinion (InUnitInterval a) deriving Typeable
+
+data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+
+extractMyOpinion (MyOpinion mbOpinion) = mbOpinion
+
+-- instance Message MyOpinion
+
+-- -----------------------------------------------
 
 instance InformationRelation OpinionRel where
   relationName _  = "Opinion"
   coerceRelation  = coerce
 
-instance BinaryRelation OpinionRel where
---   binRelValue _ a b = do  knownAg  <- collectInf a
---                           Class c  <- collectInf b
-
+instance BinaryIORelation OpinionRel where
+  binRelIOValue rel a b = fromMaybe (return Nothing)
+    $ do  knownAg  <- collectInf a
+          class'   <- collectInf b
+          return $ askKnownAgent'  knownAg  (curry OpinionAbout class')
+                                            (opinionTimeout rel)
+                                   $ fmap fromUnitInterval . extractMyOpinion
 
 \end{code}
 
 \subsubsection{Decision}
+
 
 
 \subsection{Agent}
@@ -1136,15 +1212,15 @@ instance BinaryRelation OpinionRel where
 
 \begin{code}
 
-class Message msg where
+-- class (Typeable msg) => Message msg where
 
 class (Typeable ref, Ord ref) => AgentComm ref where
   type AgentRole ref :: NegotiationRole
 
   agentId   :: ref -> String
-  send      :: (Message msg) => ref -> msg -> IO ()
-  askSync   :: (Message msg, Message resp) => ref -> msg -> IO resp
---  askAsync  :: (Message msg, Message resp) => ref -> msg -> IO resp         TODO
+  send      :: (Typeable msg) => ref -> msg -> IO ()
+  ask       :: (Typeable msg, Typeable resp) => ref -> msg -> Millis -> IO resp
+  askT      :: (Typeable t, Typeable msg, Typeable resp) => ref -> msg t -> Millis -> IO (resp t)
 
 
 data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
@@ -1155,14 +1231,6 @@ instance Eq AgentRef where
 
 instance Ord AgentRef where
   AgentRef a `compare` AgentRef b = case cast a of  Just a'  -> a' `compare` b
-
-
--- class (AgentComm ag) => CommAgentRef ref ag where
---     agId    :: ag -> String
---     agRef   :: ag -> ref ag
---     agComm  :: ref ag -> ag
-
--- data AgentRef = forall ref ag . CommAgentRef ref ag => AgentRef (ref ag)
 
 -- -----------------------------------------------
 

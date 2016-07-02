@@ -35,4 +35,5 @@ library
                        UndecidableInstances
                        RankNTypes
                        ConstraintKinds
+                       TypeOperators
 
