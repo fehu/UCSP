@@ -628,6 +628,8 @@ class Context (c :: * -> *) a where
 newtype CBin a    = CBin a
 newtype CWhole a  = CWhole a
 
+getCBin    (CBin a)    = a
+getCWhole  (CWhole a)  = a
 
 data AssessmentDetails a -- TODO
 
@@ -655,9 +657,13 @@ assessWithin' inf c = do
                             <$> contextRels
   (bins, whole) <- partitionEithers <$> relsIO
 
-  let  assessed = do  rBin    <- c `combineBinRels`    Map.fromList bins
-                      rWhole  <- c `combineWholeRels`  Map.fromList whole
-                      return  $ combineRels c rBin rWhole
+  let  assessed = case (bins, whole) of
+                    ([], [])  -> Nothing
+                    (_, [])   -> getCBin    <$> c `combineBinRels`    Map.fromList bins
+                    ([], _)   -> getCWhole  <$> c `combineWholeRels`  Map.fromList whole
+                    _         -> do  rBin    <- c `combineBinRels`    Map.fromList bins
+                                     rWhole  <- c `combineWholeRels`  Map.fromList whole
+                                     return  $ combineRels c rBin rWhole
   return (assessed, undefined)
 
 -- -----------------------------------------------
@@ -770,8 +776,7 @@ instance BinaryRelation NeedsDisciplineRel where       -- TODO
 
 -- -----------------------------------------------
 
-  -- Every capability must be coherent. 0*X = 0
-
+-- product X
 combineBinRelsStrict _ bRels  | null bRels = Nothing
 combineBinRelsStrict _ bRels  = Just . CBin . product
                               . concatMap (map relValBetween)
@@ -1109,7 +1114,7 @@ agents with cached information about their capabilities.
 
 There is a single binary relation in this context --- \emph{opinion}
 of agent $\mathrm{ag}^\mathrm{role}_i$ on class $c_i$, of which consists
-the proposal in question $p_k$.
+the proposal in question $p_k$. They are combined using $\product$ operation.
 
 \begin{code}
 
@@ -1158,34 +1163,32 @@ instance (Typeable a) => InformationPiece (KnownAgent a)
 -- -----------------------------------------------
 
 data External a = External {
-    knownAgents      :: IORef [KnownAgent a]
-  , opinionsTimeout  :: Millis
+    knownAgents        :: IORef [KnownAgent a]
+  , opinionsTimeout    :: Millis
+  , externalThreshold  :: IORef a
   }
 
 type Millis = Int64
 
-instance (Typeable a) => Context External a where
+instance (Typeable a, Num a) => Context External a where
   contextName _       = "External"
   contextInformation  = fmap (fromNodes . map Information)
                       . readIORef . knownAgents
---  contextRelations r  = return [RelBinIO . OpinionRel $ opinionsTimeout r ]
-  -- TODO
+  contextRelations r  = return [RelBinIO . OpinionRel $ opinionsTimeout r ]
+  contextThreshold    = readIORef . externalThreshold
+  combineBinRels      = combineBinRelsStrict
+  combineWholeRels    = undefined
+  combineRels         = undefined
 
 -- -----------------------------------------------
 
-data OpinionRel a = OpinionRel { opinionTimeout :: Millis, someA1 :: a }
+data OpinionRel a = OpinionRel { opinionTimeout :: Millis }
 
---newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
 newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
-
--- data MyOpinion = forall a . (Num a, Typeable a) =>
---      MyOpinion (InUnitInterval a) deriving Typeable
 
 data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
 
 extractMyOpinion (MyOpinion mbOpinion) = mbOpinion
-
--- instance Message MyOpinion
 
 -- -----------------------------------------------
 
@@ -1211,8 +1214,6 @@ instance BinaryIORelation OpinionRel where
  Here follows \emph{agents} implementation.
 
 \begin{code}
-
--- class (Typeable msg) => Message msg where
 
 class (Typeable ref, Ord ref) => AgentComm ref where
   type AgentRole ref :: NegotiationRole
