@@ -60,6 +60,8 @@ import qualified Data.Map as Map
 import Control.Arrow
 import Control.Applicative
 import Control.Monad.Fix
+import Control.Concurrent.STM
+import Control.Concurrent.MVar
 
 import GHC.Exts (groupWith)
 
@@ -1121,36 +1123,18 @@ the proposal in question $p_k$. They are combined using $\product$ operation.
 data KnownAgent a = forall (r :: NegotiationRole) . KnownAgent {
   knownAgentRef           :: AgentRef,
   knownAgentRole          :: Role' r,
-  knownAgentCapabilities  :: [Capabilities r a],
-  knownAgentTypeEvidence  :: a
+  knownAgentCapabilities  :: [Capabilities r a]
   }
   deriving Typeable
 
 askKnownAgent ::  ( Typeable a
-                  , Typeable msg
-                  , Typeable resp
-                  , Typeable res)  => KnownAgent a
-                                   -> (a -> msg a)
-                                   -> Millis
-                                   -> (resp a -> Maybe (res a))
-                                   -> IOMaybe (res a)
-askKnownAgent knownAg messageFromEvidence timeout extractResult =
-    case (knownAgentRef knownAg, knownAgentTypeEvidence knownAg) of
-     (AgentRef comm, ev)  -> do  resp <- askT comm (messageFromEvidence ev) timeout
-                                 return $ gcast resp >>= extractResult
-
-
-askKnownAgent' ::  ( Typeable a
-                   , Typeable msg
-                   , Typeable resp)  => KnownAgent a
-                                    -> (a -> msg a)
-                                    -> Millis
-                                    -> (resp a -> Maybe a)
-                                    -> IOMaybe a
-askKnownAgent' knownAg messageFromEvidence timeout extractResult =
-    let res = askKnownAgent knownAg messageFromEvidence timeout
-                (fmap Identity . extractResult)
-    in fmap (fmap runIdentity) res
+                  , Typeable msg)  => KnownAgent a
+                                   -> msg a
+                                   -> IOMaybe (ExpectedResponse1 msg a)
+askKnownAgent knownAg message =
+    case knownAgentRef knownAg of
+     AgentRef comm  -> do  resp <- askT comm message
+                           return $ gcast resp
 
 instance Eq (KnownAgent a) where
   (==) = (==) `on` knownAgentRef
@@ -1164,17 +1148,15 @@ instance (Typeable a) => InformationPiece (KnownAgent a)
 
 data External a = External {
     knownAgents        :: IORef [KnownAgent a]
-  , opinionsTimeout    :: Millis
   , externalThreshold  :: IORef a
   }
 
-type Millis = Int64
 
 instance (Typeable a, Num a) => Context External a where
   contextName _       = "External"
   contextInformation  = fmap (fromNodes . map Information)
                       . readIORef . knownAgents
-  contextRelations r  = return [RelBinIO . OpinionRel $ opinionsTimeout r ]
+  contextRelations r  = return [ RelBinIO OpinionRel ]
   contextThreshold    = readIORef . externalThreshold
   combineBinRels      = combineBinRelsStrict
   combineWholeRels    = undefined
@@ -1182,11 +1164,13 @@ instance (Typeable a, Num a) => Context External a where
 
 -- -----------------------------------------------
 
-data OpinionRel a = OpinionRel { opinionTimeout :: Millis }
+data OpinionRel a = OpinionRel
 
 newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
 
 data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+
+type instance ExpectedResponse1 OpinionAbout = MyOpinion
 
 extractMyOpinion (MyOpinion mbOpinion) = mbOpinion
 
@@ -1200,9 +1184,8 @@ instance BinaryIORelation OpinionRel where
   binRelIOValue rel a b = fromMaybe (return Nothing)
     $ do  knownAg  <- collectInf a
           class'   <- collectInf b
-          return $ askKnownAgent'  knownAg  (curry OpinionAbout class')
-                                            (opinionTimeout rel)
-                                   $ fmap fromUnitInterval . extractMyOpinion
+          return $ do  resp <- askKnownAgent knownAg (OpinionAbout class')
+                       return . fmap fromUnitInterval $ extractMyOpinion =<< resp
 
 \end{code}
 
@@ -1211,18 +1194,17 @@ instance BinaryIORelation OpinionRel where
 
 
 \subsection{Agent}
- Here follows \emph{agents} implementation.
+ Here follows \emph{agents} messaging interface.
 
 \begin{code}
 
 class (Typeable ref, Ord ref) => AgentComm ref where
-  type AgentRole ref :: NegotiationRole
+  type AgentRole ref :: Maybe NegotiationRole
 
   agentId   :: ref -> String
-  send      :: (Typeable msg) => ref -> msg -> IO ()
-  ask       :: (Typeable msg, Typeable resp) => ref -> msg -> Millis -> IO resp
-  askT      :: (Typeable t, Typeable msg, Typeable resp) => ref -> msg t -> Millis -> IO (resp t)
-
+  send      :: (Typeable msg)              => ref -> msg    -> IO ()
+  ask       :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponse msg)
+  askT      :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
 
 data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
 
@@ -1232,6 +1214,10 @@ instance Eq AgentRef where
 
 instance Ord AgentRef where
   AgentRef a `compare` AgentRef b = case cast a of  Just a'  -> a' `compare` b
+-- -----------------------------------------------
+
+type family ExpectedResponse msg :: *
+type family ExpectedResponse1 (msg :: * -> *) :: * -> *
 
 -- -----------------------------------------------
 
@@ -1244,6 +1230,55 @@ data ClassroomRef  = ClassroomRef  String  deriving (Show, Eq, Ord)
 instance AgentComm GroupRef where -- TODO
 instance AgentComm ProfessorRef where -- TODO
 instance AgentComm ClassroomRef where -- TODO
+
+\end{code}
+
+Here follows \emph{agents} implementation.
+
+\begin{code}
+
+data PriorityMessage  = forall msg . Typeable msg  => PriorityMessage msg
+data Message          = forall msg . Typeable msg  => Message msg
+
+
+class (AgentComm ref) => AgentCommPriority ref where
+  _sendPriority  :: (Typeable msg)                             => ref -> msg    -> IO ()
+  _askPriority   :: (Typeable msg, Typeable resp)              => ref -> msg    -> IO resp
+  _askTPriority  :: (Typeable t, Typeable msg, Typeable resp)  => ref -> msg t  -> IO (resp t)
+
+data MessageWithHook = forall msg resp . (ExpectedResponse msg ~ resp) =>
+     MessageWithHook (msg, resp -> IO())
+
+data AgentRun (r :: Maybe NegotiationRole) states = AgentRun {
+  _agentId             :: String,
+  _states              :: states,
+  _messageBox          :: TChan MessageWithHook,
+--  _messageBoxPriority  :: TChan (PriorityMessage, PriorityMessage -> IO ()),
+  _handleMessage       ::  forall msg resp . (Typeable msg, Typeable resp) =>
+                           states -> msg -> Maybe (IO resp),
+  _onStart             :: states -> IO (),
+  _act                 :: states -> IO (),
+  _onStop              :: states -> IO ()
+  }
+
+data AgentRunOfRole (r :: Maybe NegotiationRole) = forall agent . AgentRunOfRole (AgentRun r agent)
+agentRunOfRoleId (AgentRunOfRole run) = _agentId run
+
+instance Eq (AgentRunOfRole r)   where (==)     = (==) `on` agentRunOfRoleId
+instance Ord (AgentRunOfRole r)  where compare  = compare `on` agentRunOfRoleId
+
+instance (Typeable r) => AgentComm (AgentRunOfRole r) where
+    agentId (AgentRunOfRole run)   = _agentId run
+    send (AgentRunOfRole run) msg  = atomically  $ writeTChan  (_messageBox run)
+                                                 $ MessageWithHook (msg, const $ return ())
+    ask (AgentRunOfRole run) msg = do  respVar <- newEmptyMVar
+                                       atomically  $ writeTChan  (_messageBox run)
+                                                   $ MessageWithHook (msg, putMVar respVar)
+                                       readMVar respVar
+
+
+runAgentMessages :: AgentRunOfRole r -> IO ()
+runAgentMessages ag = undefined
 
 
 \end{code}
