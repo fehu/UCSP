@@ -1246,16 +1246,23 @@ class (AgentComm ref) => AgentCommPriority ref where
   _askPriority   :: (Typeable msg, Typeable resp)              => ref -> msg    -> IO resp
   _askTPriority  :: (Typeable t, Typeable msg, Typeable resp)  => ref -> msg t  -> IO (resp t)
 
-data MessageWithHook = forall msg resp . (ExpectedResponse msg ~ resp) =>
-     MessageWithHook (msg, resp -> IO())
+data MessageWithResponse =
+    forall msg resp . (ExpectedResponse msg ~ resp) =>
+        MessageWithResponse msg (resp -> IO())
+  | forall a msg resp . (ExpectedResponse1 msg a ~ resp a) =>
+        MessageWithResponse1 (msg a) (resp a -> IO())
+
 
 data AgentRun (r :: Maybe NegotiationRole) states = AgentRun {
   _agentId             :: String,
   _states              :: states,
-  _messageBox          :: TChan MessageWithHook,
---  _messageBoxPriority  :: TChan (PriorityMessage, PriorityMessage -> IO ()),
-  _handleMessage       ::  forall msg resp . (Typeable msg, Typeable resp) =>
+  _messageBox          :: TChan MessageWithResponse,
+  _messageBoxPriority  :: TChan MessageWithResponse,
+
+  _handleMessage       ::  forall msg resp . (ExpectedResponse msg ~ resp) =>
                            states -> msg -> Maybe (IO resp),
+--  _handleMessage1      ::  forall msg resp a . (Typeable a, Typeable msg, Typeable resp, ExpectedResponse1 msg ~ resp) =>
+--                           states -> msg a -> Maybe (IO (resp a)),
   _onStart             :: states -> IO (),
   _act                 :: states -> IO (),
   _onStop              :: states -> IO ()
@@ -1270,15 +1277,29 @@ instance Ord (AgentRunOfRole r)  where compare  = compare `on` agentRunOfRoleId
 instance (Typeable r) => AgentComm (AgentRunOfRole r) where
     agentId (AgentRunOfRole run)   = _agentId run
     send (AgentRunOfRole run) msg  = atomically  $ writeTChan  (_messageBox run)
-                                                 $ MessageWithHook (msg, const $ return ())
-    ask (AgentRunOfRole run) msg = do  respVar <- newEmptyMVar
-                                       atomically  $ writeTChan  (_messageBox run)
-                                                   $ MessageWithHook (msg, putMVar respVar)
-                                       readMVar respVar
+                                                 $ MessageWithResponse msg (const $ return ())
+    ask   = _ask MessageWithResponse
+    askT  = _ask MessageWithResponse1
+
+_ask mkHook (AgentRunOfRole run) msg = do
+        respVar <- newEmptyMVar
+        atomically  $ writeTChan  (_messageBox run)
+                    $ mkHook msg (putMVar respVar)
+        readMVar respVar
 
 
-runAgentMessages :: AgentRunOfRole r -> IO ()
-runAgentMessages ag = undefined
+_runAgentMessages :: AgentRunOfRole r -> IO ()
+_runAgentMessages (AgentRunOfRole ag) = do
+    msg <- atomically $ do  priority  <- tryReadTChan $ _messageBoxPriority ag
+                            normal    <- tryReadTChan $ _messageBox ag
+                            maybe retry return $ priority <|> normal
+
+    case msg of  MessageWithResponse msg respond ->
+                    case _handleMessage ag (_states ag) msg of
+                            Just respIO  -> respond =<< respIO
+                            _            -> return () -- TODO: in case of ask message there always must be some kind of response
+                                                      -- in order to avoid asking thread indefinite block
+
 
 
 \end{code}
