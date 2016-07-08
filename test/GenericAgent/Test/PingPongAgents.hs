@@ -21,8 +21,8 @@ import Control.Monad
 
 -----------------------------------------------------------------------------
 
-data Ping = Ping -- deriving (Show, Typeable)
-data Pong = Pong
+data Ping = Ping deriving (Show, Typeable)
+data Pong = Pong deriving (Show, Typeable)
 
 -----------------------------------------------------------------------------
 
@@ -35,21 +35,23 @@ data PingAgentState = PingAgentState { pingCounterpart  :: IO AgentRef
 --   Responds to the first `maxCount` 'Pong' messages with 'Ping'.
 pingBehaviour maxCount = AgentBehaviour{
     handleMessages = AgentHandleMessages {
-            handleMessage = \state msg ->
+            handleMessage = \i state msg ->
                 case cast msg of Just Pong -> do c <- readIORef $ count state
                                                  counterpart <- pingCounterpart state
-                                                 when (c < maxCount)
-                                                    $ do count state `writeIORef` (c+1)
-                                                         putStrLn "Ping!"
-                                                         counterpart `send` Ping
+                                                 if c < maxCount
+                                                    then do count state `writeIORef` (c+1)
+                                                            putStrLn "Ping!"
+                                                            counterpart `send` Ping
+                                                    else do putStrLn "Finished"
+                                                            selfStop i
                                  _         -> return ()
           , respondMessage      = \_ _ -> return undefined
           , respondTypedMessage = \_ _ -> return undefined
           }
-  , act = \state -> whenM (readIORef $ firstTime state)
-                      $ do firstTime state `writeIORef` False
-                           putStrLn "Ping!"
-                           pingCounterpart state >>= (`send` Ping)
+  , act = \i state -> whenM (readIORef $ firstTime state)
+                          $ do firstTime state `writeIORef` False
+                               putStrLn "Ping!"
+                               pingCounterpart state >>= (`send` Ping)
   }
 
 pingDescriptor counterpart maxCount = AgentDescriptor{
@@ -67,14 +69,14 @@ data PongAgentState = PongAgentState { pongCounterpart :: IO AgentRef }
 -- | Pong agent always responds 'Ping' messages with 'Pong'.
 pongBehaviour = AgentBehaviour{
   handleMessages = AgentHandleMessages{
-          handleMessage = \state msg ->
+          handleMessage = \i state msg ->
             case cast msg of Just Ping -> do putStrLn "Pong!"
                                              pongCounterpart state >>= (`send` Pong)
                              _         -> return ()
         , respondMessage      = \_ _ -> return undefined
         , respondTypedMessage = \_ _ -> return undefined
         }
-  , act = const $ return ()
+  , act = \_ _ -> return ()
   }
 
 pongDescriptor counterpart = AgentDescriptor pongBehaviour
@@ -104,10 +106,10 @@ testPingPong maxCount = do (m, (ping, pong)) <- createPingPong maxCount
                            ping `sendPriority` StartMessage
                            pong `sendPriority` StartMessage
 
-                           putStrLn "Waiting"
-                           waitAllAgents m
-                           putStrLn "Done"
+                           putStrLn "Waiting for Ping"
+                           waitAgent ping
 
+                           putStrLn "Stopping"
                            m `orderEachAgent` StopMessage
 
                            return "Done"

@@ -165,6 +165,7 @@ data SomeClass  = forall c       . AbstractClass c       => SomeClass c
 
 \end{code}
 
+
 The ``System.Time.Day'' is redefined, dropping the ``Sunday''.
 
 \begin{code}
@@ -396,7 +397,7 @@ graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
 fromNodes :: [Information] -> IGraph
 fromNodes = IGraph . Set.fromList
 
-relationOn :: (Num a, Typeable a) => IRelation a -> IGraph -> IO (RelValue a)
+relationOn :: (Num a, Typeable a, Show a) => IRelation a -> IGraph -> IO (RelValue a)
 relationOn rel iGraph = case rel of
     RelBin r -> return . Left $ do  i1  <- graphNodes iGraph
                                     i2  <- graphNodes iGraph
@@ -551,7 +552,7 @@ class InformationRelation r =>
 
 class InformationRelation r =>
     BinaryIORelation r where
-        binRelIOValue :: (Num a, Typeable a) => r a -> Information -> Information -> IOMaybe a
+        binRelIOValue :: (Num a, Typeable a, Show a) => r a -> Information -> Information -> IOMaybe a
 
 type IOMaybe a = IO (Maybe a)
 
@@ -651,7 +652,7 @@ mapEither :: AnyFunc1 r -> Either a b -> Either (r a) (r b)
 mapEither f (Left a)   = Left $ f a
 mapEither f (Right a)  = Right $ f a
 
-assessWithin' ::  (Context c a, Num a, Typeable a) =>
+assessWithin' ::  (Context c a, Num a, Typeable a, Show a) =>
                   [Information]
               ->  c a
               ->  IO (Maybe a, AssessmentDetails a)
@@ -691,7 +692,7 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
 
 -- -----------------------------------------------
 
-assessWithin ::  (Context c a, Num a, Ord a, Typeable a) =>
+assessWithin ::  (Context c a, Num a, Ord a, Typeable a, Show a) =>
                  Candidate a -> c a -> IO (Candidate a)
 
 assessWithin f@Failure{} _ = return f
@@ -1133,10 +1134,9 @@ data KnownAgent a = forall (r :: NegotiationRole) . KnownAgent {
   }
   deriving Typeable
 
-askKnownAgent ::  ( Typeable a
-                  , Typeable msg)  => KnownAgent a
-                                   -> msg a
-                                   -> IOMaybe (ExpectedResponse1 msg a)
+askKnownAgent ::  (MessageT msg a)  => KnownAgent a
+                                    -> msg a
+                                    -> IOMaybe (ExpectedResponse1 msg a)
 askKnownAgent knownAg message =
     case knownAgentRef knownAg of
      AgentRef comm  -> do  resp <- askT comm message
@@ -1172,9 +1172,9 @@ instance (Typeable a, Num a) => Context External a where
 
 data OpinionRel a = OpinionRel
 
-newtype OpinionAbout a  = OpinionAbout (Class, a) deriving Typeable
+newtype OpinionAbout a  = OpinionAbout (Class, a) deriving (Typeable, Show)
 
-data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving (Typeable, Show)
 
 type instance ExpectedResponse1 OpinionAbout = MyOpinion
 
@@ -1215,6 +1215,17 @@ instance AgentComm ClassroomRef where -- TODO
 \end{code}
 
 !!!!!!!!!!!!!! %include GenericAgent
+
+
+Misc code:
+
+\begin{code}
+
+instance Show Class where -- TODO
+
+instance (Show a) => Show (InUnitInterval a) where show (InUnitInterval x) = show x
+
+\end{code}
 
 
 \end{document}

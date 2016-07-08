@@ -24,19 +24,27 @@ import Control.Monad
 
 data AgentBehaviour states = AgentBehaviour {
   handleMessages  :: AgentHandleMessages states,
-  act             :: states -> IO ()
+  act             :: forall i . (AgentInnerInterface i) => i -> states -> IO ()
 --  onStart         :: states -> IO (),
 --  onStop          :: states -> IO ()
 }
 
 
 data AgentHandleMessages states = AgentHandleMessages
-  {  handleMessage        ::  forall msg . Typeable msg => states -> msg -> IO ()
-  ,  respondMessage       ::  forall msg resp . (ExpectedResponse msg ~ resp) =>
-                                    states -> msg -> IO resp
-  ,  respondTypedMessage  ::  forall msg resp t . (ExpectedResponse1 msg t ~ resp t) =>
-                                    states -> msg t -> IO (resp t)
+  {  handleMessage        ::  forall msg i . ( Message msg
+                                             , AgentInnerInterface i) =>
+                                    i -> states -> msg -> IO ()
+  ,  respondMessage       ::  forall msg resp i . ( Message msg
+                                                  , ExpectedResponse msg ~ resp
+                                                  , AgentInnerInterface i) =>
+                                    i -> states -> msg -> IO resp
+  ,  respondTypedMessage  ::  forall msg resp t i . ( MessageT msg t
+                                                    , ExpectedResponse1 msg t ~ resp t
+                                                    , AgentInnerInterface i) =>
+                                    i -> states -> msg t -> IO (resp t)
   }
+
+class AgentInnerInterface i where  selfStop :: i -> IO ()
 
 -----------------------------------------------------------------------------
 
@@ -51,13 +59,13 @@ class (Typeable ref, Ord ref) => AgentComm ref where
   type AgentRole ref :: *
 
   agentId   :: ref -> AgentId
-  send      :: (Typeable msg)              => ref -> msg    -> IO ()
-  ask       :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponse msg)
-  askT      :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  send      :: (Message msg)     => ref -> msg    -> IO ()
+  ask       :: (Message msg)     => ref -> msg    -> IO (ExpectedResponse msg)
+  askT      :: (MessageT msg t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
 
   -- role-dependent
-  askR      :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponseForRole (AgentRole ref) msg)
-  askRT     :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponseForRole1 (AgentRole ref) msg t)
+  askR      :: (Message msg)     => ref -> msg    -> IO (ExpectedResponseForRole (AgentRole ref) msg)
+  askRT     :: (MessageT msg t)  => ref -> msg t  -> IO (ExpectedResponseForRole1 (AgentRole ref) msg t)
 
 
 newtype AgentId = AgentId String deriving (Show, Eq, Ord)
@@ -87,9 +95,9 @@ type family ExpectedResponseForRole1  r (msg :: * -> *)    :: * -> *
 -- -----------------------------------------------
 
 class (AgentComm ref) => AgentCommPriority ref where
-  sendPriority  :: (Typeable msg)              => ref -> msg    -> IO ()
-  askPriority   :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponse msg)
-  askTPriority  :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  sendPriority  :: (Message msg)     => ref -> msg    -> IO ()
+  askPriority   :: (Message msg)     => ref -> msg    -> IO (ExpectedResponse msg)
+  askTPriority  :: (MessageT msg t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
 
 
 class (AgentCommPriority ag) => AgentControl ag where
@@ -130,10 +138,10 @@ class AgentsManager m where
     foreachAgent :: m -> (AgentFullRef -> IO a) -> IO [a]
     foreachAgent m f =  mapM f =<< listAgents m
 
-    sendEachAgent :: (Typeable msg) => m -> msg -> IO ()
+    sendEachAgent :: (Message msg) => m -> msg -> IO ()
     sendEachAgent m msg = void $ foreachAgent m (`send` msg)
 
-    orderEachAgent :: (Typeable msg) => m -> msg -> IO ()
+    orderEachAgent :: (Message msg) => m -> msg -> IO ()
     orderEachAgent m msg = void $ foreachAgent m (`send` msg)
 
     createWithManager :: (AgentCreate from ag) => m -> from -> IO (ag, AgentFullRef)
@@ -162,6 +170,10 @@ forceStopAgent fref = do  _killThread act
     where  (act, msg)   = extractThreads fref
            _killThread  = killThread . _threadId
 
+waitAgent :: AgentFullRef -> IO ()
+waitAgent fref = do _waitThread act
+                    _waitThread msg
+    where  (act, msg)   = extractThreads fref
 
 instance Eq AgentFullRef  where AgentFullRef a _ == AgentFullRef b _        = agentId a == agentId b
 instance Ord AgentFullRef where AgentFullRef a _ `compare` AgentFullRef b _ = agentId a `compare` agentId b
@@ -184,8 +196,18 @@ instance AgentControl AgentFullRef where
 
 -- -----------------------------------------------
 
-data StartMessage  = StartMessage  deriving Typeable -- Starts agent's act thread
-data StopMessage   = StopMessage   deriving Typeable -- Terminates agent
+type Message msg  = (Typeable msg, Show msg)
+data Message'     = forall msg . Message msg  => Message msg
+
+type MessageT msg t  = (Typeable t, Typeable msg, Show (msg t))
+data MessageT'       = forall msg t . MessageT msg t => MessageT (msg t)
+
+data StartMessage  = StartMessage  deriving (Typeable, Show) -- Starts agent's act thread
+data StopMessage   = StopMessage   deriving (Typeable, Show) -- Terminates agent
+
+
+instance Show Message'   where show (Message msg) = show msg
+instance Show MessageT'  where show (MessageT msg) = show msg
 
 -- -----------------------------------------------
 

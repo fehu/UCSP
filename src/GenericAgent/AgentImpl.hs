@@ -41,31 +41,38 @@ type GenericAgent = AgentRunOfRole Generic
 
 -- -----------------------------------------------
 
-
-data Message = forall msg . Typeable msg  => Message msg
-
 data AgentRun r states = AgentRun {
   _agentId             :: AgentId,
   _states              :: states,
   _runState            :: TVar RunState,
-  _messageBox          :: TQueue (Either Message (MessageWithResponse r)),
-  _messageBoxPriority  :: TQueue (Either Message (MessageWithResponse r)),
+  _messageBox          :: TQueue (Either Message' (MessageWithResponse r)),
+  _messageBoxPriority  :: TQueue (Either Message' (MessageWithResponse r)),
   _agentBehaviour      :: AgentBehaviour states
   }
 
 data MessageWithResponse r =
-    forall msg resp . (ExpectedResponse msg ~ resp) =>
+    forall msg resp . (Message msg, ExpectedResponse msg ~ resp) =>
         MessageWithResponse msg (resp -> IO())
-  | forall a msg resp . (ExpectedResponse1 msg a ~ resp a) =>
+  | forall a msg resp . (MessageT msg a, ExpectedResponse1 msg a ~ resp a) =>
         MessageWithResponse1 (msg a) (resp a -> IO())
 
-  | forall msg resp . (ExpectedResponseForRole r msg ~ resp) =>
+  | forall msg resp . (Message msg, ExpectedResponseForRole r msg ~ resp) =>
         MessageWithResponse' msg (resp -> IO())
-  | forall a msg resp . (ExpectedResponseForRole1 r msg a ~ resp a) =>
+  | forall a msg resp . (MessageT msg a, ExpectedResponseForRole1 r msg a ~ resp a) =>
         MessageWithResponse1' (msg a) (resp a -> IO())
 
 
 data RunState = Created | Running | Terminate deriving (Show, Eq)
+
+
+instance Show (MessageWithResponse r) where
+    show (MessageWithResponse    msg _) = show msg
+    show (MessageWithResponse1   msg _) = show msg
+    show (MessageWithResponse'   msg _) = show msg
+    show (MessageWithResponse1'  msg _) = show msg
+
+
+--_showMessage (Left msg) = show msg
 
 -- -----------------------------------------------
 
@@ -129,14 +136,19 @@ _runAgentMessages (AgentRunOfRole ag) = do
     let  h       = handleMessages $ _agentBehaviour ag
          states  = _states ag
 
+    putStrLn $ "Message: " ++ show msg
     case msg of  Left (Message msg) ->
-                        let  mbStart  = (\StartMessage  -> ag `_start` states)  <$> cast msg
-                             mbStop   = (\StopMessage   -> ag `_stop` states)   <$> cast msg
-                        in fromMaybe (handleMessage h states msg) $ mbStart <|> mbStop
+                        let  mbStart  = (\StartMessage  -> do putStrLn "Start message received"
+                                                              ag `_start` states
+                                        )  <$> cast msg
+                             mbStop   = (\StopMessage   -> do putStrLn "Stop message received"
+                                                              ag `_stop` states
+                                        )  <$> cast msg
+                        in fromMaybe (handleMessage h ag states msg) $ mbStart <|> mbStop
                  Right (MessageWithResponse msg respond) ->
-                        respond =<< respondMessage h states msg
+                        respond =<< respondMessage h ag states msg
                  Right (MessageWithResponse1 msg respond) ->
-                        respond =<< respondTypedMessage h states msg
+                        respond =<< respondTypedMessage h ag states msg
 
 _run  :: (RunState -> Bool)
       -> (AgentRun r states -> states -> STM ())
@@ -157,12 +169,14 @@ _runAgent (AgentRunOfRole ag) = do
     runState <- atomically . readTVar $ _runState ag
     case runState of  Terminate  -> fail "Terminated"
                       Created    -> return ()
-                      Running    -> act (_agentBehaviour ag) (_states ag)
+                      Running    -> act (_agentBehaviour ag) ag (_states ag)
 
+
+instance AgentInnerInterface (AgentRun r state) where
+    selfStop arun = atomically $ _runState arun `writeTVar` Terminate
 
 -- -----------------------------------------------
 -- -----------------------------------------------
-
 
 instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r) where
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
