@@ -67,6 +67,10 @@ import Control.Concurrent.MVar
 
 import GHC.Exts (groupWith)
 
+
+import GenericAgent
+
+
 \end{code}
 %endif
 
@@ -1191,40 +1195,12 @@ instance BinaryIORelation OpinionRel where
 
 \end{code}
 
-\subsubsection{Decision}
-
-
 
 \subsection{Agent}
- Here follows \emph{agents} messaging interface.
 
 \begin{code}
 
-class (Typeable ref, Ord ref) => AgentComm ref where
-  type AgentRole ref :: Maybe NegotiationRole
-
-  agentId   :: ref -> AgentId
-  send      :: (Typeable msg)              => ref -> msg    -> IO ()
-  ask       :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponse msg)
-  askT      :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
-
-newtype AgentId = AgentId String deriving (Show, Eq, Ord)
-
-data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
-
-instance Eq AgentRef where
-  AgentRef a == AgentRef b = case cast a of  Just a'  -> a' == b
-                                             _        -> False
-
-instance Ord AgentRef where
-  AgentRef a `compare` AgentRef b = case cast a of  Just a'  -> a' `compare` b
-
--- -----------------------------------------------
-
-type family ExpectedResponse   (msg :: *)         :: *
-type family ExpectedResponse1  (msg :: * -> *)    :: * -> *
-
--- -----------------------------------------------
+--- -----------------------------------------------
 
 data GroupRef      = GroupRef      String  deriving (Show, Eq, Ord)
 data ProfessorRef  = ProfessorRef  String  deriving (Show, Eq, Ord)
@@ -1236,208 +1212,10 @@ instance AgentComm GroupRef where -- TODO
 instance AgentComm ProfessorRef where -- TODO
 instance AgentComm ClassroomRef where -- TODO
 
--- -----------------------------------------------
-
-class (AgentCommPriority ag) => AgentControl ag where
-    startAgent  :: ag -> IO ()
-    stopAgent   :: ag -> IO ()
-
-
-class (AgentControl ag) => AgentCreate from ag where
-    createAgent :: from -> IO (ag, AgentThreads)
-
-forceStopAgent :: AgentThreads -> IO ()
-forceStopAgent (AgentThreads act msg) = do  killThread act
-                                            killThread msg
-
 \end{code}
 
-Here follows \emph{agents} implementation.
+!!!!!!!!!!!!!! %include GenericAgent
 
-\begin{code}
-
-data Message = forall msg . Typeable msg  => Message msg
-
-
--- destroyed at Stop, so dispose of any ThreadId
-data AgentThreads = AgentThreads  {  _actThreadId       :: ThreadId
-                                  ,  _messageThreadId   :: ThreadId
-                                  }
-
-
-class (AgentComm ref) => AgentCommPriority ref where
-  sendPriority  :: (Typeable msg)              => ref -> msg    -> IO ()
-  askPriority   :: (Typeable msg)              => ref -> msg    -> IO (ExpectedResponse msg)
-  askTPriority  :: (Typeable t, Typeable msg)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
-
-
-data StartMessage  = StartMessage  deriving Typeable -- Starts agent's act thread
-data StopMessage   = StopMessage   deriving Typeable -- Terminates agent
-
-
-data RunState = Created | Running | Terminate deriving (Show, Eq)
-
--- -----------------------------------------------
-
-data AgentBehaviour (r :: Maybe NegotiationRole) states = AgentBehaviour{
-  _handleMessages  :: AgentHandleMessages states,
-  _onStart         :: states -> STM (),
-  _act             :: states -> IO (),
-  _onStop          :: states -> STM ()
-}
-
-
-data AgentHandleMessages states = AgentHandleMessages
-  {  handleMessage        ::  forall msg . Typeable msg => states -> msg -> IO ()
-  ,  respondMessage       ::  forall msg resp . (ExpectedResponse msg ~ resp) =>
-                                    states -> msg -> IO resp
-  ,  respondTypedMessage  ::  forall msg resp t . (ExpectedResponse1 msg t ~ resp t) =>
-                                    states -> msg t -> IO (resp t)
-  }
-
--- -----------------------------------------------
-
-data MessageWithResponse (r :: Maybe NegotiationRole) =
-    forall msg resp . (ExpectedResponse msg ~ resp) =>
-        MessageWithResponse msg (resp -> IO())
-  | forall a msg resp . (ExpectedResponse1 msg a ~ resp a) =>
-        MessageWithResponse1 (msg a) (resp a -> IO())
-
-
-data AgentRun (r :: Maybe NegotiationRole) states = AgentRun {
-  _agentId             :: AgentId,
-  _states              :: states,
-  _runState            :: TVar RunState,
-  _messageBox          :: TQueue (Either Message (MessageWithResponse r)),
-  _messageBoxPriority  :: TQueue (Either Message (MessageWithResponse r)),
-  _agentBehaviour      :: AgentBehaviour r states
-  }
-
-
-data AgentRunOfRole (r :: Maybe NegotiationRole) = forall states . AgentRunOfRole (AgentRun r states)
-agentRunOfRoleId (AgentRunOfRole run) = _agentId run
-
-instance Eq (AgentRunOfRole r)   where (==)     = (==) `on` agentRunOfRoleId
-instance Ord (AgentRunOfRole r)  where compare  = compare `on` agentRunOfRoleId
-
-
--- -----------------------------------------------
-
-instance (Typeable r) => AgentComm (AgentRunOfRole r) where
-    type AgentRole (AgentRunOfRole r) = r
-
-    agentId (AgentRunOfRole run)  = _agentId run
-    send (AgentRunOfRole run)     = _writeTQueue run _messageBox . Left . Message
-    ask   = _ask MessageWithResponse
-    askT  = _ask MessageWithResponse1
-
-
-_writeTQueue run getBox msg' = atomically $ writeTQueue (getBox run) msg'
-
-_ask mkHook (AgentRunOfRole run) msg = do
-        respVar <- newEmptyMVar
-        _writeTQueue run _messageBox . Right $ mkHook msg (putMVar respVar)
-        readMVar respVar
-
-
--- -----------------------------------------------
-
-instance (Typeable r) => AgentCommPriority (AgentRunOfRole r) where
-    sendPriority (AgentRunOfRole run) = _writeTQueue run _messageBoxPriority . Left . Message
-    askPriority   = _askPriority MessageWithResponse
-    askTPriority  = _askPriority MessageWithResponse1
-
-_askPriority mkHook (AgentRunOfRole run) msg = do
-        respVar <- newEmptyMVar
-        _writeTQueue run _messageBoxPriority . Right $ mkHook msg (putMVar respVar)
-        readMVar respVar
-
-
-instance (Typeable r) => AgentControl (AgentRunOfRole r) where
-    startAgent ag  = ag `sendPriority` StartMessage
-    stopAgent ag   = ag `sendPriority` StopMessage
-
-
--- -----------------------------------------------
-
-_runAgentMessages :: AgentRunOfRole r -> IO ()
-_runAgentMessages (AgentRunOfRole ag) = do
-    msg <- atomically $ do  priority  <- tryReadTQueue $ _messageBoxPriority ag
-                            runState  <- readTVar $ _runState ag
-                            msg  <- case (priority, runState) of
-                                        (Nothing, Running)  -> tryReadTQueue $ _messageBox ag
-                                        _                   -> return priority
-                            if runState == Terminate  then fail "Terminated"
-                                                      else maybe retry return msg
-    let  h       = _handleMessages $ _agentBehaviour ag
-         states  = _states ag
-
-    case msg of  Left (Message msg) ->
-                        let  mbStart  = (\StartMessage  -> ag `_start` states)  <$> cast msg
-                             mbStop   = (\StopMessage   -> ag `_stop` states)   <$> cast msg
-                        in fromMaybe (handleMessage h states msg) $ mbStart <|> mbStop
-                 Right (MessageWithResponse msg respond) ->
-                        respond =<< respondMessage h states msg
-                 Right (MessageWithResponse1 msg respond) ->
-                        respond =<< respondTypedMessage h states msg
-
-_run  :: (RunState -> Bool)
-      -> (AgentRun r states -> states -> STM ())
-      -> AgentRun r states -> states
-      -> IO ()
-_run atRunState action ag states =
-    atomically $ do  runState <- readTVar $ _runState ag
-                     when (atRunState runState) (action ag states)
-
--- runs `_act` the corresponding thread thread
-_start = _run (Created ==) $ \ag states -> do  _onStart (_agentBehaviour ag) states
-                                               _runState ag `writeTVar` Running
-
-_stop = _run (const True) $ \ag _ -> _runState ag `writeTVar` Terminate
-
-
-_runAgentLoop :: AgentRunOfRole r -> IO ()
-_runAgentLoop (AgentRunOfRole ag) = forever $ do
-    runState <- atomically . readTVar $ _runState ag
-    case runState of  Terminate  -> fail "Terminated"
-                      Created    -> return ()
-                      Running    -> _act (_agentBehaviour ag) (_states ag)
-
--- -----------------------------------------------
-
-
-data AgentDescriptor r states = AgentDescriptor{
-    agentBehaviour  :: AgentBehaviour r states,
-    newAgentStates  :: IO states,
-    nextAgentId     :: IO AgentId
-    }
-
-
-instance (Typeable r) => AgentCreate (AgentDescriptor r states) (AgentRunOfRole r) where
-    createAgent AgentDescriptor  {  agentBehaviour=behaviour
-                                 ,  newAgentStates=newStates
-                                 ,  nextAgentId=nextId } =
-        do  id        <- nextId
-            states    <- newStates
-            runState  <- newTVarIO Created
-
-            messageBoxPriority  <- newTQueueIO
-            messageBox          <- newTQueueIO
-
-            let  run   = AgentRun id states runState messageBox messageBoxPriority behaviour
-                 run'  = AgentRunOfRole run
-
-            -- Start threads
-            msgThreadId  <- forkIO . forever $ _runAgentMessages run'
-            actThreadId  <- forkIO $ _runAgentLoop run'
-
-            let threads = AgentThreads  {  _messageThreadId  = msgThreadId
-                                        ,  _actThreadId      = actThreadId
-                                        }
-
-            return (run', threads)
-
-\end{code}
 
 \end{document}
 

@@ -18,6 +18,9 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Document
+                       GenericAgent
+                       GenericAgent.AgentImpl
+                       Extra
   -- other-modules:
 
   build-depends:       base >=4.8 && <4.9
@@ -38,4 +41,29 @@ library
                        RankNTypes
                        ConstraintKinds
                        TypeOperators
+
+
+test-suite test-generic-agent
+  hs-source-dirs:   test
+  main-is:          GenericAgent/Test.hs
+  type:             exitcode-stdio-1.0
+
+  other-modules:    GenericAgent.Test.PingPongAgents
+
+  build-depends:    Thesis-UCSP
+                  , base >=4.8 && <4.9
+                  , hspec
+
+  default-language:    Haskell2010
+
+executable run-ping-pong
+  hs-source-dirs:   test
+  main-is:          GenericAgent/Test/RunPingPong.hs
+
+  build-depends:    Thesis-UCSP
+                  , base >=4.8 && <4.9
+                  , hspec
+
+  default-language:    Haskell2010
+
 
