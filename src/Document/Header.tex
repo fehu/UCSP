@@ -1,0 +1,20 @@
+
+%include format.fmt
+%include polycode.fmt
+%include forall.fmt
+
+
+\usepackage{subcaption, hyperref, float, amsmath}
+\usepackage{tikz, ifthen, xcolor}
+\usepackage[english]{babel}
+\usepackage[inline, shortlabels]{enumitem}
+
+\usepackage{showframe}
+
+\usetikzlibrary{fit, calc, arrows, shapes}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\todo}[1]{\red{\{ \textbf{TODO:} #1 \}}}
+
+\newcommand{\crule}[2][1pt]{\begin{center}\rule{#2\textwidth}{#1}\end{center}}
+
