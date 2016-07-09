@@ -33,7 +33,7 @@ data PingAgentState = PingAgentState { pingCounterpart  :: IO AgentRef
 
 -- | Ping agent sends 'Ping' message to it's counterpart at start.
 --   Responds to the first `maxCount` 'Pong' messages with 'Ping'.
-pingBehaviour maxCount = AgentBehaviour{
+pingBehaviour maxCount = AgentBehavior{
     handleMessages = AgentHandleMessages {
             handleMessage = \i state msg ->
                 case cast msg of Just Pong -> do c <- readIORef $ count state
@@ -67,7 +67,7 @@ pingDescriptor counterpart maxCount = AgentDescriptor{
 data PongAgentState = PongAgentState { pongCounterpart :: IO AgentRef }
 
 -- | Pong agent always responds 'Ping' messages with 'Pong'.
-pongBehaviour = AgentBehaviour{
+pongBehaviour = AgentBehavior{
   handleMessages = AgentHandleMessages{
           handleMessage = \i state msg ->
             case cast msg of Just Ping -> do putStrLn "Pong!"

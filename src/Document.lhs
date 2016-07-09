@@ -1,23 +1,10 @@
 \documentclass{article}
 
-%format family = "\textbf{family}"
-
-%format `union` = "\cup"
-%format `compare` = "\lesseqqgtr"
-%format `member` = "\in"
-
-%format <|> = "\mathrel{\mathord{<}\mathord{|}\mathord{>}}"
-%format <$> = "\mathrel{\mathord{<}\mathord{\$}\mathord{>}}"
-%format <*> = "\mathrel{\mathord{<}\mathord{*}\mathord{>}}"
-%format &&& = "\mathrel{\mathord{\&}\mathord{\&}\mathord{\&}}"
-
-
-%format i1 = "i_1"
-%format i2 = "i_2"
-%format AnyFunc1 = "\mathrm{AnyFunc}_1"
-
+%include format.fmt
 %include polycode.fmt
 %include forall.fmt
+
+%format AnyFunc1 = "\mathrm{AnyFunc}_1"
 
 \usepackage{subcaption, hyperref, float, amsmath}
 \usepackage{tikz, ifthen, xcolor}
@@ -1214,7 +1201,9 @@ instance AgentComm ClassroomRef where -- TODO
 
 \end{code}
 
-!!!!!!!!!!!!!! %include GenericAgent
+% include GenericAgent.lhs
+
+% include Test.lhs
 
 
 Misc code:

@@ -41,13 +41,21 @@ type GenericAgent = AgentRunOfRole Generic
 
 -- -----------------------------------------------
 
+data Message'     = forall msg . Message msg  => Message msg
+data MessageT'       = forall msg t . MessageT msg t => MessageT (msg t)
+
+instance Show Message'   where show (Message msg) = show msg
+instance Show MessageT'  where show (MessageT msg) = show msg
+
+-- -----------------------------------------------
+
 data AgentRun r states = AgentRun {
   _agentId             :: AgentId,
   _states              :: states,
   _runState            :: TVar RunState,
   _messageBox          :: TQueue (Either Message' (MessageWithResponse r)),
   _messageBoxPriority  :: TQueue (Either Message' (MessageWithResponse r)),
-  _agentBehaviour      :: AgentBehaviour states
+  _agentBehaviour      :: AgentBehavior states
   }
 
 data MessageWithResponse r =
@@ -87,8 +95,6 @@ instance Ord (AgentRunOfRole r)  where compare  = compare `on` agentRunOfRoleId
 
 
 instance (Typeable r) => AgentComm (AgentRunOfRole r) where
-    type AgentRole (AgentRunOfRole r) = r
-
     agentId (AgentRunOfRole run)  = _agentId run
     send (AgentRunOfRole run)     = _writeTQueue run _messageBox . Left . Message
     ask   = _ask MessageWithResponse
@@ -213,8 +219,9 @@ instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r)
                                         ,  _threadFinished = not <$> isEmptyMVar actThreadStopped
                                         ,  _waitThread     = readMVar actThreadStopped
                                         }
+                threads = AgentThreads actThread msgThread
 
-            return (run', AgentThreads actThread msgThread)
+            return (run', AgentFullRef run' threads)
 
 
 -- -----------------------------------------------
@@ -229,5 +236,26 @@ instance AgentsManager SimpleAgentsManager where
     registerAgent m ref = atomically $ registeredAgents m `modifyTVar` (ref:)
     unregisterAgent m ref = atomically $ registeredAgents m `modifyTVar` delete ref
 
+    mapAgents f   = mapM f   <=< listAgents
+    mapAgents_ f  = mapM_ f  <=< listAgents
+
+
+instance AgentsManagerOps SimpleAgentsManager where
+    agentsStopped  = fmap (foldr (||) True) . _mapEachThread _threadFinished
+    waitAllAgents  = void . _mapEachThread _waitThread
+
+    sendEachAgent m msg   = void $ foreachAgent m (`send` msg)
+    orderEachAgent m msg  = void $ foreachAgent m (`sendPriority` msg)
+
+    createWithManager m from = do (ag, ref) <- createAgent from
+                                  m `registerAgent` ref
+                                  return (ag, ref)
+
+
+
+
+_mapEachThread :: (AgentsManager m) => (AgentThread -> IO a) -> m -> IO [a]
+_mapEachThread f = (mapM f . concatMap (pair2List . extractThreads)) <=< listAgents
+    where pair2List (a, b) = [a, b]
 
 
