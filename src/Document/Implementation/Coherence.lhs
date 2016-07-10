@@ -1,11 +1,15 @@
 
 %if False
 \begin{code}
- 
+
 module Document.Implementation.Coherence(
+  module Document.Implementation.Coherence.Information
+, module Document.Implementation.Coherence.Relations
 
 ) where
- 
+
+import Document.Implementation.Coherence.Information
+import Document.Implementation.Coherence.Relations
 
 \end{code}
 %endif
@@ -37,40 +41,5 @@ between theese pieces.
 %include Coherence/Information.lhs
 %include Coherence/Relations.lhs
 
-\subsubsection{Information graph}
-\begin{code}
-
-
-newtype IGraph = IGraph (Set Information)
-
-graphNodes :: IGraph -> [Information]
-graphNodes (IGraph inf) = Set.toList inf
-
-graphJoin :: IGraph -> [Information] -> IGraph
-graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
-
-fromNodes :: [Information] -> IGraph
-fromNodes = IGraph . Set.fromList
-
-relationOn :: (Num a, Typeable a, Show a) => IRelation a -> IGraph -> IO (RelValue a)
-relationOn rel iGraph = case rel of
-    RelBin r -> return . Left $ do  i1  <- graphNodes iGraph
-                                    i2  <- graphNodes iGraph
-                                    if i1 == i2 then []
-                                    else maybeToList $
-                                         RelValBetween (i1, i2) <$>
-                                         binRelValue r i1 i2
-
-    RelBinIO r -> fmap (Left . concat) . sequence $ do
-                    i1  <- graphNodes iGraph
-                    i2  <- graphNodes iGraph
-                    return $ if i1 == i2  then return []
-                                          else fmap  ( maybeToList
-                                                     . fmap (RelValBetween (i1, i2)))
-                                                     (binRelIOValue r i1 i2)
-
-    RelWhole r -> return . Right . RelValWhole $ wholeRelValue r iGraph
-
-\end{code}
 
 

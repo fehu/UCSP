@@ -18,6 +18,24 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Document
+                       Document.Implementation
+                       Document.Implementation.Classes
+                       Document.Implementation.NegotiationRoles
+
+                       Document.Implementation.Coherence
+                       Document.Implementation.Coherence.Information
+                       Document.Implementation.Coherence.Relations
+
+                       Document.Implementation.Contexts
+                       Document.Implementation.Contexts.Combine
+                       Document.Implementation.Contexts.InUnitInterval
+
+                       Document.Implementation.Contexts.Capabilities
+                       Document.Implementation.Contexts.Beliefs
+                       Document.Implementation.Contexts.Obligations
+                       Document.Implementation.Contexts.Preferences
+                       Document.Implementation.Contexts.External
+
                        GenericAgent
                        GenericAgent.AgentImpl
                        Extra

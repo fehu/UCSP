@@ -1,5 +1,6 @@
 
 %if False
+\begin{code}
 
 module Document.Implementation.Classes (
 
@@ -14,7 +15,16 @@ module Document.Implementation.Classes (
 
 ) where
 
+import Document.Implementation.NegotiationRoles
+import GenericAgent
 
+import Data.Typeable
+import Data.Function (on)
+
+import Data.Ix (Ix)
+import Data.Set (Set)
+
+\end{code}
 %endif
 
 
@@ -57,9 +67,9 @@ For inner usage, the classes are divided into
 
 class (Ord c, Show c, Typeable c) =>
     AbstractClass c where  classDiscipline :: c -> Discipline
-                           classGroup      :: c -> GroupRef
-                           classProfessor  :: c -> ProfessorRef
-                           classRoom       :: c -> ClassroomRef
+                           classGroup      :: c -> AgentRef' GroupRole
+                           classProfessor  :: c -> AgentRef' ProfessorRole
+                           classRoom       :: c -> AgentRef' ClassroomRole
                            classNumber     :: c -> Word
 
 class (AbstractClass c, DiscreteTime time) =>
@@ -70,6 +80,9 @@ class (AbstractClass c, DiscreteTime time) =>
 
 data Class      = forall c time  . ConcreteClass c time  => Class c
 data SomeClass  = forall c       . AbstractClass c       => SomeClass c
+
+instance Show Class      where show (Class c)      = show c
+instance Show SomeClass  where show (SomeClass c)  = show c
 
 \end{code}
 

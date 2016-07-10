@@ -1,4 +1,32 @@
 
+%if False
+\begin{code}
+
+module Document.Implementation.Contexts.Capabilities(
+
+  Capabilities(GroupCapabilities, FullTimeProfCapabilities)
+
+, CanTeachRel(..), NeedsDisciplineRel(..)
+
+) where
+
+import Document.Implementation.Classes
+import Document.Implementation.NegotiationRoles
+import Document.Implementation.Coherence
+import Document.Implementation.Contexts
+
+import qualified Document.Implementation.Contexts.Combine as Combine
+
+import Data.Coerce (coerce)
+import Data.Set (member)
+
+import qualified Data.Set as Set
+import qualified Data.Map as Map
+
+import Control.Applicative ((<|>))
+
+\end{code}
+%endif
 
 \subsubsection{Capabilities}
 The capabilities context handles question ``Am I able to do it?''.
@@ -26,19 +54,21 @@ further avoid making same kind of proposals to the uncapable agent.
 
 \begin{code}
 
-data family Capabilities (r :: NegotiationRole) :: * -> *
+data family Capabilities (agentRole :: *) :: * -> *
 
 data instance Capabilities GroupRole a = GroupCapabilities {
   needsDisciplines :: [Discipline]
   }
 
-data instance Capabilities FullTimeProfRole a = FullTimeProfCapabilities {
+data instance Capabilities ProfessorRole a = FullTimeProfCapabilities {
   canTeachFullTime :: [Discipline]
   }
 
 -- -----------------------------------------------
 
 data CanTeachRel a = CanTeachRel
+
+instance Functor CanTeachRel where fmap _ = const CanTeachRel
 
 instance InformationRelation CanTeachRel where
     relationName _ = "CanTeach"
@@ -58,23 +88,9 @@ instance BinaryRelation CanTeachRel where
 
 data NeedsDisciplineRel a = NeedsDisciplineRel
 
+instance Functor NeedsDisciplineRel where fmap _ = const NeedsDisciplineRel
 instance InformationRelation NeedsDisciplineRel where  -- TODO
 instance BinaryRelation NeedsDisciplineRel where       -- TODO
-
--- -----------------------------------------------
-
--- product X
-combineBinRelsStrict _ bRels  | null bRels = Nothing
-combineBinRelsStrict _ bRels  = Just . CBin . product
-                              . concatMap (map relValBetween)
-                              $ Map.elems bRels
-
-combineWholeRelsStrict _ wRels  | null wRels = Nothing
-combineWholeRelsStrict _ wRels  = Just . CWhole . product
-                                . map unwrapRelValWhole
-                                $ Map.elems wRels
-
-combineRelsStrict _ (CBin b) (CWhole w) = b * w
 
 -- -----------------------------------------------
 
@@ -86,12 +102,12 @@ instance (Num a) => Context (Capabilities GroupRole) a where
   contextRelations _  = return [RelBin NeedsDisciplineRel]
   contextThreshold _  = return 0
 
-  combineWholeRels    = combineWholeRelsStrict
-  combineBinRels      = combineBinRelsStrict
-  combineRels         = combineRelsStrict
+  combineWholeRels    = Combine.wholeRelsProduct
+  combineBinRels      = Combine.binRelsProduct
+  combineRels         = Combine.relsProduct
 
 
-instance (Num a) => Context (Capabilities FullTimeProfRole) a where
+instance (Num a) => Context (Capabilities ProfessorRole) a where
   contextName _       = "Capabilities"
   contextInformation  = return . fromNodes . (:[])
                       . Information . CanTeach
@@ -99,9 +115,9 @@ instance (Num a) => Context (Capabilities FullTimeProfRole) a where
   contextRelations _  = return [RelBin CanTeachRel]
   contextThreshold _  = return 0
 
-  combineWholeRels    = combineWholeRelsStrict
-  combineBinRels      = combineBinRelsStrict
-  combineRels         = combineRelsStrict
+  combineWholeRels    = Combine.wholeRelsProduct
+  combineBinRels      = Combine.binRelsProduct
+  combineRels         = Combine.relsProduct
 
 \end{code}
 

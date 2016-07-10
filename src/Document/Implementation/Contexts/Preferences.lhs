@@ -1,4 +1,25 @@
 
+%if False
+\begin{code}
+
+module Document.Implementation.Contexts.Preferences(
+
+  Preferences(..)
+
+, InUnitInterval, inUnitInterval, fromUnitInterval
+
+) where
+
+import Document.Implementation.Coherence
+import Document.Implementation.Contexts
+import Document.Implementation.Contexts.InUnitInterval
+
+import qualified Document.Implementation.Contexts.Combine as Combine
+
+import Data.IORef
+
+\end{code}
+%endif
 
 \subsubsection{Preferences}
 Preferences determine \emph{weak restrictions}, that are intended to be
@@ -49,44 +70,12 @@ data Preferences a = Preferences  {
 instance (Fractional a) => Context Preferences a where
   contextName _ = "Preferences"
   contextInformation  = return . fromNodes . preferencesInfo
-  contextRelations    = return . map coerceIRelation . preferencesRels
+  contextRelations    = return . map (fmap fromUnitInterval) . preferencesRels
   contextThreshold    = readIORef . preferencesThreshold
 
-  combineBinRels _    = fmap CBin . combineBinRelsMeansProd'
-  combineWholeRels _  = fmap CWhole . combineWholeRelsProd'
-  combineRels         = combineRelsProd
-
-
--- -----------------------------------------------
-
-maybeMean [] = Nothing
-maybeMean xs = Just $ sum xs / fromIntegral (length xs)
-
-combineBinRelsMeansProd' :: (Fractional a) => RelValsBetween a -> Maybe a
-combineBinRelsMeansProd' = foldr f Nothing
-  where  mean' = maybeMean . map relValBetween
-         f xs acc@(Just _)  = ((*) <$> acc <*> mean' xs) <|> acc
-         f xs _             = mean' xs
-
-combineWholeRelsProd' mp  | null mp = Nothing
-combineWholeRelsProd' mp  = Just . product . map unwrapRelValWhole
-                          $ Map.elems mp
-
-combineRelsProd _ (CBin bin) (CWhole whole) = bin * whole
-
--- -----------------------------------------------
-
-newtype InUnitInterval a = InUnitInterval a
-
-inUnitInterval :: (Fractional a, Ord a) => a -> Maybe (InUnitInterval a)
-inUnitInterval x  |   x >= 0
-                  &&  x <= 1  = Just $ InUnitInterval x
-inUnitInterval _  = Nothing
-
-fromUnitInterval (InUnitInterval x) = x
-
-instance Eq (InUnitInterval a) where
-instance Ord (InUnitInterval a) where
+  combineBinRels      = Combine.binRelsMeansProduct
+  combineWholeRels    = Combine.wholeRelsProduct
+  combineRels         = Combine.relsProduct
 
 \end{code}
 

@@ -1,4 +1,36 @@
 
+%if False
+\begin{code}
+
+module Document.Implementation.Contexts.External(
+
+  External(..)
+
+, KnownAgent, askKnownAgent
+
+, OpinionRel(..), OpinionAbout(..)
+, MyOpinion(..), extractMyOpinion
+
+) where
+
+import Document.Implementation.Classes
+import Document.Implementation.NegotiationRoles
+import Document.Implementation.Coherence
+import Document.Implementation.Contexts
+import Document.Implementation.Contexts.Capabilities (Capabilities)
+import Document.Implementation.Contexts.InUnitInterval
+import GenericAgent
+
+import qualified Document.Implementation.Contexts.Combine as Combine
+
+import Data.Typeable (Typeable, gcast)
+import Data.Function (on)
+import Data.IORef
+import Data.Coerce (coerce)
+import Data.Maybe (fromMaybe)
+
+\end{code}
+%endif
 
 \subsubsection{External}
  \label{subsec:context-external}
@@ -18,9 +50,9 @@ the proposal in question $p_k$. They are combined using $\product$ operation.
 
 \begin{code}
 
-data KnownAgent a = forall (r :: NegotiationRole) . KnownAgent {
+data KnownAgent a = forall r . KnownAgent {
   knownAgentRef           :: AgentRef,
-  knownAgentRole          :: Role' r,
+  knownAgentRole          :: r,
   knownAgentCapabilities  :: [Capabilities r a]
   }
   deriving Typeable
@@ -55,7 +87,7 @@ instance (Typeable a, Num a) => Context External a where
                       . readIORef . knownAgents
   contextRelations r  = return [ RelBinIO OpinionRel ]
   contextThreshold    = readIORef . externalThreshold
-  combineBinRels      = combineBinRelsStrict
+  combineBinRels      = Combine.binRelsProduct
   combineWholeRels    = undefined
   combineRels         = undefined
 
@@ -72,6 +104,8 @@ type instance ExpectedResponse1 OpinionAbout = MyOpinion
 extractMyOpinion (MyOpinion mbOpinion) = mbOpinion
 
 -- -----------------------------------------------
+
+instance Functor OpinionRel where fmap _ = const OpinionRel
 
 instance InformationRelation OpinionRel where
   relationName _  = "Opinion"

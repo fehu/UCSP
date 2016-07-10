@@ -1,13 +1,21 @@
 
 %if False
-
+\begin{code}
 module Document.Implementation.NegotiationRoles(
 
-  NegotiationRole(..), Role'(..)
+  RoleIx(..), AnyRole(..), roleIx'
 
-, RoleIx(..), AnyRole(..), roleIx'
+, GroupRole(..)
+, ClassroomRole(..)
+, ProfessorRole(..)
 
 ) where
+
+import Data.Typeable
+import Data.Function (on)
+
+
+\end{code}
 
 %endif
 
@@ -41,31 +49,19 @@ Such an agent must
 
 \begin{code}
 
-data NegotiationRole  = GroupRole
-                      | FullTimeProfRole
-                      | PartTimeProfRole
-                      | ClassroomRole
+data GroupRole      = GroupRole      deriving (Show, Typeable)
+data ClassroomRole  = ClassroomRole  deriving (Show, Typeable)
+data ProfessorRole  = FullTimeProfRole | PartTimeProfRole
     deriving (Show, Typeable)
 
-data Role' (r :: NegotiationRole) = Role'
-
-instance Show (Role' GroupRole) where
-  show _ = "Role: Group"
-instance Show (Role' FullTimeProfRole) where
-  show _ = "Role: Professor (full time)"
-instance Show (Role' PartTimeProfRole) where
-  show _ = "Role: Professor (part time)"
-instance Show (Role' ClassroomRole) where
-  show _ = "Role: Classroom"
 
 -- -----------------------------------------------
 
-class RoleIx r where roleIx :: Role' r -> Int
+class RoleIx r where roleIx :: r -> Int
 
 -- -----------------------------------------------
 
-data  AnyRole = forall r . (Show (Role' r), RoleIx r) =>
-      AnyRole (Role' r)
+data AnyRole = forall r . (RoleIx r, Show r, Typeable r) => AnyRole r
 
 roleIx' (AnyRole r) = roleIx r
 

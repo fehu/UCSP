@@ -1,4 +1,30 @@
 
+%if False
+\begin{code}
+
+module Document.Implementation.Contexts.Beliefs(
+
+  Beliefs(..)
+
+, TimeConsistency
+
+)  where
+
+import Document.Implementation.Classes
+import Document.Implementation.Coherence
+import Document.Implementation.Contexts
+
+import qualified Document.Implementation.Contexts.Combine as Combine
+
+import Data.IORef (IORef, readIORef)
+import Data.Coerce (coerce)
+import Data.Maybe (catMaybes)
+
+import Control.Monad.Fix
+
+\end{code}
+%endif
+
 
 \subsubsection{Beliefs}
 The beliefs is a \emph{splitting} context, that uses as it's internal
@@ -91,6 +117,8 @@ data Beliefs a = Beliefs  {  knownProposals  :: IORef IGraph }
 
 data TimeConsistency a = TimeConsistency
 
+instance Functor TimeConsistency where fmap _ = const TimeConsistency
+
 instance InformationRelation TimeConsistency where
   relationName _ = "TimeConsistency"
   coerceRelation = coerce
@@ -126,9 +154,9 @@ instance (Num a) => Context Beliefs a where
   contextRelations _  = return [RelBin TimeConsistency]
   contextThreshold _  = return 0
 
-  combineWholeRels    = combineWholeRelsStrict
-  combineBinRels      = combineBinRelsStrict
-  combineRels         = combineRelsStrict
+  combineWholeRels    = Combine.wholeRelsProduct
+  combineBinRels      = Combine.binRelsProduct
+  combineRels         = Combine.relsProduct
 
 
 instance (Num a) => SplittingContext Beliefs a where

@@ -130,7 +130,6 @@ instance (Typeable r) => AgentControl (AgentRunOfRole r) where
 
 -- -----------------------------------------------
 
-_runAgentMessages :: AgentRunOfRole r -> IO ()
 _runAgentMessages (AgentRunOfRole ag) = do
     msg <- atomically $ do  priority  <- tryReadTQueue $ _messageBoxPriority ag
                             runState  <- readTVar $ _runState ag
@@ -178,8 +177,9 @@ _runAgent (AgentRunOfRole ag) = do
                       Running    -> act (_agentBehaviour ag) ag (_states ag)
 
 
-instance AgentInnerInterface (AgentRun r state) where
-    selfStop arun = atomically $ _runState arun `writeTVar` Terminate
+instance (Typeable r) => AgentInnerInterface (AgentRun r state) where
+    selfRef  arun  = AgentRef (AgentRunOfRole arun)
+    selfStop arun  = atomically $ _runState arun `writeTVar` Terminate
 
 -- -----------------------------------------------
 -- -----------------------------------------------

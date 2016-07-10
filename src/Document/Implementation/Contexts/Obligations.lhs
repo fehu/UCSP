@@ -1,4 +1,20 @@
 
+%if False
+\begin{code}
+
+module Document.Implementation.Contexts.Obligations(
+
+  Obligations(..)
+
+) where
+
+import Document.Implementation.Coherence
+import Document.Implementation.Contexts
+
+import qualified Document.Implementation.Contexts.Combine as Combine
+
+\end{code}
+%endif
 
 \subsubsection{Obligations}
 Obligations determine the rest \emph{strong restrictions} over the classes.
@@ -18,23 +34,21 @@ All the obligations must comply over a candidate.
 
 data Obligations a  = Obligations  {
   obligationsInfo  :: [Information],
-  obligationsRels  :: [IRelation (ZeroOrOne a)]
+  obligationsRels  :: [IRelation Bool]
   }
+
+obligationToNum True   = 1
+obligationToNum False  = 0
 
 instance (Num a) => Context Obligations a where
   contextName _ = "Obligations"
   contextInformation  = return . fromNodes . obligationsInfo
-  contextRelations    =  return . map coerceIRelation . obligationsRels
+  contextRelations    = return . map (fmap obligationToNum) . obligationsRels
   contextThreshold _  = return 0
 
-  combineBinRels    = combineBinRelsStrict
-  combineWholeRels  = combineWholeRelsStrict
-  combineRels       = combineRelsStrict
-
--- This constructor should be hidden.
-newtype ZeroOrOne a = ZeroOrOne a
-complies  = ZeroOrOne 0
-fails     = ZeroOrOne 1
+  combineBinRels    = Combine.binRelsProduct
+  combineWholeRels  = Combine.wholeRelsProduct
+  combineRels       = Combine.relsProduct
 
 \end{code}
 

@@ -4,10 +4,29 @@
 
 module Document.Implementation.Contexts(
 
+  Context(..), SomeContext(..)
+, SplittingContext(..)
+
+, AssessmentDetails(..)
+
+, AssessedCandidate(..), Candidate(..)
+
+, assessWithin
+
+, CBin(..), getCBin
+, CWhole(..), getCWhole
+
+, AnyFunc1
+
 ) where
 
+import Document.Implementation.Coherence
 
-  
+import Data.Typeable
+import Data.Either (partitionEithers)
+
+import qualified Data.Map as Map
+
 \end{code}
 %endif
 
@@ -136,8 +155,12 @@ The candidates can be assessed by the rest of the contexts.
 class (Context c a) => SplittingContext c a where
   splitGraph :: c a -> IGraph -> IO [Candidate a]
 
-
 \end{code}
+
+
+
+%include Contexts/Combine.lhs
+%include Contexts/InUnitInterval.lhs
 
 %include Contexts/Capabilities.lhs
 %include Contexts/Beliefs.lhs

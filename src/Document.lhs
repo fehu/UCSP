@@ -9,6 +9,13 @@
 \input{Document/Header}
 
 
+%if False
+\begin{code}
+
+module Document () where
+
+\end{code}
+%endif
 
 \begin{document}
 

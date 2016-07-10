@@ -9,7 +9,7 @@
 
 
 \input{Header}
- 
+
 %endif
 
 %if False
@@ -17,7 +17,7 @@
 
 module Document.Implementation where
 
-import Data.Ix
+-- import Data.Ix
 import Data.Typeable
 import Data.Either
 import Data.Function (on)
@@ -58,40 +58,23 @@ import GenericAgent
 
 %include Implementation/Classes.lhs
 %include Implementation/NegotiationRoles.lhs
-%include Implementation/Coherence.lhs 
+%include Implementation/Coherence.lhs
 %include Implementation/Contexts.lhs
 
- 
+
 
 
 \subsection{Agent}
 
-\begin{code}
+% Misc code:
 
---- -----------------------------------------------
+%\begin{code}
 
-data GroupRef      = GroupRef      String  deriving (Show, Eq, Ord)
-data ProfessorRef  = ProfessorRef  String  deriving (Show, Eq, Ord)
-data ClassroomRef  = ClassroomRef  String  deriving (Show, Eq, Ord)
+% instance Show Class where -- TODO
 
--- -----------------------------------------------
+% instance (Show a) => Show (InUnitInterval a) where show (InUnitInterval x) = show x
 
-instance AgentComm GroupRef where -- TODO
-instance AgentComm ProfessorRef where -- TODO
-instance AgentComm ClassroomRef where -- TODO
-
-\end{code}
-
-
-Misc code:
-
-\begin{code}
-
-instance Show Class where -- TODO
-
-instance (Show a) => Show (InUnitInterval a) where show (InUnitInterval x) = show x
-
-\end{code}
+%\end{code}
 
 %if standalone
 \end{document}

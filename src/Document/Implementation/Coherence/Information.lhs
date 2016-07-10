@@ -1,11 +1,27 @@
 
 %if False
+\begin{code}
 
 module Document.Implementation.Coherence.Information (
 
-)
-where
+  InformationPiece(..)
+, InformationScope(Personal, Shared)
 
+, PersonalInformation(..), SharedInformation(..)
+
+, Information(..), collectInf
+
+, Needs(..), CanTeach(..) -- TODO: Should be moved from here
+
+) where
+
+import GenericAgent (AgentRef)
+import Document.Implementation.Classes
+
+import Data.Typeable
+import Data.Set (Set) -- , union, member)
+
+\end{code}
 %endif
 
 

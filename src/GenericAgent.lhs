@@ -126,15 +126,13 @@ The expected response may depend on agent's \emph{role}.
 
 \begin{code}
 
-class (AgentComm ref) => AgentCommRole ref where
-  type AgentRole ref :: *
-
-  askR  :: (Message msg)     => ref
+class (AgentComm (ref agRole)) => AgentCommRole agRole ref where
+  askR  :: (Message msg)     => ref agRole
                              -> msg
-                             -> IO (ExpectedResponseForRole (AgentRole ref) msg)
-  askRT :: (MessageT msg t)  => ref
+                             -> IO (ExpectedResponseForRole agRole msg)
+  askRT :: (MessageT msg t)  => ref agRole
                              -> msg t
-                             -> IO (ExpectedResponseForRole1 (AgentRole ref) msg t)
+                             -> IO (ExpectedResponseForRole1 agRole msg t)
 
 type family ExpectedResponseForRole   r (msg :: *)         :: *
 type family ExpectedResponseForRole1  r (msg :: * -> *)    :: * -> *
@@ -154,7 +152,7 @@ Agents are identified (also compared and searched) by its \verb|AgentId|,
 that must contain a \emph{\textbf{unique}} string, for example an UUID.
 
 \begin{code}
- 
+
 data AgentId = AgentId String deriving (Show, Eq, Ord)
 
 \end{code}
@@ -167,6 +165,15 @@ data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
 
 \end{code}
 
+There is also a role-dependent reference, that contains some instance of \verb|AgentCommRole|.
+
+\begin{code}
+
+data AgentRef' r = forall ref . (AgentCommRole r ref) => AgentRef' (ref r)
+
+\end{code}
+
+
 A reference itself provides \verb|AgentComm| interface for the underlying agent.
 
 \begin{code}
@@ -177,15 +184,34 @@ instance AgentComm AgentRef where
   ask      (AgentRef ref)  = ask ref
   askT     (AgentRef ref)  = askT ref
 
+instance (Typeable r) => AgentComm (AgentRef' r) where
+  agentId  (AgentRef' ref)  = agentId ref
+  send     (AgentRef' ref)  = send ref
+  ask      (AgentRef' ref)  = ask ref
+  askT     (AgentRef' ref)  = askT ref
+
 \end{code}
 
-It is used the referenced agent's id for establishing \verb|Eq| and \verb|Ord|
+The role-dependent reference is also an instance of \verb|AgentCommRole|.
+
+\begin{code}
+
+instance (Typeable r) => AgentCommRole r AgentRef' where
+  askR   (AgentRef' ref)  = askR ref
+  askRT  (AgentRef' ref)  = askRT ref
+
+\end{code}
+
+Referenced agent's id is used for establishing \verb|Eq| and \verb|Ord|
 relations over it.
 
 \begin{code}
 
 instance Eq AgentRef  where AgentRef a == AgentRef b        = agentId a == agentId b
 instance Ord AgentRef where AgentRef a `compare` AgentRef b = agentId a `compare` agentId b
+
+instance Eq (AgentRef' r)  where AgentRef' a == AgentRef' b        = agentId a == agentId b
+instance Ord (AgentRef' r) where AgentRef' a `compare` AgentRef' b = agentId a `compare` agentId b
 
 \end{code}
 
@@ -221,7 +247,7 @@ It contains some instance of \verb|AgentControl| and the information
 about agent's threads.
 
 \begin{code}
- 
+
 data AgentFullRef =  forall ref . (AgentControl ref) =>
                      AgentFullRef ref AgentThreads
 
@@ -236,7 +262,7 @@ data AgentThreads = AgentThreads  {  _actThread      :: AgentThread
                                   ,  _messageThread  :: AgentThread
                                   }
 
-                    
+
 fromFullRef (AgentFullRef ref _) = AgentRef ref
 extractThreads (AgentFullRef _ (AgentThreads act msg)) = (act, msg)
 
@@ -246,7 +272,7 @@ The information about agent's thread permits checking on its status,
 waiting for it to finish or killing it, using the provided \verb|ThreadId|.
 
 \begin{code}
- 
+
 data AgentThread = AgentThread {  _threadId        :: ThreadId
                                ,  _threadFinished  :: IO Bool
                                ,  _waitThread      :: IO ()
@@ -265,7 +291,7 @@ waitAgent fref = do _waitThread act
     where  (act, msg)   = extractThreads fref
 
 \end{code}
- 
+
 Just like a normal reference, the full one is compared and tested by
 the \verb|AgentId|.
 
@@ -358,11 +384,11 @@ class AgentsManagerOps m where
 \end{code}
 
 
- 
+
 %if standalone
 \end{document}
 %endif
- 
+
 
 %%% Local Variables:
 %%% latex-build-command: "LGSTex"
