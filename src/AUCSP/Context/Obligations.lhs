@@ -2,16 +2,16 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.Obligations(
+module AUCSP.Context.Obligations(
 
   Obligations(..)
 
 ) where
 
-import Document.Implementation.Coherence
-import Document.Implementation.Contexts
+import AUCSP.Coherence
+import AUCSP.Context
 
-import qualified Document.Implementation.Contexts.Combine as Combine
+import qualified AUCSP.Context.Combine as Combine
 
 \end{code}
 %endif

@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Classes (
+module AUCSP.Classes (
 
   Discipline(..), Requirement(..)
 
@@ -15,7 +15,7 @@ module Document.Implementation.Classes (
 
 ) where
 
-import Document.Implementation.NegotiationRoles
+import AUCSP.NegotiationRoles
 import GenericAgent
 
 import Data.Typeable
@@ -27,8 +27,6 @@ import Data.Set (Set)
 \end{code}
 %endif
 
-
-\subsection{University Classes}
 
 A class is an en event, that brings together a \emph{group of students},
 and a \emph{professor} in certain \emph{classroom} in order to

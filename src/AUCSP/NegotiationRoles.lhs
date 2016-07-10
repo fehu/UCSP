@@ -1,7 +1,7 @@
 
 %if False
 \begin{code}
-module Document.Implementation.NegotiationRoles(
+module AUCSP.NegotiationRoles(
 
   RoleIx(..), AnyRole(..), roleIx'
 
@@ -20,7 +20,6 @@ import Data.Function (on)
 %endif
 
 
-\subsection{Negotiating Agents}
 As it was mentioned before, the schedule is formed in
 a negotiation between \emph{professors}, \emph{groups}
 and \emph{classrooms}. To distinguish those three types

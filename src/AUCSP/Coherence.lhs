@@ -2,19 +2,18 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Coherence(
-  module Document.Implementation.Coherence.Information
-, module Document.Implementation.Coherence.Relations
+module AUCSP.Coherence(
+  module AUCSP.Coherence.Information
+, module AUCSP.Coherence.Relations
 
 ) where
 
-import Document.Implementation.Coherence.Information
-import Document.Implementation.Coherence.Relations
+import AUCSP.Coherence.Information
+import AUCSP.Coherence.Relations
 
 \end{code}
 %endif
 
-\subsection{Coherence}
 
 The coherence mechanism is based on~\cite{Sindhu2010}.
 It uses the \emph{contexts} as means of separating (and further prioritizing)

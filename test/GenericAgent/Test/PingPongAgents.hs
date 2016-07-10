@@ -12,7 +12,7 @@ module GenericAgent.Test.PingPongAgents where
 
 import GenericAgent
 import GenericAgent.AgentImpl
-import Extra
+--import Extra
 
 import Data.Typeable
 import Data.IORef
@@ -25,6 +25,10 @@ data Ping = Ping deriving (Show, Typeable)
 data Pong = Pong deriving (Show, Typeable)
 
 -----------------------------------------------------------------------------
+
+whenM :: (Monad m) => m Bool -> m () -> m ()
+whenM mb a = (`when` a) =<< mb
+
 
 data PingAgentState = PingAgentState { pingCounterpart  :: IO AgentRef
                                      , count            :: IORef Int

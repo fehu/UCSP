@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.Combine(
+module AUCSP.Context.Combine(
 
   binRelsProduct, wholeRelsProduct, relsProduct
 
@@ -10,8 +10,8 @@ module Document.Implementation.Contexts.Combine(
 
 ) where
 
-import Document.Implementation.Contexts
-import Document.Implementation.Coherence
+import AUCSP.Context
+import AUCSP.Coherence
 
 import qualified Data.Map as Map
 

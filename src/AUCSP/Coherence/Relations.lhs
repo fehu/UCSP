@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Coherence.Relations(
+module AUCSP.Coherence.Relations(
 
   InformationRelation(..)
 , BinaryRelation(..), BinaryIORelation(..)
@@ -20,7 +20,7 @@ module Document.Implementation.Coherence.Relations(
 
 ) where
 
-import Document.Implementation.Coherence.Information
+import AUCSP.Coherence.Information
 
 import Data.Typeable
 import Data.Coerce (Coercible)

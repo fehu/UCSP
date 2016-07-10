@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Coherence.Information (
+module AUCSP.Coherence.Information (
 
   InformationPiece(..)
 , InformationScope(Personal, Shared)
@@ -16,7 +16,7 @@ module Document.Implementation.Coherence.Information (
 ) where
 
 import GenericAgent (AgentRef)
-import Document.Implementation.Classes
+import AUCSP.Classes
 
 import Data.Typeable
 import Data.Set (Set) -- , union, member)

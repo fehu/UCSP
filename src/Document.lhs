@@ -1,6 +1,6 @@
 \documentclass{article}
 
-%include format.fmt
+%include Document/format.fmt
 %include polycode.fmt
 %include forall.fmt
 
@@ -9,14 +9,6 @@
 \input{Document/Header}
 
 
-%if False
-\begin{code}
-
-module Document () where
-
-\end{code}
-%endif
-
 \begin{document}
 
 \input{Document/Title}
@@ -24,8 +16,11 @@ module Document () where
 \bigskip
 \tableofcontents
 
-%include Document/Implementation.lhs
 
+\section{Implementation}
+%include Document/AUCSP.lhs
+
+\subsection{Agent}
 %include GenericAgent.lhs
 
 \end{document}

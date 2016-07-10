@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.InUnitInterval(
+module AUCSP.Context.InUnitInterval(
 
   InUnitInterval, inUnitInterval, fromUnitInterval
 

@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.External(
+module AUCSP.Context.External(
 
   External(..)
 
@@ -13,15 +13,15 @@ module Document.Implementation.Contexts.External(
 
 ) where
 
-import Document.Implementation.Classes
-import Document.Implementation.NegotiationRoles
-import Document.Implementation.Coherence
-import Document.Implementation.Contexts
-import Document.Implementation.Contexts.Capabilities (Capabilities)
-import Document.Implementation.Contexts.InUnitInterval
+import AUCSP.Classes
+import AUCSP.NegotiationRoles
+import AUCSP.Coherence
+import AUCSP.Context
+import AUCSP.Context.Capabilities (Capabilities)
+import AUCSP.Context.InUnitInterval
 import GenericAgent
 
-import qualified Document.Implementation.Contexts.Combine as Combine
+import qualified AUCSP.Context.Combine as Combine
 
 import Data.Typeable (Typeable, gcast)
 import Data.Function (on)
@@ -88,8 +88,8 @@ instance (Typeable a, Num a) => Context External a where
   contextRelations r  = return [ RelBinIO OpinionRel ]
   contextThreshold    = readIORef . externalThreshold
   combineBinRels      = Combine.binRelsProduct
-  combineWholeRels    = undefined
-  combineRels         = undefined
+  combineWholeRels    = undefined -- None
+  combineRels         = undefined -- None
 
 -- -----------------------------------------------
 

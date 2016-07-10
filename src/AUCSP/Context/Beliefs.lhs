@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.Beliefs(
+module AUCSP.Context.Beliefs(
 
   Beliefs(..)
 
@@ -10,11 +10,11 @@ module Document.Implementation.Contexts.Beliefs(
 
 )  where
 
-import Document.Implementation.Classes
-import Document.Implementation.Coherence
-import Document.Implementation.Contexts
+import AUCSP.Classes
+import AUCSP.Coherence
+import AUCSP.Context
 
-import qualified Document.Implementation.Contexts.Combine as Combine
+import qualified AUCSP.Context.Combine as Combine
 
 import Data.IORef (IORef, readIORef)
 import Data.Coerce (coerce)
@@ -47,7 +47,7 @@ knowledge:
 
 \begin{figure}[h]
   \centering
-  \input{BeliefsNewProposal.tikz}
+  \input{Document/tikz/BeliefsNewProposal}
   \caption{Assessing proposal coherence, starting from \emph{Beliefs} context.}
   \label{fig:AssessBeliefs}
 \end{figure}

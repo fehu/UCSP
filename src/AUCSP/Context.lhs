@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts(
+module AUCSP.Context(
 
   Context(..), SomeContext(..)
 , SplittingContext(..)
@@ -20,7 +20,7 @@ module Document.Implementation.Contexts(
 
 ) where
 
-import Document.Implementation.Coherence
+import AUCSP.Coherence
 
 import Data.Typeable
 import Data.Either (partitionEithers)
@@ -31,7 +31,6 @@ import qualified Data.Map as Map
 %endif
 
 
-\subsection{Contexts}
 In order to use contexts for information \emph{coherence assessment},
 the concepts of \emph{context-specific information graph} and
 \emph{assessed information} are introduced.
@@ -41,7 +40,7 @@ The assessed one is \emph{assumed} during the evaluation process.
 
 \begin{figure}[H]
   \centering
-  \fbox{ \input{ContextAssess.tikz} }
+  \fbox{ \input{Document/tikz/ContextAssess} }
   \caption{Binary relations within an information graph. One can
            distinguish the relations between the assessed information pieces
            and the relations between assessed and the known ones.

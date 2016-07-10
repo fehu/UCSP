@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.Capabilities(
+module AUCSP.Context.Capabilities(
 
   Capabilities(GroupCapabilities, FullTimeProfCapabilities)
 
@@ -10,12 +10,12 @@ module Document.Implementation.Contexts.Capabilities(
 
 ) where
 
-import Document.Implementation.Classes
-import Document.Implementation.NegotiationRoles
-import Document.Implementation.Coherence
-import Document.Implementation.Contexts
+import AUCSP.Classes
+import AUCSP.NegotiationRoles
+import AUCSP.Coherence
+import AUCSP.Context
 
-import qualified Document.Implementation.Contexts.Combine as Combine
+import qualified AUCSP.Context.Combine as Combine
 
 import Data.Coerce (coerce)
 import Data.Set (member)
@@ -47,7 +47,7 @@ further avoid making same kind of proposals to the uncapable agent.
 
 \begin{figure}[h]
   \centering
-  \input{Capabilities.tikz.tex}
+  \input{Document/tikz/Capabilities}
   \caption{Capabilities required to form a \emph{class}.}
   \label{fig:capabilities}
 \end{figure}

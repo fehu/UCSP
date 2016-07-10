@@ -2,7 +2,7 @@
 %if False
 \begin{code}
 
-module Document.Implementation.Contexts.Preferences(
+module AUCSP.Context.Preferences(
 
   Preferences(..)
 
@@ -10,11 +10,11 @@ module Document.Implementation.Contexts.Preferences(
 
 ) where
 
-import Document.Implementation.Coherence
-import Document.Implementation.Contexts
-import Document.Implementation.Contexts.InUnitInterval
+import AUCSP.Coherence
+import AUCSP.Context
+import AUCSP.Context.InUnitInterval
 
-import qualified Document.Implementation.Contexts.Combine as Combine
+import qualified AUCSP.Context.Combine as Combine
 
 import Data.IORef
 
