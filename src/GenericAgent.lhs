@@ -5,8 +5,6 @@
 %include polycode.fmt
 %include forall.fmt
 
-%format ExpectedResponse1 = "ExpectedResponse_1"
-
 \usepackage[english]{babel}
 \usepackage[inline, shortlabels]{enumitem}
 
@@ -17,7 +15,31 @@
 %if False
 \begin{code}
 
-module GenericAgent where
+module GenericAgent(
+
+  AgentComm(..)
+, ExpectedResponse, ExpectedResponse1
+, AgentRef(..), AgentRef'(..)
+
+, AgentCommRole(..)
+, System(System), Generic(Generic)
+, ExpectedResponseForRole, ExpectedResponseForRole1
+
+, Message, MessageT
+, StartMessage(StartMessage), StopMessage(StopMessage)
+
+, AgentId(..), AgentInnerInterface(..)
+, AgentCommPriority(..), AgentControl(..)
+, AgentFullRef(..), fromFullRef
+, AgentThread(..), AgentThreads(..), extractThreads
+, forceStopAgent, waitAgent
+
+, AgentBehavior(..), AgentHandleMessages(..)
+
+, AgentCreate(..), AgentDescriptor(..)
+, AgentsManager(..), AgentsManagerOps(..)
+
+) where
 
 import Data.Typeable
 
@@ -52,9 +74,9 @@ be \emph{asked}.
 
 class (Typeable ref, Ord ref) => AgentComm ref where
   agentId  :: ref -> AgentId
-  send     :: (Message msg)     => ref -> msg    -> IO ()
-  ask      :: (Message msg)     => ref -> msg    -> IO (ExpectedResponse msg)
-  askT     :: (MessageT msg t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  send     :: (Message msg)                                         => ref -> msg    -> IO ()
+  ask      :: (Message msg, Message (ExpectedResponse msg))         => ref -> msg    -> IO (ExpectedResponse msg)
+  askT     :: (MessageT msg t, MessageT (ExpectedResponse1 msg) t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
 
 \end{code}
 
@@ -75,7 +97,7 @@ data AgentHandleMessages states = AgentHandleMessages {
 
   \item respond un-typed messages (responding to \verb|ask|):
 
-> respondMessage :: forall msg resp i .  ( Message msg
+> respondMessage :: forall msg resp i .  ( Message msg, Message resp
 >                                        , ExpectedResponse msg ~ resp
 >                                        , AgentInnerInterface i) =>
 >                   i -> states -> msg -> IO resp,
@@ -83,7 +105,7 @@ data AgentHandleMessages states = AgentHandleMessages {
   \item respond typed messages (responding to \verb|askT|):
 
 
-> respondTypedMessage :: forall msg resp t i .  ( MessageT msg t
+> respondTypedMessage :: forall msg resp t i .  ( MessageT msg t, MessageT resp t
 >                                               , ExpectedResponse1 msg t ~ resp t
 >                                               , AgentInnerInterface i) =>
 >                        i -> states -> msg t -> IO (resp t)
@@ -153,7 +175,9 @@ that must contain a \emph{\textbf{unique}} string, for example an UUID.
 
 \begin{code}
 
-data AgentId = AgentId String deriving (Show, Eq, Ord)
+data AgentId = AgentId String deriving (Eq, Ord)
+
+instance Show AgentId  where show (AgentId s) = s
 
 \end{code}
 
@@ -162,6 +186,8 @@ Normal agent reference is a container for types of class \verb|AgentComm|.
 \begin{code}
 
 data AgentRef = forall ref . (AgentComm ref) => AgentRef ref
+
+instance Show AgentRef where show (AgentRef ref) = show $ agentId ref
 
 \end{code}
 
@@ -222,9 +248,9 @@ normal message.
 
 \begin{code}
 class (AgentComm ref) => AgentCommPriority ref where
-  sendPriority  :: (Message msg)     => ref -> msg    -> IO ()
-  askPriority   :: (Message msg)     => ref -> msg    -> IO (ExpectedResponse msg)
-  askTPriority  :: (MessageT msg t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  sendPriority  :: (Message msg)                                         => ref -> msg    -> IO ()
+  askPriority   :: (Message msg, Message (ExpectedResponse msg))         => ref -> msg    -> IO (ExpectedResponse msg)
+  askTPriority  :: (MessageT msg t, MessageT (ExpectedResponse1 msg) t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
 
 \end{code}
 

@@ -19,10 +19,11 @@ module GenericAgent.AgentImpl (
 
 , SimpleAgentsManager
 
+, whenM
+
 ) where
 
 import GenericAgent
-import Extra
 
 import Data.Typeable
 import Data.Function (on)
@@ -59,14 +60,14 @@ data AgentRun r states = AgentRun {
   }
 
 data MessageWithResponse r =
-    forall msg resp . (Message msg, ExpectedResponse msg ~ resp) =>
+    forall msg resp . (Message msg, Message resp, ExpectedResponse msg ~ resp) =>
         MessageWithResponse msg (resp -> IO())
-  | forall a msg resp . (MessageT msg a, ExpectedResponse1 msg a ~ resp a) =>
+  | forall a msg resp . (MessageT msg a, MessageT resp a, ExpectedResponse1 msg a ~ resp a) =>
         MessageWithResponse1 (msg a) (resp a -> IO())
 
-  | forall msg resp . (Message msg, ExpectedResponseForRole r msg ~ resp) =>
+  | forall msg resp . (Message msg, Message resp, ExpectedResponseForRole r msg ~ resp) =>
         MessageWithResponse' msg (resp -> IO())
-  | forall a msg resp . (MessageT msg a, ExpectedResponseForRole1 r msg a ~ resp a) =>
+  | forall a msg resp . (MessageT msg a, MessageT resp a, ExpectedResponseForRole1 r msg a ~ resp a) =>
         MessageWithResponse1' (msg a) (resp a -> IO())
 
 
@@ -129,6 +130,11 @@ instance (Typeable r) => AgentControl (AgentRunOfRole r) where
 
 
 -- -----------------------------------------------
+
+
+whenM :: (Monad m) => m Bool -> m () -> m ()
+whenM mb a = (`when` a) =<< mb
+
 
 _runAgentMessages (AgentRunOfRole ag) = do
     msg <- atomically $ do  priority  <- tryReadTQueue $ _messageBoxPriority ag
