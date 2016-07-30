@@ -80,7 +80,7 @@ The proposed system makes use of the following information:
 data InformationScope = Personal | Shared
 
 -- ``Ord'' instance is mainly needed to create ``Set''s.
-class (Typeable i, Eq i, Ord i) => InformationPiece i
+class (Typeable i, Eq i, Ord i, Show i) => InformationPiece i
     where type IScope i :: InformationScope
 
 
@@ -122,6 +122,8 @@ instance Eq Information where
 
 instance Ord Information where
   (Information i1) `compare` (Information i2) = undefined
+
+instance Show Information where show (Information i) = show i
 
 -- -----------------------------------------------
 

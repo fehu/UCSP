@@ -10,6 +10,7 @@ module AUCSP.Context(
 , AssessmentDetails(..)
 
 , AssessedCandidate(..), Candidate(..)
+, candidateSuccess
 
 , assessWithin
 
@@ -75,9 +76,13 @@ newtype CWhole a  = CWhole a
 getCBin    (CBin a)    = a
 getCWhole  (CWhole a)  = a
 
-data AssessmentDetails a -- TODO
+data AssessmentDetails a                -- TODO
+    = AssessmentDetails deriving Show
 
 data SomeContext a = forall c . Context c a => SomeContext (c a)
+
+instance Show (SomeContext a) where
+    show (SomeContext c) = "Context " ++ show (contextName c)
 
 -- -----------------------------------------------
 
@@ -117,6 +122,7 @@ data AssessedCandidate a = AssessedCandidate {
     ,  assessedVal      :: Maybe a
     ,  assessedDelails  :: AssessmentDetails a
     }
+    deriving Show
 
 data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
                                ,  candidate      :: [Information]
@@ -124,6 +130,10 @@ data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
                    |  Failure  {  assessHistory  :: [AssessedCandidate a]
                                ,  candidate      :: [Information]
                                }
+    deriving Show
+
+candidateSuccess Success{}  = True
+candidateSuccess _          = False
 
 -- -----------------------------------------------
 

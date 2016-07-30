@@ -8,6 +8,8 @@
 
 \input{Document/Header}
 
+% \usepackage{showframe}
+
 
 \begin{document}
 
@@ -20,8 +22,11 @@
 \section{Implementation}
 %include Document/AUCSP.lhs
 
-\subsection{Agent}
+\subsection{Generic Agent}
 %include GenericAgent.lhs
+
+\subsection{Agent Implementation}
+%include AUCSP/NegotiatingAgent.lhs
 
 \end{document}
 

@@ -29,11 +29,11 @@ main = do args <- getArgs
           let maxCount = case args of [s] -> read s
                                       _   -> defaultMaxCount
 
---          putStrLn "Testing Ping-Pong (send)"
---          PPASend.testPingPong maxCount
---
---          putStrLn "Testing Ping-Pong (ask)"
---          PPAAsk.testPingPong maxCount
+          putStrLn "Testing Ping-Pong (send)"
+          PPASend.testPingPong maxCount
+
+          putStrLn "Testing Ping-Pong (ask)"
+          PPAAsk.testPingPong maxCount
 
           putStrLn "Testing Ping-Pong (askT)"
           PPAAskT.testPingPong maxCount

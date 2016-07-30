@@ -55,21 +55,25 @@ data KnownAgent a = forall r . KnownAgent {
   knownAgentRole          :: r,
   knownAgentCapabilities  :: [Capabilities r a]
   }
-  deriving Typeable
+  deriving (Typeable)
 
-askKnownAgent ::  (MessageT msg a)  => KnownAgent a
-                                    -> msg a
-                                    -> IOMaybe (ExpectedResponse1 msg a)
+askKnownAgent ::  ( MessageT msg a
+                  , MessageT (ExpectedResponse1 msg) a)
+              => KnownAgent a
+              -> msg a
+              -> IOMaybe (ExpectedResponse1 msg a)
 askKnownAgent knownAg message =
-    case knownAgentRef knownAg of
-     AgentRef comm  -> do  resp <- askT comm message
-                           return $ gcast resp
+    do  resp <- knownAgentRef knownAg `askT` message
+        return $ gcast resp
 
 instance Eq (KnownAgent a) where
   (==) = (==) `on` knownAgentRef
 
 instance Ord (KnownAgent a) where
   compare = compare `on` knownAgentRef
+
+instance Show (KnownAgent a) where
+    show KnownAgent{knownAgentRef=ref} = "KnownAgent " ++ show (show ref)
 
 instance (Typeable a) => InformationPiece (KnownAgent a)
 

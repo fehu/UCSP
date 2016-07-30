@@ -178,8 +178,10 @@ class (DiscreteTime time) => Timetable tt e time  |  tt  -> time
          eventAt     :: tt -> Day   -> time -> Maybe e
 \end{code}
 
+\red{???}
+
 One should distinguish the resulting timetables, shown in figure
-\ref{fig:timetables} and the timetable, held an agent
+\ref{fig:timetables} and the timetable, held by an agent
 during the negotiation. The first one is immutable and is the
 result of agent's participation in the negotiation.
 The set of such timetables, produced by every the participant,
