@@ -31,6 +31,8 @@ library
         AUCSP.Context.Obligations
         AUCSP.Context.Preferences
         AUCSP.Context.External
+        AUCSP.Contexts
+        AUCSP.NegotiatingAgent
     build-depends:
         base >=4.8 && <4.9,
         containers >=0.5,
