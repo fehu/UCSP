@@ -24,9 +24,6 @@ import Data.IORef
 newtype Ping a = Ping a deriving (Typeable, Show)
 newtype Pong a = Pong a deriving (Typeable, Show)
 
-newtype (Num a, Show a) => Ping' a = Ping' a deriving (Typeable, Show)
-newtype (Num a, Show a) => Pong' a = Pong' a deriving (Typeable, Show)
-
 type instance ExpectedResponse1 Ping = Pong
 
 -----------------------------------------------------------------------------
