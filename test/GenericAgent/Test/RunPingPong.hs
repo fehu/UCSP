@@ -16,6 +16,7 @@ module Main where
 
 import qualified GenericAgent.Test.PingPongAgentsSend as PPASend
 import qualified GenericAgent.Test.PingPongAgentsAsk  as PPAAsk
+import qualified GenericAgent.Test.PingPongAgentsAskT as PPAAskT
 
 import System.Environment
 
@@ -28,12 +29,14 @@ main = do args <- getArgs
           let maxCount = case args of [s] -> read s
                                       _   -> defaultMaxCount
 
-          putStrLn "Testing Ping-Pong (send)"
-          PPASend.testPingPong maxCount
+--          putStrLn "Testing Ping-Pong (send)"
+--          PPASend.testPingPong maxCount
+--
+--          putStrLn "Testing Ping-Pong (ask)"
+--          PPAAsk.testPingPong maxCount
 
-          putStrLn "Testing Ping-Pong (ask)"
-          PPAAsk.testPingPong maxCount
-
+          putStrLn "Testing Ping-Pong (askT)"
+          PPAAskT.testPingPong maxCount
 
 
 

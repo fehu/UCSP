@@ -28,7 +28,6 @@ import Data.IORef
 -----------------------------------------------------------------------------
 
 type instance ExpectedResponse Ping = Pong
---type instance ExpectedResponse Pong = Maybe Ping
 
 -----------------------------------------------------------------------------
 
@@ -42,14 +41,7 @@ askPing maxCount i state = do c <- readIORef $ count state
                                  else do putStrLn "Finished"
                                          selfStop i
 
---askPing i state = whenM (readIORef $ firstTime state)
---                  $ do firstTime state `writeIORef` False
---                       putStrLn "Ping!"
---                       Pong <- pingCounterpart state >>= (`ask` Ping)
---                       askPing i state
-
--- | Ping agent sends 'Ping' message to it's counterpart at start.
---   Responds to the first `maxCount` 'Pong' messages with 'Ping'.
+-- | TODO
 pingBehaviour maxCount = AgentBehavior{
     handleMessages = AgentHandleMessages {
             handleMessage       = \_ _ -> undefined

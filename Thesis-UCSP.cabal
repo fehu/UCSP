@@ -68,3 +68,4 @@ test-suite test-generic-agent
         GenericAgent.Test.PingPong
         GenericAgent.Test.PingPongAgentsSend
         GenericAgent.Test.PingPongAgentsAsk
+        GenericAgent.Test.PingPongAgentsAskT
