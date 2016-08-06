@@ -17,15 +17,13 @@
 
 module GenericAgent(
 
-  AgentComm(..)
-, ExpectedResponse, ExpectedResponse1
+  AgentComm(..), ExpectedResponse
 , AgentRef(..), AgentRef'(..)
 
-, AgentCommRole(..)
+, AgentCommRole(..), ExpectedResponseForRole
 , System(System), Generic(Generic)
-, ExpectedResponseForRole, ExpectedResponseForRole1
 
-, Message, MessageT
+, Message
 , StartMessage(StartMessage), StopMessage(StopMessage)
 
 , AgentId(..), AgentInnerInterface(..)
@@ -63,9 +61,9 @@ Agent's behavior is defined by its \emph{action loop} and incoming
 
 \begin{code}
 
-data AgentBehavior states c = AgentBehavior {
+data AgentBehavior states = AgentBehavior {
   act :: forall i . (AgentInnerInterface i) => i -> states -> IO (),
-  handleMessages :: AgentHandleMessages states c
+  handleMessages :: AgentHandleMessages states
   }
 
 \end{code}
@@ -76,9 +74,8 @@ be \emph{asked}.
 
 class (Typeable ref, Ord ref) => AgentComm ref where
   agentId  :: ref -> AgentId
-  send     :: (Message msg)                                         => ref -> msg    -> IO ()
-  ask      :: (Message msg, Message (ExpectedResponse msg))         => ref -> msg    -> IO (ExpectedResponse msg)
-  askT     :: (MessageT msg t, MessageT (ExpectedResponse1 msg) t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  send     :: (Message msg)                                 => ref -> msg  -> IO ()
+  ask      :: (Message msg, Message (ExpectedResponse msg)) => ref -> msg  -> IO (ExpectedResponse msg)
 
 \end{code}
 
@@ -86,7 +83,7 @@ These messages are handled by the corresponding agent's functions.
 
 \begin{code}
 
-data AgentHandleMessages states c = AgentHandleMessages {
+data AgentHandleMessages states = AgentHandleMessages {
 
 \end{code}
 
@@ -102,16 +99,7 @@ data AgentHandleMessages states c = AgentHandleMessages {
 > respondMessage :: forall msg resp i .  ( Message msg, Message resp
 >                                        , ExpectedResponse msg ~ resp
 >                                        , AgentInnerInterface i) =>
->                   i -> states -> msg -> IO resp,
-
-  \item respond typed messages (responding to \verb|askT|):
-
-
-> respondTypedMessage :: forall msg resp t i .  ( MessageT msg t, MessageT resp t
->                                               , ExpectedResponse1 msg t ~ resp t
->                                               , AgentInnerInterface i
->                                               , c t) =>
->                        i -> states -> msg t -> IO (resp t)
+>                   i -> states -> msg -> IO resp
 > }
 
 \end{itemize}
@@ -121,8 +109,7 @@ intended to get responses.
 
 \begin{code}
 
-type family ExpectedResponse   (msg :: *)         :: *
-type family ExpectedResponse1  (msg :: * -> *)    :: * -> *
+type family ExpectedResponse (msg :: *) :: *
 
 \end{code}
 
@@ -132,7 +119,6 @@ Restriction for messages is having instances of \verb|Typeable| and \verb|Show|.
 \begin{code}
 
 type Message msg     = (Typeable msg, Show msg)
-type MessageT msg t  = (Typeable t, Typeable msg, Show (msg t))
 
 data StartMessage  = StartMessage  deriving (Typeable, Show)
 data StopMessage   = StopMessage   deriving (Typeable, Show)
@@ -155,12 +141,8 @@ class (AgentComm (ref agRole)) => AgentCommRole agRole ref where
   askR  :: (Message msg)     => ref agRole
                              -> msg
                              -> IO (ExpectedResponseForRole agRole msg)
-  askRT :: (MessageT msg t)  => ref agRole
-                             -> msg t
-                             -> IO (ExpectedResponseForRole1 agRole msg t)
 
-type family ExpectedResponseForRole   r (msg :: *)         :: *
-type family ExpectedResponseForRole1  r (msg :: * -> *)    :: * -> *
+type family ExpectedResponseForRole r (msg :: *) :: *
 
 
 -- System role.
@@ -211,13 +193,11 @@ instance AgentComm AgentRef where
   agentId  (AgentRef ref)  = agentId ref
   send     (AgentRef ref)  = send ref
   ask      (AgentRef ref)  = ask ref
-  askT     (AgentRef ref)  = askT ref
 
 instance (Typeable r) => AgentComm (AgentRef' r) where
   agentId  (AgentRef' ref)  = agentId ref
   send     (AgentRef' ref)  = send ref
   ask      (AgentRef' ref)  = ask ref
-  askT     (AgentRef' ref)  = askT ref
 
 \end{code}
 
@@ -227,7 +207,6 @@ The role-dependent reference is also an instance of \verb|AgentCommRole|.
 
 instance (Typeable r) => AgentCommRole r AgentRef' where
   askR   (AgentRef' ref)  = askR ref
-  askRT  (AgentRef' ref)  = askRT ref
 
 \end{code}
 
@@ -251,9 +230,8 @@ normal message.
 
 \begin{code}
 class (AgentComm ref) => AgentCommPriority ref where
-  sendPriority  :: (Message msg)                                         => ref -> msg    -> IO ()
-  askPriority   :: (Message msg, Message (ExpectedResponse msg))         => ref -> msg    -> IO (ExpectedResponse msg)
-  askTPriority  :: (MessageT msg t, MessageT (ExpectedResponse1 msg) t)  => ref -> msg t  -> IO (ExpectedResponse1 msg t)
+  sendPriority  :: (Message msg)                                  => ref -> msg  -> IO ()
+  askPriority   :: (Message msg, Message (ExpectedResponse msg))  => ref -> msg  -> IO (ExpectedResponse msg)
 
 \end{code}
 
@@ -342,12 +320,10 @@ instance AgentComm AgentFullRef where
   agentId  (AgentFullRef ref _)  = agentId ref
   send     (AgentFullRef ref _)  = send ref
   ask      (AgentFullRef ref _)  = ask ref
-  askT     (AgentFullRef ref _)  = askT ref
 
 instance AgentCommPriority AgentFullRef where
   sendPriority  (AgentFullRef ref _) = sendPriority ref
   askPriority   (AgentFullRef ref _) = askPriority  ref
-  askTPriority  (AgentFullRef ref _) = askTPriority ref
 
 instance AgentControl AgentFullRef where
   startAgent   (AgentFullRef ref _) = startAgent ref
@@ -372,8 +348,8 @@ A simple \emph{agent descriptor} that can be used for agent creation.
 
 \begin{code}
 
-data AgentDescriptor states c = AgentDescriptor{
-  agentBehaviour  :: AgentBehavior states c,
+data AgentDescriptor states = AgentDescriptor{
+  agentBehaviour  :: AgentBehavior states,
   newAgentStates  :: IO states,
   nextAgentId     :: IO AgentId
   }

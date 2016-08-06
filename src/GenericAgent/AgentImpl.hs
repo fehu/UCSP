@@ -42,33 +42,26 @@ type GenericAgent = AgentRunOfRole Generic
 
 -- -----------------------------------------------
 
-data Message'     = forall msg . Message msg  => Message msg
-data MessageT'       = forall msg t . MessageT msg t => MessageT (msg t)
-
-instance Show Message'   where show (Message msg) = show msg
-instance Show MessageT'  where show (MessageT msg) = show msg
+data Message' = forall msg . Message msg  => Message msg
+instance Show Message' where show (Message msg) = show msg
 
 -- -----------------------------------------------
 
-data AgentRun r states c = AgentRun {
+data AgentRun r states = AgentRun {
   _agentId             :: AgentId,
   _states              :: states,
   _runState            :: TVar RunState,
   _messageBox          :: TQueue (Either Message' (MessageWithResponse r)),
   _messageBoxPriority  :: TQueue (Either Message' (MessageWithResponse r)),
-  _agentBehaviour      :: AgentBehavior states c
+  _agentBehaviour      :: AgentBehavior states
   }
 
 data MessageWithResponse r =
     forall msg resp . (Message msg, Message resp, ExpectedResponse msg ~ resp) =>
         MessageWithResponse msg (resp -> IO())
-  | forall a msg resp . (MessageT msg a, MessageT resp a, ExpectedResponse1 msg a ~ resp a) =>
-        MessageWithResponse1 (msg a) (resp a -> IO())
 
   | forall msg resp . (Message msg, Message resp, ExpectedResponseForRole r msg ~ resp) =>
         MessageWithResponse' msg (resp -> IO())
-  | forall a msg resp . (MessageT msg a, MessageT resp a, ExpectedResponseForRole1 r msg a ~ resp a) =>
-        MessageWithResponse1' (msg a) (resp a -> IO())
 
 
 data RunState = Created | Running | Terminate deriving (Show, Eq)
@@ -76,16 +69,11 @@ data RunState = Created | Running | Terminate deriving (Show, Eq)
 
 instance Show (MessageWithResponse r) where
     show (MessageWithResponse    msg _) = show msg
-    show (MessageWithResponse1   msg _) = show msg
     show (MessageWithResponse'   msg _) = show msg
-    show (MessageWithResponse1'  msg _) = show msg
-
-
---_showMessage (Left msg) = show msg
 
 -- -----------------------------------------------
 
-data AgentRunOfRole r = forall states c . AgentRunOfRole (AgentRun r states c)
+data AgentRunOfRole r = forall states . AgentRunOfRole (AgentRun r states)
 agentRunOfRoleId (AgentRunOfRole run) = _agentId run
 
 instance Eq (AgentRunOfRole r)   where (==)     = (==) `on` agentRunOfRoleId
@@ -99,7 +87,6 @@ instance (Typeable r) => AgentComm (AgentRunOfRole r) where
     agentId (AgentRunOfRole run)  = _agentId run
     send (AgentRunOfRole run)     = _writeTQueue run _messageBox . Left . Message
     ask   = _ask MessageWithResponse
-    askT  = _ask MessageWithResponse1
 
 
 _writeTQueue run getBox msg' = atomically $ writeTQueue (getBox run) msg'
@@ -115,7 +102,6 @@ _ask mkHook (AgentRunOfRole run) msg = do
 instance (Typeable r) => AgentCommPriority (AgentRunOfRole r) where
     sendPriority (AgentRunOfRole run) = _writeTQueue run _messageBoxPriority . Left . Message
     askPriority   = _askPriority MessageWithResponse
-    askTPriority  = _askPriority MessageWithResponse1
 
 _askPriority mkHook (AgentRunOfRole run) msg = do
         respVar <- newEmptyMVar
@@ -158,12 +144,10 @@ _runAgentMessages (AgentRunOfRole ag) = do
                         in fromMaybe (handleMessage h ag states msg) $ mbStart <|> mbStop
                  Right (MessageWithResponse msg respond) ->
                         respond =<< respondMessage h ag states msg
-                 Right (MessageWithResponse1 msg respond) ->
-                        respond =<< respondTypedMessage h ag states msg
 
 _run  :: (RunState -> Bool)
-      -> (AgentRun r states  c -> states -> STM ())
-      -> AgentRun r states c -> states
+      -> (AgentRun r states -> states -> STM ())
+      -> AgentRun r states -> states
       -> IO ()
 _run atRunState action ag states =
     atomically $ whenM (fmap atRunState . readTVar $ _runState ag)
@@ -183,14 +167,14 @@ _runAgent (AgentRunOfRole ag) = do
                       Running    -> act (_agentBehaviour ag) ag (_states ag)
 
 
-instance (Typeable r) => AgentInnerInterface (AgentRun r state c) where
+instance (Typeable r) => AgentInnerInterface (AgentRun r state) where
     selfRef  arun  = AgentRef (AgentRunOfRole arun)
     selfStop arun  = atomically $ _runState arun `writeTVar` Terminate
 
 -- -----------------------------------------------
 -- -----------------------------------------------
 
-instance (Typeable r) => AgentCreate (AgentDescriptor states c) (AgentRunOfRole r) where
+instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r) where
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
                                  ,  newAgentStates=newStates
                                  ,  nextAgentId=nextId } =
