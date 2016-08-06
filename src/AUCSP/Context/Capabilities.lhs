@@ -89,8 +89,14 @@ instance BinaryRelation CanTeachRel where
 data NeedsDisciplineRel a = NeedsDisciplineRel
 
 instance Functor NeedsDisciplineRel where fmap _ = const NeedsDisciplineRel
-instance InformationRelation NeedsDisciplineRel where  -- TODO
-instance BinaryRelation NeedsDisciplineRel where       -- TODO
+instance InformationRelation NeedsDisciplineRel where  relationName _ = "Needs Discipline"
+                                                       coerceRelation = coerce
+instance BinaryRelation NeedsDisciplineRel where
+    binRelValue _ a b = do  let v ds c = if classDiscipline c `member` ds then 1 else 0
+                            Needs ds <- collectInf a
+                            let r1  = case collectInf b of Just (SomeClass c)  -> Just $ v ds c
+                                r2  = case collectInf b of Just (Class c)      -> Just $ v ds c
+                            r1 <|> r2
 
 -- -----------------------------------------------
 

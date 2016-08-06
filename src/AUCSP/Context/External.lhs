@@ -77,6 +77,7 @@ instance Show (KnownAgent a) where
     show KnownAgent{knownAgentRef=ref} = "KnownAgent " ++ show (show ref)
 
 instance (Typeable a) => InformationPiece (KnownAgent a)
+    where type IScope (KnownAgent a) = Personal
 
 -- -----------------------------------------------
 
