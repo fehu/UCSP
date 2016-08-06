@@ -162,9 +162,9 @@ type instance ExpectedResponse AskedToYield = YieldResponse
 
 
 \begin{code}
-negotiationAgentHandleMessages :: (AgentStates s a, Typeable a, Fractional a) => AgentHandleMessages s
-negotiationAgentHandleMessages = AgentHandleMessages
-    {
+-- negotiationAgentHandleMessages :: (AgentStates s a, Typeable a, Fractional a) => AgentHandleMessages s
+negotiationAgentHandleMessages :: (AgentStates s a) => AgentHandleMessages s MsgConstraint
+negotiationAgentHandleMessages = AgentHandleMessages {
 \end{code}
 
 Handle simple messages (without response).
@@ -193,7 +193,10 @@ Typed messages responses.
 \begin{code}
 
   , respondTypedMessage = \i state msg ->
-        case cast' msg of Just (OpinionAbout c) ->  undefined -- TODO
+        case cast' msg of Just (OpinionAbout c) ->  let Just x = cast (1 :: Float)
+                                                        op = MyOpinion . inUnitInterval $ x
+                                                        Just r = cast' op
+                                                    in return r
 
 --        case gcast msg of Just (OpinionAbout (c,a)) ->  let op = MyOpinion . inUnitInterval $ a
 --                                                            Just r = cast op
@@ -203,7 +206,6 @@ Typed messages responses.
 
 \begin{code}
     }
-
 
 cast' :: (Typeable (a x), Typeable (b x), Typeable x) => a x -> Maybe (b x)
 cast' = cast
@@ -216,10 +218,10 @@ Behavior constructor.
 
 \begin{code}
 
-negotiatingAgentBehavior  ::  ( Fractional a, Typeable a, Ord a, Show a
+negotiatingAgentBehavior  ::  ( MsgConstraint a
                               , AgentStates s a
                               , Decider d a)
-                          => d a -> (Decision d a -> IO ()) -> AgentBehavior s
+                          => d a -> (Decision d a -> IO ()) -> AgentBehavior s MsgConstraint
 negotiatingAgentBehavior d applyD = AgentBehavior
   { act = \i s -> let  c0  = beliefsContext s
                        cs  = ($ s) <$>  [  -- SomeContext . capabilitiesContext
@@ -234,6 +236,7 @@ negotiatingAgentBehavior d applyD = AgentBehavior
   , handleMessages = negotiationAgentHandleMessages
   }
 
+class (Fractional a, Typeable a, Ord a, Show a) => MsgConstraint a
 
 \end{code}
 

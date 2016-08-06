@@ -47,6 +47,8 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad
 
+import GHC.Exts (Constraint)
+
 \end{code}
 %endif
 
@@ -61,9 +63,9 @@ Agent's behavior is defined by its \emph{action loop} and incoming
 
 \begin{code}
 
-data AgentBehavior states = AgentBehavior {
+data AgentBehavior states c = AgentBehavior {
   act :: forall i . (AgentInnerInterface i) => i -> states -> IO (),
-  handleMessages :: AgentHandleMessages states
+  handleMessages :: AgentHandleMessages states c
   }
 
 \end{code}
@@ -84,7 +86,7 @@ These messages are handled by the corresponding agent's functions.
 
 \begin{code}
 
-data AgentHandleMessages states = AgentHandleMessages {
+data AgentHandleMessages states c = AgentHandleMessages {
 
 \end{code}
 
@@ -107,7 +109,8 @@ data AgentHandleMessages states = AgentHandleMessages {
 
 > respondTypedMessage :: forall msg resp t i .  ( MessageT msg t, MessageT resp t
 >                                               , ExpectedResponse1 msg t ~ resp t
->                                               , AgentInnerInterface i) =>
+>                                               , AgentInnerInterface i
+>                                               , c t) =>
 >                        i -> states -> msg t -> IO (resp t)
 > }
 
@@ -369,8 +372,8 @@ A simple \emph{agent descriptor} that can be used for agent creation.
 
 \begin{code}
 
-data AgentDescriptor states = AgentDescriptor{
-  agentBehaviour  :: AgentBehavior states,
+data AgentDescriptor states c = AgentDescriptor{
+  agentBehaviour  :: AgentBehavior states c,
   newAgentStates  :: IO states,
   nextAgentId     :: IO AgentId
   }

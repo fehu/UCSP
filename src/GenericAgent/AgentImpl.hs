@@ -50,13 +50,13 @@ instance Show MessageT'  where show (MessageT msg) = show msg
 
 -- -----------------------------------------------
 
-data AgentRun r states = AgentRun {
+data AgentRun r states c = AgentRun {
   _agentId             :: AgentId,
   _states              :: states,
   _runState            :: TVar RunState,
   _messageBox          :: TQueue (Either Message' (MessageWithResponse r)),
   _messageBoxPriority  :: TQueue (Either Message' (MessageWithResponse r)),
-  _agentBehaviour      :: AgentBehavior states
+  _agentBehaviour      :: AgentBehavior states c
   }
 
 data MessageWithResponse r =
@@ -85,7 +85,7 @@ instance Show (MessageWithResponse r) where
 
 -- -----------------------------------------------
 
-data AgentRunOfRole r = forall states . AgentRunOfRole (AgentRun r states)
+data AgentRunOfRole r = forall states c . AgentRunOfRole (AgentRun r states c)
 agentRunOfRoleId (AgentRunOfRole run) = _agentId run
 
 instance Eq (AgentRunOfRole r)   where (==)     = (==) `on` agentRunOfRoleId
@@ -162,8 +162,8 @@ _runAgentMessages (AgentRunOfRole ag) = do
                         respond =<< respondTypedMessage h ag states msg
 
 _run  :: (RunState -> Bool)
-      -> (AgentRun r states -> states -> STM ())
-      -> AgentRun r states -> states
+      -> (AgentRun r states  c -> states -> STM ())
+      -> AgentRun r states c -> states
       -> IO ()
 _run atRunState action ag states =
     atomically $ whenM (fmap atRunState . readTVar $ _runState ag)
@@ -183,14 +183,14 @@ _runAgent (AgentRunOfRole ag) = do
                       Running    -> act (_agentBehaviour ag) ag (_states ag)
 
 
-instance (Typeable r) => AgentInnerInterface (AgentRun r state) where
+instance (Typeable r) => AgentInnerInterface (AgentRun r state c) where
     selfRef  arun  = AgentRef (AgentRunOfRole arun)
     selfStop arun  = atomically $ _runState arun `writeTVar` Terminate
 
 -- -----------------------------------------------
 -- -----------------------------------------------
 
-instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r) where
+instance (Typeable r) => AgentCreate (AgentDescriptor states c) (AgentRunOfRole r) where
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
                                  ,  newAgentStates=newStates
                                  ,  nextAgentId=nextId } =
