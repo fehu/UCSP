@@ -31,7 +31,7 @@ The initial candidaes are created from the known proposals by \emph{beliefs} spl
 \begin{code}
 
 splitAndPropagateThroughContexts ::  ( SplittingContext c0 a
-                                     , Num a, Ord a, Show a, Typeable a) =>
+                                     , Fractional a, Ord a, Show a, Typeable a) =>
     c0 a -> [SomeContext a] -> IGraph -> IO [Candidate a]
 
 splitAndPropagateThroughContexts splitting ctxs g =
@@ -40,7 +40,7 @@ splitAndPropagateThroughContexts splitting ctxs g =
 
 
 
-propagateThroughContexts ::  (Num a, Ord a, Show a, Typeable a) =>
+propagateThroughContexts ::  (Fractional a, Ord a, Show a, Typeable a) =>
                              [Candidate a]-> [SomeContext a] -> IO [Candidate a]
 
 propagateThroughContexts cs [] = return cs
@@ -193,7 +193,7 @@ Typed messages responses.
 \begin{code}
 
   , respondTypedMessage = \i state msg ->
-        case cast' msg of Just (OpinionAbout (c,a)) ->  undefined -- TODO
+        case cast' msg of Just (OpinionAbout c) ->  undefined -- TODO
 
 --        case gcast msg of Just (OpinionAbout (c,a)) ->  let op = MyOpinion . inUnitInterval $ a
 --                                                            Just r = cast op

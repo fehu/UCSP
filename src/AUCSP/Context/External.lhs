@@ -58,7 +58,8 @@ data KnownAgent a = forall r . KnownAgent {
   deriving (Typeable)
 
 askKnownAgent ::  ( MessageT msg a
-                  , MessageT (ExpectedResponse1 msg) a)
+                  , MessageT (ExpectedResponse1 msg) a
+                  , Fractional a)
               => KnownAgent a
               -> msg a
               -> IOMaybe (ExpectedResponse1 msg a)
@@ -99,7 +100,7 @@ instance (Typeable a, Num a) => Context External a where
 
 data OpinionRel a = OpinionRel
 
-newtype OpinionAbout a  = OpinionAbout (Class, a) deriving (Typeable, Show)
+newtype OpinionAbout a = OpinionAbout Class deriving (Typeable, Show)
 
 data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving (Typeable, Show)
 

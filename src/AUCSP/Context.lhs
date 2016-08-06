@@ -92,7 +92,7 @@ mapEither :: AnyFunc1 r -> Either a b -> Either (r a) (r b)
 mapEither f (Left a)   = Left $ f a
 mapEither f (Right a)  = Right $ f a
 
-assessWithin' ::  (Context c a, Num a, Typeable a, Show a) =>
+assessWithin' ::  (Context c a, Fractional a, Typeable a, Show a) =>
                   [Information]
               ->  c a
               ->  IO (Maybe a, AssessmentDetails a)
@@ -137,7 +137,7 @@ candidateSuccess _          = False
 
 -- -----------------------------------------------
 
-assessWithin ::  (Context c a, Num a, Ord a, Typeable a, Show a) =>
+assessWithin ::  (Context c a, Fractional a, Ord a, Typeable a, Show a) =>
                  Candidate a -> c a -> IO (Candidate a)
 
 assessWithin f@Failure{} _ = return f

@@ -49,7 +49,7 @@ graphJoin (IGraph inf) new = IGraph (inf `union` Set.fromList new)
 fromNodes :: [Information] -> IGraph
 fromNodes = IGraph . Set.fromList
 
-relationOn :: (Num a, Typeable a, Show a) => IRelation a -> IGraph -> IO (RelValue a)
+relationOn :: (Fractional a, Typeable a, Show a) => IRelation a -> IGraph -> IO (RelValue a)
 relationOn rel iGraph = case rel of
     RelBin r -> return . Left $ do  i1  <- graphNodes iGraph
                                     i2  <- graphNodes iGraph
@@ -81,7 +81,7 @@ class (Functor r) => InformationRelation r where
 
 class InformationRelation r =>
     BinaryRelation r where
-        binRelValue :: (Num a) => r a -> Information -> Information -> Maybe a
+        binRelValue :: (Fractional a) => r a -> Information -> Information -> Maybe a
 
 class InformationRelation r =>
     WholeRelation r where
@@ -89,7 +89,7 @@ class InformationRelation r =>
 
 class InformationRelation r =>
     BinaryIORelation r where
-        binRelIOValue :: (Num a, Typeable a, Show a) => r a -> Information -> Information -> IOMaybe a
+        binRelIOValue :: (Fractional a, Typeable a, Show a) => r a -> Information -> Information -> IOMaybe a
 
 type IOMaybe a = IO (Maybe a)
 
