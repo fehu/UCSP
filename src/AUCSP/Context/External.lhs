@@ -23,7 +23,7 @@ import GenericAgent
 
 import qualified AUCSP.Context.Combine as Combine
 
-import Data.Typeable (Typeable, gcast)
+import Data.Typeable (Typeable, cast)
 import Data.Function (on)
 import Data.IORef
 import Data.Coerce (coerce)
@@ -50,39 +50,44 @@ the proposal in question $p_k$. They are combined using $\product$ operation.
 
 \begin{code}
 
-data KnownAgent a = forall r . KnownAgent {
+data KnownAgent = forall r a . KnownAgent {
   knownAgentRef           :: AgentRef,
   knownAgentRole          :: r,
   knownAgentCapabilities  :: [Capabilities r a]
   }
   deriving (Typeable)
 
-askKnownAgent ::  ( MessageT msg a
-                  , MessageT (ExpectedResponse1 msg) a
-                  , Fractional a)
-              => KnownAgent a
-              -> msg a
-              -> IOMaybe (ExpectedResponse1 msg a)
-askKnownAgent knownAg message =
-    do  resp <- knownAgentRef knownAg `askT` message
-        return $ gcast resp
+-- askKnownAgent ::  ( MessageT msg a
+--                   , MessageT (ExpectedResponse1 msg) a
+--                   , Fractional a)
+--               => KnownAgent a
+--               -> msg a
+--               -> IOMaybe (ExpectedResponse1 msg a)
 
-instance Eq (KnownAgent a) where
+askKnownAgent ::  ( Message msg, Message (ExpectedResponse msg))
+              => KnownAgent
+              -> msg
+              -> IOMaybe (ExpectedResponse msg)
+askKnownAgent knownAg message =
+    do  resp <- knownAgentRef knownAg `ask` message
+        return $ cast resp
+
+instance Eq KnownAgent where
   (==) = (==) `on` knownAgentRef
 
-instance Ord (KnownAgent a) where
+instance Ord KnownAgent where
   compare = compare `on` knownAgentRef
 
-instance Show (KnownAgent a) where
+instance Show KnownAgent where
     show KnownAgent{knownAgentRef=ref} = "KnownAgent " ++ show (show ref)
 
-instance (Typeable a) => InformationPiece (KnownAgent a)
-    where type IScope (KnownAgent a) = Personal
+instance InformationPiece KnownAgent
+    where type IScope KnownAgent = Personal
 
 -- -----------------------------------------------
 
 data External a = External {
-    knownAgents        :: IORef [KnownAgent a]
+    knownAgents        :: IORef [KnownAgent]
   , externalThreshold  :: IORef a
   }
 
@@ -101,13 +106,15 @@ instance (Typeable a, Num a) => Context External a where
 
 data OpinionRel a = OpinionRel
 
-newtype OpinionAbout a = OpinionAbout Class deriving (Typeable, Show)
+newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
+data MyOpinion = forall a . (Show a, Typeable a) =>
+     MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
 
-data MyOpinion a = MyOpinion (Maybe (InUnitInterval a)) deriving (Typeable, Show)
+instance Show MyOpinion where show (MyOpinion x) = "MyOpinion (" ++ show x ++ ")"
 
-type instance ExpectedResponse1 OpinionAbout = MyOpinion
+type instance ExpectedResponse OpinionAbout = MyOpinion
 
-extractMyOpinion (MyOpinion mbOpinion) = mbOpinion
+extractMyOpinion (MyOpinion mbOpinion) = cast =<< mbOpinion
 
 -- -----------------------------------------------
 

@@ -36,7 +36,6 @@ pingBehaviour maxCount = AgentBehavior{
                                                             selfStop i
                                  _         -> return ()
           , respondMessage      = \_ _ -> return undefined
-          , respondTypedMessage = \_ _ -> return undefined
           }
   , act = \i state -> whenM (readIORef $ firstTime state)
                           $ do firstTime state `writeIORef` False
@@ -54,7 +53,6 @@ pongBehaviour = AgentBehavior{
                                              pongCounterpart state >>= (`send` Pong)
                              _         -> return ()
         , respondMessage      = \_ _ -> return undefined
-        , respondTypedMessage = \_ _ -> return undefined
         }
   , act = \_ _ -> return ()
   }

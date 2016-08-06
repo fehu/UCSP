@@ -14,6 +14,7 @@ import Data.Typeable (Typeable, cast, gcast)
 import Data.List (span)
 import Data.Function (on)
 import Data.IORef
+import Control.Applicative ((<|>))
 
 import Control.Monad
 
@@ -163,7 +164,7 @@ type instance ExpectedResponse AskedToYield = YieldResponse
 
 \begin{code}
 -- negotiationAgentHandleMessages :: (AgentStates s a, Typeable a, Fractional a) => AgentHandleMessages s
-negotiationAgentHandleMessages :: (AgentStates s a) => AgentHandleMessages s MsgConstraint
+negotiationAgentHandleMessages :: (AgentStates s a) => AgentHandleMessages s
 negotiationAgentHandleMessages = AgentHandleMessages {
 \end{code}
 
@@ -183,34 +184,15 @@ Untyped messages responses.
 
 \begin{code}
 
-  , respondMessage = \i state msg ->
-        case cast msg of Just (AskedToYield candidate) -> undefined -- TODO
+  , respondMessage = \i state msg -> undefined
+--        let r1 = case cast msg of Just (AskedToYield candidate) -> Just $ return undefined -- TODO
+--            r2 = case cast msg of Just (OpinionAbout class')    -> Just $ return undefined -- TODO
+--        in case cast $ r1 <|> r2 <|> (Just $ fail "")
+--                of Just resp -> resp
 
+  }
 \end{code}
 
-Typed messages responses.
-
-\begin{code}
-
-  , respondTypedMessage = \i state msg ->
-        case cast' msg of Just (OpinionAbout c) ->  let Just x = cast (1 :: Float)
-                                                        op = MyOpinion . inUnitInterval $ x
-                                                        Just r = cast' op
-                                                    in return r
-
---        case gcast msg of Just (OpinionAbout (c,a)) ->  let op = MyOpinion . inUnitInterval $ a
---                                                            Just r = cast op
---                                                        in return r
-
-\end{code}
-
-\begin{code}
-    }
-
-cast' :: (Typeable (a x), Typeable (b x), Typeable x) => a x -> Maybe (b x)
-cast' = cast
-
-\end{code}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -218,10 +200,10 @@ Behavior constructor.
 
 \begin{code}
 
-negotiatingAgentBehavior  ::  ( MsgConstraint a
+negotiatingAgentBehavior  ::  ( Fractional a, Typeable a, Ord a, Show a
                               , AgentStates s a
                               , Decider d a)
-                          => d a -> (Decision d a -> IO ()) -> AgentBehavior s MsgConstraint
+                          => d a -> (Decision d a -> IO ()) -> AgentBehavior s
 negotiatingAgentBehavior d applyD = AgentBehavior
   { act = \i s -> let  c0  = beliefsContext s
                        cs  = ($ s) <$>  [  -- SomeContext . capabilitiesContext
@@ -235,8 +217,6 @@ negotiatingAgentBehavior d applyD = AgentBehavior
 
   , handleMessages = negotiationAgentHandleMessages
   }
-
-class (Fractional a, Typeable a, Ord a, Show a) => MsgConstraint a
 
 \end{code}
 

@@ -16,7 +16,6 @@ module Main where
 
 import qualified GenericAgent.Test.PingPongAgentsSend as PPASend
 import qualified GenericAgent.Test.PingPongAgentsAsk  as PPAAsk
-import qualified GenericAgent.Test.PingPongAgentsAskT as PPAAskT
 
 import System.Environment
 
@@ -34,9 +33,6 @@ main = do args <- getArgs
 
           putStrLn "Testing Ping-Pong (ask)"
           PPAAsk.testPingPong maxCount
-
-          putStrLn "Testing Ping-Pong (askT)"
-          PPAAskT.testPingPong maxCount
 
 
 
