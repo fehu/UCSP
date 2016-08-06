@@ -33,6 +33,7 @@ module GenericAgent(
 , forceStopAgent, waitAgent
 
 , AgentBehavior(..), AgentHandleMessages(..)
+, selectResponse, mbResp
 
 , AgentCreate(..), AgentDescriptor(..)
 , AgentsManager(..), AgentsManagerOps(..)
@@ -40,10 +41,12 @@ module GenericAgent(
 ) where
 
 import Data.Typeable
+import Data.Maybe (fromMaybe)
 
+import Control.Applicative ((<|>))
+import Control.Monad
 import Control.Concurrent
 import Control.Concurrent.STM
-import Control.Monad
 
 import GHC.Exts (Constraint)
 
@@ -110,6 +113,24 @@ intended to get responses.
 \begin{code}
 
 type family ExpectedResponse (msg :: *) :: *
+
+\end{code}
+
+Helper functions for building responses.
+
+\begin{code}
+
+mbResp  :: ( ExpectedResponse msg0 ~ resp0 , Message msg0, Message resp0
+           , ExpectedResponse msg ~ resp , Message msg, Message resp
+           )
+        => (msg -> IO resp) -> msg0 -> Maybe (IO resp0)
+mbResp f msg = cast =<< f <$> cast msg
+
+selectResponse  :: (resp ~ ExpectedResponse msg, Message msg)
+                => [msg -> Maybe (IO resp)] -> msg -> IO resp
+selectResponse rfs msg = fromMaybe failed  $ foldr (<|>) Nothing
+                                           $ ($ msg) <$> rfs
+    where failed = fail $ "Couldn't match received message: " ++ show msg
 
 \end{code}
 

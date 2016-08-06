@@ -14,7 +14,6 @@ import Data.Typeable (Typeable, cast, gcast)
 import Data.List (span)
 import Data.Function (on)
 import Data.IORef
-import Control.Applicative ((<|>))
 
 import Control.Monad
 
@@ -180,15 +179,14 @@ Handle simple messages (without response).
 
 \end{code}
 
-Untyped messages responses.
+Respond messages.
 
 \begin{code}
 
-  , respondMessage = \i state msg -> undefined
---        let r1 = case cast msg of Just (AskedToYield candidate) -> Just $ return undefined -- TODO
---            r2 = case cast msg of Just (OpinionAbout class')    -> Just $ return undefined -- TODO
---        in case cast $ r1 <|> r2 <|> (Just $ fail "")
---                of Just resp -> resp
+  , respondMessage = \i state -> selectResponse
+    [  mbResp $ \(AskedToYield candidate)  -> undefined
+    ,  mbResp $ \(OpinionAbout class')     -> undefined
+    ]
 
   }
 \end{code}

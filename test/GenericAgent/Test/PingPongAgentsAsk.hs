@@ -57,10 +57,7 @@ pingBehaviour maxCount = AgentBehavior{
 pongBehaviour = AgentBehavior{
   handleMessages = AgentHandleMessages{
           handleMessage  = \_ _ -> return undefined
-        , respondMessage = \_ _ msg ->
-            case cast msg of Just Ping -> do putStrLn "Pong!"
-                                             let Just r = cast Pong
-                                             return r -- TODO
+        , respondMessage = \_ _ -> selectResponse [ mbResp $ \Ping -> return Pong ]
         }
   , act = \_ _ -> return ()
   }
