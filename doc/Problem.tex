@@ -1,0 +1,183 @@
+\documentclass{article}
+
+\usepackage{xcolor, amsmath}
+\newcommand{\red}[1]{{\color{red} #1}}
+
+\begin{document}
+
+% \begin{abstract}  % TODO
+% \emph{University classes scheduling} is an old, well-known problem, that
+% was attacked by the researches only recently, as the advances in electronics,
+% made in the last 10--15 years, permitted construction of computational
+% systems, far more advanced than \red{\dots}
+% \end{abstract}
+
+% Solutions to the problem are the \emph{university schedules}, that are
+% composed of \emph{individual schedules} for each \emph{group} (\emph{student}),
+% \emph{professor} and \emph{classroom}.
+
+% Individual schedules are represented by \emph{timetables}, that hold one's
+% \emph{classes} for a week. % TODO: rewrite this!
+% A \emph{class} denotes some activity for a group of students under professor's
+% supervision, that takes place in the classroom assigned. Actual activity and
+% therefore the requirements, imposed on both professor and classroom, are defined by the
+% \emph{discipline} in question.
+
+\begin{abstract}
+  
+University classes scheduling problem consists in assigning
+the \emph{classes}, defined by the academic program, for
+each group of students, possibly taking in account participants' interests.
+
+The problem is solved by agents negotiation over possible classes
+configurations. The \emph{negotiating agents} are grouped by \emph{roles}:
+\emph{professors} (full and part time), \emph{students} (\emph{groups}) and
+\emph{classrooms}. Each agent has the knowledge, required by it's role.
+
+The \emph{configuration} quality is assessed by it's \emph{coherence}.
+A solution must exceed some quality threshold.
+
+\end{abstract}
+
+
+
+\def\lifetime    {\mathit{lifetime}}
+\def\class       {\mathit{class}}
+\def\execute     {\mathit{execute}}
+\def\decide      {\mathit{decide}}
+\def\knownClasses{\overset{\mathrm{known}}{\mathit{classes}}}
+
+\section{Problem Formalization}
+
+Let \begin{itemize}
+\item[] $D=\{d_i\}$ be the set of \emph{disciplines},
+\item[] $G=\{g_i\}$ be the set of \emph{groups},
+\item[] $P=\{p_i\}$ be the set of \emph{professors},
+\item[] $R=\{r_i\}$ be the set of \emph{classrooms} and
+\item[] $T=\{t_i\}$ be \emph{discrete time}.
+\end{itemize}
+
+\noindent
+A \emph{class} denotes an event \emph{discipline} for some \emph{group}
+at some specific \emph{time interval} in the denoted \emph{classroom},
+performed by some \emph{professor}.
+
+\medskip
+$$
+ \mathrm{Class} \sim \left< \mathit{Discipline}, \mathit{Time}, \mathit{Group},
+  \mathit{Professor}, \mathit{Classroom} \right>
+$$
+\medskip
+
+\noindent
+Let 
+\begin{itemize}
+
+\item[] a \emph{candidate} be some configuration of classes:
+        $\tilde c = \{\class_i\}$,
+\item[] \emph{coherence} function: $\mathrm{coh}: \tilde c \mapsto \Re$.
+\end{itemize}
+
+
+\section{Coherence and Contexts}
+
+The coherence is established over \emph{information graphs}. It also may be used
+to break a graph using a threshold.
+Coherence of a candidate is accumulated through contexts.
+
+A context represents an aspect for optimization/restriction.
+
+It defines a default information graph that is joint with the candidate for
+local assessment. The relations, both binary and on the whole graph, are also
+held within the context, as well as the local threshold.
+
+The candidates are divided into \textbf{Success}es and \textbf{Failure}s.
+A \emph{failed} candidate is no longer processed at any of the contexts.
+Every candidate should hold the history of it's assessment for further decision
+making.
+
+\subsection{Internal}
+
+An internal context requires no knowledge from other agents.
+
+\subsubsection{Capabilities and Obligations}
+
+Represent \emph{strong} restrictions, imposed by the institution or the
+represented one.
+
+Institution restrictions:
+\begin{itemize}
+\item \textbf{Group:} the candidate has the correct amount of classes for each
+  discipline inscribed.
+\item \textbf{Professor:} can teach every discipline assigned.
+\item \textbf{Classroom:} has enough capacity and meets all special requirements.
+\end{itemize}
+
+
+\subsubsection{Time Consistency}
+
+Asserts that all the classes, concerning the agent, are consistent in time
+(do not intersect). It also is used for splitting a graph into coherent ones.
+
+TO DO
+
+\subsubsection{Preference}
+
+TO DO
+
+\subsection{External}
+
+The external context asks counterparts an \emph{opinion} about a candidate.
+An opinion is the \emph{inner coherence} (coherence accumulated at internal
+contexts) of the agent being asked.
+
+
+
+\section{Agent and Negotiation}
+
+An agent is executing repetitively it's \emph{lifetime} function, while it remains
+capable of responding messages.
+
+\begin{align*}
+  \knownClasses &: \{\class_i\} \\
+  \lifetime &:~ \knownClasses \mapsto * \\
+  \lifetime &=  \execute \circ \decide \\
+  \decide   &:~ \knownClasses \mapsto
+              \mathrm{New\,candidate} ~|~
+              \mathrm{Ask\,acceptance} ~|~
+              \mathrm{Ask\,to\,yield}
+\end{align*}
+
+\subsection{New candidate}
+When no satisfying \emph{candidate} was found, new \emph{candidate}
+needs to be aggregated to the \emph{known classes}.
+The candidate must be \emph{internally coherent}.
+
+The newly created \emph{classes} (of which consists a candidate) are
+sent to the corresponding professor, group and classroom (except self).
+A confirmation, based on \emph{capabilities} must be received from all
+the candidates. Otherwise, another candidate must be generated.
+
+\textit{A cache might be used for the capabilities.}
+
+
+\subsection{Ask acceptance}
+When a candidate has no no contradiction at any context, an agent may decide to
+select it as it's part of solution and wait for the rest to do the same.
+It can be woken by a successful yield demand, forcing the waiting agent to
+search for a new solution.
+
+
+\subsection{Ask to yield}
+It is a solution when small percent of counterparts responded with a bad
+opinion (\emph{external} context) about a candidate. It asks them to yield
+to the candidate, that would mean (??) deleting (??) the contradicting classes
+in case of acceptance.  All asked agents must respond positively in order for
+the deletion to take place. In case of any refusal, the initial agent must
+(??) delete (??) the contradicting classes instead.
+
+The decision whether to yield or not is made considering the best inner
+coherence of any configuration, containing any contradicting class.
+
+
+\end{document}
