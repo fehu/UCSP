@@ -105,7 +105,7 @@ common goal completion is set as the \emph{accepted candidate}.
 
            in case mbAskYield of  Just (askYield, _)   -> return $ AskToYield askYield
                                   _  | null successes  ->  AggregateProposal <$>
-                                                             newProposal d  (fst <$> bestByGoal)
+                                                           newProposal d  (fst <$> bestByGoal)
                                   _                    -> return  . AcceptCandidate . fst
                                                                   . head $ successes
 
@@ -120,20 +120,72 @@ zipmapr f = map $ \x -> (x, f x)
 
 The agents need some states to be guarded. They are abstracted by the following definition.
 
+\red{?? Needed ??}
+
 \begin{code}
 
-class (Contexts s a) => AgentStates s a | s -> a
+class (Contexts s a, Num a) => AgentStates s a | s -> a
   where
---    knownProposals
+    getKnownClasses     :: s -> IO IGraph
+    modifyKnownClasses  :: s -> (IGraph -> IGraph) -> IO ()
+
+    getBestCandidate  :: s -> IO (Candidate a)
+    setBestCandidate  :: s -> Candidate a -> IO ()
+
+    decider :: s -> DeciderUCSP a
+
+    getKnownClasses = readIORef . knownProposals . beliefsContext
+    -- modification is strict
+    modifyKnownClasses s = modifyIORef' . knownProposals $ beliefsContext s
+
 
 
 \end{code}
 
 
-% Decisions execution:
-%\begin{code}
-%-- execDecision (AggregateProposal c) =
-%\end{code}
+Decisions execution.
+\begin{code}
+execDecision :: (ContextConstraints s a) => DeciderUCSP a -> s -> DecisionUCSP a -> IO ()
+\end{code}
+
+A new class should be added by every agent, mentioned in the class.
+
+\begin{code}
+execDecision d s (AggregateProposal cl@(Class c)) =
+    do modifyKnownClasses s (`graphJoin` [Information cl])
+       forM_ (counterpartsOf s c) ((`send` NewClassAdded cl) . knownAgentRef)
+
+\end{code}
+
+An agent should ask each counterpart of every contradicting class to \emph{yield}.
+If any rejects the demand, then those counterpart must cancel yeild procedure, while
+the demanding agent must yield instead.
+
+\begin{code}
+
+execDecision d s (AskToYield c@(Failure {assessHistory=(h:_), candidate=cand} )) =
+    do let CandidateAssessment {assessedAt=at, assessedDelails=details} = h
+       case at
+        of SomeContext ctx ->
+            when  (contextName ctx /= "External")
+                  (fail "Expected assessment at the \"External\" context")
+       case collectInf' cand
+        of Just (Class class') ->                                           -- TODO: class match
+               do let ags = s `counterpartsOf` class'
+                  resps <- forM ags
+                           $ \ka -> ask  (knownAgentRef ka)
+                                         (AskedToYield c)
+                  if all (WillYield == ) resps
+                    then markYieldedTo c
+                    else forM_ ags
+                       $ \ka -> send  (knownAgentRef ka)
+                                      (CancelYield c)
+
+-- TODO
+markYieldedTo :: Candidate a -> IO ()
+markYieldedTo c = undefined
+
+\end{code}
 
 
 \subsubsection{Messages handling}
@@ -146,24 +198,26 @@ data NewClassAdded = NewClassAdded Class deriving (Typeable, Show)
 
 -- -----------------------------------------------
 
-data AskedToYield =  forall a. (Typeable a, Show a) =>
+data AskedToYield =  forall a. (Typeable a, Show a, Num a, Ord a) =>
                      AskedToYield (Candidate a) deriving Typeable
 instance Show AskedToYield where show (AskedToYield c) = show c
 
-data YieldResponse = WillYield | WontYield deriving (Typeable, Show)
+data YieldResponse = WillYield | WontYield deriving (Typeable, Show, Eq)
 
 type instance ExpectedResponse AskedToYield = YieldResponse
 
--- -----------------------------------------------
+data CancelYield = forall a. (Typeable a, Show a, Num a, Ord a) =>
+                   CancelYield (Candidate a) deriving Typeable
 
--- data
+instance Show CancelYield where show (CancelYield c) = "CancelYield(" ++ show c ++ ")"
+
+-- -----------------------------------------------
 
 \end{code}
 
 
 \begin{code}
--- negotiationAgentHandleMessages :: (AgentStates s a, Typeable a, Fractional a) => AgentHandleMessages s
-negotiationAgentHandleMessages :: (AgentStates s a) => AgentHandleMessages s
+negotiationAgentHandleMessages :: (ContextConstraints s a) => AgentHandleMessages s
 negotiationAgentHandleMessages = AgentHandleMessages {
 \end{code}
 
@@ -172,23 +226,54 @@ Handle simple messages (without response).
 \begin{code}
 
     handleMessage = \i state msg ->
-        case cast msg of Just (NewClassAdded c) -> let knownRef  = knownProposals
-                                                                 $ beliefsContext state
-                                                   in modifyIORef' knownRef -- strict
-                                                      (`graphJoin` [Information c])
+        case cast msg of Just (NewClassAdded c) ->  modifyKnownClasses state
+                                                    (`graphJoin` [Information c])
 
 \end{code}
 
 Respond messages.
 
+> , respondMessage = \i state -> selectResponse [
+
+Yield decision consists in comparing the coherence, achieved by another agent,
+with the best coherence, achieved by the current one. Coherence superiority
+must be significant.
+
 \begin{code}
 
-  , respondMessage = \i state -> selectResponse
-    [  mbResp $ \(AskedToYield candidate)  -> undefined
-    ,  mbResp $ \(OpinionAbout class')     -> undefined
-    ]
+      mbResp $ \(AskedToYield candidate) ->
+        do  best <- getBestCandidate state
+            let Just d         = cast $ decider state
+                Just myBestCoh = cast $ candidateSuccessCoherence best
+                itBestCoh      = candidateCoherence candidate
+            if commonBetter d myBestCoh itBestCoh  then do  yieldTo candidate
+                                                            return WillYield
+                                                   else return WontYield
 
-  }
+\end{code}
+
+Agent's opinion about a class is the \emph{internal} (without considering the
+\emph{external} context) coherence of the one-class candidate.
+
+\begin{code}
+
+    , mbResp $ \(OpinionAbout class') ->
+        do let c = newCandidate [Information class']
+           [c'] <- propagateThroughContexts [c] $ internalContexts state
+           return . MyOpinion $ candidateSuccessCoherence c'
+
+\end{code}
+
+> ] }
+
+
+Classes, contradicting the better candidate (yielded to), should have their coherence decreased.
+\red{??? TODO ???}
+
+\begin{code}
+
+yieldTo = undefined -- TODO
+
 \end{code}
 
 
@@ -198,20 +283,24 @@ Behavior constructor.
 
 \begin{code}
 
-negotiatingAgentBehavior  ::  ( Fractional a, Typeable a, Ord a, Show a
-                              , AgentStates s a
-                              , Decider d a)
-                          => d a -> (Decision d a -> IO ()) -> AgentBehavior s
-negotiatingAgentBehavior d applyD = AgentBehavior
+type ContextConstraints s a =  ( Fractional a, Typeable a, Ord a, Show a
+                               , AgentStates s a
+                               , Context (Capabilities (ContextsRole s)) a)
+
+internalContexts  :: ContextConstraints s a => s -> [SomeContext a]
+internalContexts s = ($ s) <$> [  SomeContext . capabilitiesContext
+                               ,  SomeContext . obligationsContext
+                               ,  SomeContext . preferencesContext
+                               ]
+
+negotiatingAgentBehavior  :: ( ContextConstraints s a)
+                          => DeciderUCSP a -> AgentBehavior s
+negotiatingAgentBehavior d = AgentBehavior
   { act = \i s -> let  c0  = beliefsContext s
-                       cs  = ($ s) <$>  [  -- SomeContext . capabilitiesContext
-                                           SomeContext . obligationsContext
-                                        ,  SomeContext . preferencesContext
-                                        ,  SomeContext . externalContext
-                                        ]
-                  in applyD  <$>  decide d
-                             =<<  splitAndPropagateThroughContexts c0 cs
-                             =<<  contextInformation c0
+                       cs  = internalContexts s ++ [SomeContext $ externalContext s]
+                  in execDecision d s  =<<  decide d
+                                       =<<  splitAndPropagateThroughContexts c0 cs
+                                       =<<  contextInformation c0
 
   , handleMessages = negotiationAgentHandleMessages
   }
@@ -223,4 +312,3 @@ negotiatingAgentBehavior d applyD = AgentBehavior
 \begin{code}
 
 \end{code}
-

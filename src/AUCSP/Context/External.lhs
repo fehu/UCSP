@@ -6,7 +6,7 @@ module AUCSP.Context.External(
 
   External(..)
 
-, KnownAgent, askKnownAgent
+, KnownAgent(..), askKnownAgent
 
 , OpinionRel(..), OpinionAbout(..)
 , MyOpinion(..), extractMyOpinion
@@ -45,7 +45,7 @@ The \emph{context-specific information} consists of references to the known
 agents with cached information about their capabilities.
 
 There is a single binary relation in this context --- \emph{opinion}
-of agent $\mathrm{ag}^\mathrm{role}_i$ on class $c_i$, of which consists
+of agent $\mathrm{ag}^\mathrm{role}_i$ about class $c_i$, of which consists
 the proposal in question $p_k$. They are combined using $\product$ operation.
 
 \begin{code}
@@ -56,13 +56,6 @@ data KnownAgent = forall r a . KnownAgent {
   knownAgentCapabilities  :: [Capabilities r a]
   }
   deriving (Typeable)
-
--- askKnownAgent ::  ( MessageT msg a
---                   , MessageT (ExpectedResponse1 msg) a
---                   , Fractional a)
---               => KnownAgent a
---               -> msg a
---               -> IOMaybe (ExpectedResponse1 msg a)
 
 askKnownAgent ::  ( Message msg, Message (ExpectedResponse msg))
               => KnownAgent
@@ -107,14 +100,17 @@ instance (Typeable a, Num a) => Context External a where
 data OpinionRel a = OpinionRel
 
 newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
-data MyOpinion = forall a . (Show a, Typeable a) =>
-     MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+-- data MyOpinion = forall a . (Show a, Typeable a) =>
+--     MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+
+data MyOpinion = forall a . (Show a, Typeable a, Fractional a) =>
+     MyOpinion a deriving Typeable
 
 instance Show MyOpinion where show (MyOpinion x) = "MyOpinion (" ++ show x ++ ")"
 
 type instance ExpectedResponse OpinionAbout = MyOpinion
 
-extractMyOpinion (MyOpinion mbOpinion) = cast =<< mbOpinion
+extractMyOpinion (MyOpinion mbOpinion) = cast mbOpinion
 
 -- -----------------------------------------------
 

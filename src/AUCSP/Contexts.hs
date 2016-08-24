@@ -19,6 +19,7 @@ import AUCSP.Context.Obligations    as X
 import AUCSP.Context.Preferences    as X
 import AUCSP.Context.External       as X
 
+import AUCSP.Classes (AbstractClass)
 
 class Contexts c a | c -> a
   where
@@ -28,4 +29,6 @@ class Contexts c a | c -> a
     obligationsContext   :: c -> Obligations a
     preferencesContext   :: c -> Preferences a
     externalContext      :: c -> External a
+
+    counterpartsOf :: (AbstractClass cl) => c -> cl -> [KnownAgent]
 

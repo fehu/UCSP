@@ -9,7 +9,8 @@ module AUCSP.Coherence.Information (
 
 , PersonalInformation(..), SharedInformation(..)
 
-, Information(..), collectInf
+, Information(..)
+, collectInf, collectInf', collectInfs
 
 , Needs(..), CanTeach(..) -- TODO: Should be moved from here
 
@@ -19,7 +20,10 @@ import GenericAgent (AgentRef)
 import AUCSP.Classes
 
 import Data.Typeable
+import Data.Maybe (mapMaybe)
 import Data.Set (Set) -- , union, member)
+
+import Control.Monad.Fix
 
 \end{code}
 %endif
@@ -114,6 +118,21 @@ data Information = forall i . InformationPiece i => Information i
 
 collectInf :: (Typeable a) => Information -> Maybe a
 collectInf (Information i) = cast i
+
+collectInfs :: (Typeable a) => [Information] -> [a]
+collectInfs = mapMaybe collectInf
+
+-- collect unique
+collectInf' :: (Typeable a) => [Information] -> Maybe a
+collectInf' = fix (
+    \f acc is ->
+     case is of []     -> acc
+                i:is'  -> case (acc, collectInf i)
+                            of  (Just _ , Just _)  -> Nothing -- repetitinon
+                                (_      , Just a)  -> f (Just a) is'
+                                (acc    , _)       -> f acc is'
+    ) Nothing
+
 
 instance Eq Information where
   (Information i1) == (Information i2) =

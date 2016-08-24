@@ -9,8 +9,10 @@ module AUCSP.Context(
 
 , AssessmentDetails(..)
 
-, AssessedCandidate(..), Candidate(..)
-, candidateSuccess
+, CandidateAssessment(..), Candidate(..)
+, newCandidate
+, mbCandidateCoherence, candidateCoherence
+, candidateSuccess, candidateSuccessCoherence
 
 , assessWithin
 
@@ -25,6 +27,7 @@ import AUCSP.Coherence
 
 import Data.Typeable
 import Data.Either (partitionEithers)
+import Data.Maybe (fromMaybe)
 
 import qualified Data.Map as Map
 
@@ -76,10 +79,14 @@ newtype CWhole a  = CWhole a
 getCBin    (CBin a)    = a
 getCWhole  (CWhole a)  = a
 
-data AssessmentDetails a                -- TODO
-    = AssessmentDetails deriving Show
+-- may hold any typeable data within
+data AssessmentDetails a = forall d . (Typeable d, Show (d a)) =>
+     AssessmentDetails (d a)
 
 data SomeContext a = forall c . Context c a => SomeContext (c a)
+
+instance Show (AssessmentDetails a) where
+    show (AssessmentDetails d) = show d
 
 instance Show (SomeContext a) where
     show (SomeContext c) = "Context " ++ show (contextName c)
@@ -117,23 +124,34 @@ assessWithin' inf c = do
 
 -- -----------------------------------------------
 
-data AssessedCandidate a = AssessedCandidate {
+data CandidateAssessment a = CandidateAssessment {
        assessedAt       :: SomeContext a
     ,  assessedVal      :: Maybe a
     ,  assessedDelails  :: AssessmentDetails a
     }
     deriving Show
 
-data Candidate a   =  Success  {  assessHistory  :: [AssessedCandidate a]
+data Candidate a   =  Success  {  assessHistory  :: [CandidateAssessment a]
                                ,  candidate      :: [Information]
                                }
-                   |  Failure  {  assessHistory  :: [AssessedCandidate a]
+                   |  Failure  {  assessHistory  :: [CandidateAssessment a]
                                ,  candidate      :: [Information]
                                }
     deriving Show
 
 candidateSuccess Success{}  = True
 candidateSuccess _          = False
+
+mbCandidateCoherence :: Candidate a -> Maybe a
+mbCandidateCoherence c = case assessHistory c of  []    -> Nothing
+                                                  (a:_) -> assessedVal a
+
+candidateCoherence c = fromMaybe 0 $ mbCandidateCoherence c
+
+candidateSuccessCoherence c | candidateSuccess c  = candidateCoherence c
+candidateSuccessCoherence _                       = 0
+
+newCandidate = Success []
 
 -- -----------------------------------------------
 
@@ -144,7 +162,7 @@ assessWithin f@Failure{} _ = return f
 assessWithin (Success hist c) cxt = do
   (mbA, details)  <- c `assessWithin'` cxt
   threshold       <- contextThreshold cxt
-  let ac = AssessedCandidate (SomeContext cxt) mbA details
+  let ac = CandidateAssessment (SomeContext cxt) mbA details
 
   return $  if mbA > Just threshold
             then  Success  (ac : hist) c
