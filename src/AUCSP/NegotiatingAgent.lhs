@@ -5,7 +5,7 @@ module AUCSP.NegotiatingAgent (
 
 ) where
 
-import GenericAgent
+import Agent.Abstract
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Contexts

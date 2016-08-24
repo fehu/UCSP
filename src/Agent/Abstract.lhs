@@ -15,7 +15,7 @@
 %if False
 \begin{code}
 
-module GenericAgent(
+module Agent.Abstract(
 
   AgentComm(..), ExpectedResponse
 , AgentRef(..), AgentRef'(..)
@@ -28,15 +28,13 @@ module GenericAgent(
 
 , AgentId(..), AgentInnerInterface(..)
 , AgentCommPriority(..), AgentControl(..)
-, AgentFullRef(..), fromFullRef
-, AgentThread(..), AgentThreads(..), extractThreads
-, forceStopAgent, waitAgent
+, AgentFullRef(..)
+, AgentThread(..), AgentThreads(..)
 
 , AgentBehavior(..), AgentHandleMessages(..)
 , selectResponse, mbResp
 
 , AgentCreate(..), AgentDescriptor(..)
-, AgentsManager(..), AgentsManagerOps(..)
 
 ) where
 
@@ -45,7 +43,7 @@ import Data.Maybe (fromMaybe)
 
 import Control.Applicative ((<|>))
 import Control.Monad
-import Control.Concurrent
+import Control.Concurrent (ThreadId)
 import Control.Concurrent.STM
 
 import GHC.Exts (Constraint)
@@ -290,10 +288,6 @@ data AgentThreads = AgentThreads  {  _actThread      :: AgentThread
                                   ,  _messageThread  :: AgentThread
                                   }
 
-
-fromFullRef (AgentFullRef ref _) = AgentRef ref
-extractThreads (AgentFullRef _ (AgentThreads act msg)) = (act, msg)
-
 \end{code}
 
 The information about agent's thread permits checking on its status,
@@ -305,18 +299,6 @@ data AgentThread = AgentThread {  _threadId        :: ThreadId
                                ,  _threadFinished  :: IO Bool
                                ,  _waitThread      :: IO ()
                                }
-
-
-forceStopAgent :: AgentFullRef -> IO ()
-forceStopAgent fref = do  _killThread act
-                          _killThread msg
-    where  (act, msg)   = extractThreads fref
-           _killThread  = killThread . _threadId
-
-waitAgent :: AgentFullRef -> IO ()
-waitAgent fref = do _waitThread act
-                    _waitThread msg
-    where  (act, msg)   = extractThreads fref
 
 \end{code}
 
@@ -374,38 +356,6 @@ data AgentDescriptor states = AgentDescriptor{
   newAgentStates  :: IO states,
   nextAgentId     :: IO AgentId
   }
-
-\end{code}
-
-
-\subsubsection{Agent Management}
-A manager registers/unregisters agent references and provides
-agent-related operations over them.
-
-\begin{code}
-class AgentsManager m where
-  newAgentsManager :: IO m
-  listAgents       :: m -> IO [AgentFullRef]
-  registerAgent    :: m -> AgentFullRef -> IO ()
-  unregisterAgent  :: m -> AgentFullRef -> IO ()
-
-  mapAgents        :: (AgentFullRef -> IO a)   -> m -> IO [a]
-  mapAgents_       :: (AgentFullRef -> IO ())  -> m -> IO ()
-
-  foreachAgent     :: m -> (AgentFullRef -> IO a)   -> IO [a]
-  foreachAgent_    :: m -> (AgentFullRef -> IO ())  -> IO ()
-
-  foreachAgent   = flip mapAgents
-  foreachAgent_  = flip mapAgents_
-
-class AgentsManagerOps m where
-  agentsStopped      :: m -> IO Bool
-  waitAllAgents      :: m -> IO ()
-
-  sendEachAgent      :: (Message msg) => m -> msg -> IO ()
-  orderEachAgent     :: (Message msg) => m -> msg -> IO ()
-
-  createWithManager  :: (AgentCreate from ag) => m -> from -> IO (ag, AgentFullRef)
 
 \end{code}
 

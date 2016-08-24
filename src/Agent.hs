@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 --
--- Module      :  GenericAgent.AgentImpl
+-- Module      :  Agent
 -- Copyright   :
 -- License     :  MIT
 --
@@ -12,23 +12,22 @@
 --
 -----------------------------------------------------------------------------
 
-module GenericAgent.AgentImpl (
-
+module Agent (
   AgentRunOfRole
 , SystemAgent, GenericAgent
 
-, SimpleAgentsManager
-
 , whenM
+
+, module A
 
 ) where
 
-import GenericAgent
+import Agent.Abstract as A
 
 import Data.Typeable
 import Data.Function (on)
 import Data.Maybe
-import Data.List (delete)
+-- import Data.List (delete)
 
 import Control.Concurrent
 import Control.Concurrent.STM
@@ -214,38 +213,7 @@ instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r)
             return (run', AgentFullRef run' threads)
 
 
--- -----------------------------------------------
--- -----------------------------------------------
 
 
-data SimpleAgentsManager = SimpleAgentsManager { registeredAgents :: TVar [AgentFullRef] }
-
-instance AgentsManager SimpleAgentsManager where
-    newAgentsManager = SimpleAgentsManager <$> newTVarIO []
-    listAgents = readTVarIO . registeredAgents
-    registerAgent m ref = atomically $ registeredAgents m `modifyTVar` (ref:)
-    unregisterAgent m ref = atomically $ registeredAgents m `modifyTVar` delete ref
-
-    mapAgents f   = mapM f   <=< listAgents
-    mapAgents_ f  = mapM_ f  <=< listAgents
-
-
-instance AgentsManagerOps SimpleAgentsManager where
-    agentsStopped  = fmap (foldr (||) True) . _mapEachThread _threadFinished
-    waitAllAgents  = void . _mapEachThread _waitThread
-
-    sendEachAgent m msg   = void $ foreachAgent m (`send` msg)
-    orderEachAgent m msg  = void $ foreachAgent m (`sendPriority` msg)
-
-    createWithManager m from = do (ag, ref) <- createAgent from
-                                  m `registerAgent` ref
-                                  return (ag, ref)
-
-
-
-
-_mapEachThread :: (AgentsManager m) => (AgentThread -> IO a) -> m -> IO [a]
-_mapEachThread f = (mapM f . concatMap (pair2List . extractThreads)) <=< listAgents
-    where pair2List (a, b) = [a, b]
 
 

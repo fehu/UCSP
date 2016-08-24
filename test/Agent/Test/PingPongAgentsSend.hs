@@ -8,11 +8,11 @@
 
 --{-# LANGUAGE DataKinds, ScopedTypeVariables #-}
 
-module GenericAgent.Test.PingPongAgentsSend where
+module Agent.Test.PingPongAgentsSend where
 
-import GenericAgent
-import GenericAgent.AgentImpl (whenM)
-import GenericAgent.Test.PingPong
+import Agent
+-- import Agent.AgentImpl (whenM)
+import Agent.Test.PingPong
 
 import Data.Typeable(cast)
 import Data.IORef

@@ -16,7 +16,7 @@ module AUCSP.Coherence.Information (
 
 ) where
 
-import GenericAgent (AgentRef)
+import Agent.Abstract (AgentRef)
 import AUCSP.Classes
 
 import Data.Typeable

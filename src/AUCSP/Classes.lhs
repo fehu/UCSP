@@ -16,7 +16,7 @@ module AUCSP.Classes (
 ) where
 
 import AUCSP.NegotiationRoles
-import GenericAgent
+import Agent.Abstract
 
 import Data.Typeable
 import Data.Function (on)

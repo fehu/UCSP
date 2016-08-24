@@ -14,9 +14,9 @@
 
 module Main where
 
-import qualified GenericAgent.Test.PingPongAgentsSend as PPASend
-import qualified GenericAgent.Test.PingPongAgentsAsk  as PPAAsk
-import qualified GenericAgent.Test.PingPongAgentsAsk2 as PPAAsk2
+import qualified Agent.Test.PingPongAgentsSend as PPASend
+import qualified Agent.Test.PingPongAgentsAsk  as PPAAsk
+import qualified Agent.Test.PingPongAgentsAsk2 as PPAAsk2
 
 import System.Environment
 

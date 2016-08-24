@@ -19,7 +19,7 @@ import AUCSP.Coherence
 import AUCSP.Context
 import AUCSP.Context.Capabilities (Capabilities)
 import AUCSP.Context.InUnitInterval
-import GenericAgent
+import Agent.Abstract
 
 import qualified AUCSP.Context.Combine as Combine
 

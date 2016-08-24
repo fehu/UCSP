@@ -13,10 +13,11 @@
 
 {-# LANGUAGE ScopedTypeVariables, FlexibleContexts #-}
 
-module GenericAgent.Test.PingPong where
+module Agent.Test.PingPong where
 
-import GenericAgent
-import GenericAgent.AgentImpl
+import Agent
+import Agent.Extra
+import Agent.Manager
 
 import Data.IORef
 import Data.Typeable

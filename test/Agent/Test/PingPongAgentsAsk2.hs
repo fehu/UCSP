@@ -8,10 +8,10 @@
 
 {-# LANGUAGE TypeFamilies, FlexibleContexts, ScopedTypeVariables #-}
 
-module GenericAgent.Test.PingPongAgentsAsk2 where
+module Agent.Test.PingPongAgentsAsk2 where
 
-import GenericAgent
-import GenericAgent.Test.PingPong hiding (Ping, Pong)
+import Agent
+import Agent.Test.PingPong hiding (Ping, Pong)
 
 import Data.Typeable (Typeable)
 

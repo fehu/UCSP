@@ -13,12 +13,12 @@
 
 {-# LANGUAGE TypeFamilies #-}
 
-module GenericAgent.Test.PingPongAgentsAsk where
+module Agent.Test.PingPongAgentsAsk where
 
 
-import GenericAgent
-import GenericAgent.AgentImpl (whenM)
-import GenericAgent.Test.PingPong
+import Agent
+-- import Agent.AgentImpl (whenM)
+import Agent.Test.PingPong
 
 
 import Data.Typeable(cast)
