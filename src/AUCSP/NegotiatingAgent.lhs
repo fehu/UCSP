@@ -6,6 +6,7 @@ module AUCSP.NegotiatingAgent (
 ) where
 
 import Agent.Abstract
+import Agent.Ask
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Contexts
@@ -170,20 +171,20 @@ execDecision d s (AskToYield c@(Failure {assessHistory=(h:_), candidate=cand} ))
             when  (contextName ctx /= "External")
                   (fail "Expected assessment at the \"External\" context")
        case collectInf' cand
-        of Just (Class class') ->                                           -- TODO: class match
-               do let ags = s `counterpartsOf` class'
-                  resps <- forM ags
-                           $ \ka -> ask  (knownAgentRef ka)
-                                         (AskedToYield c)
-                  if all (WillYield == ) resps
-                    then markYieldedTo c
-                    else forM_ ags
-                       $ \ka -> send  (knownAgentRef ka)
-                                      (CancelYield c)
+        of Just (Class class') ->                                                   -- TODO: class match
+            do res <- askConfirmating  (knownAgentRef <$> s `counterpartsOf` class')
+                                       (AskedToYield c)
+                                       (WillYield == )
+                                       Confirm Cancel
+               (if res then markYieldedTo else markWontYield) c
+
 
 -- TODO
 markYieldedTo :: Candidate a -> IO ()
 markYieldedTo c = undefined
+
+markWontYield :: Candidate a -> IO ()
+markWontYield c = undefined
 
 \end{code}
 
@@ -204,7 +205,8 @@ instance Show AskedToYield where show (AskedToYield c) = show c
 
 data YieldResponse = WillYield | WontYield deriving (Typeable, Show, Eq)
 
-type instance ExpectedResponse AskedToYield = YieldResponse
+type instance ExpectedResponse AskedToYield = AwaitingResponse YieldResponse
+type instance ExpectedResponse YieldResponse = ConfirmOrCancel
 
 data CancelYield = forall a. (Typeable a, Show a, Num a, Ord a) =>
                    CancelYield (Candidate a) deriving Typeable
@@ -241,14 +243,16 @@ must be significant.
 
 \begin{code}
 
-      mbResp $ \(AskedToYield candidate) ->
-        do  best <- getBestCandidate state
+    let f (AskedToYield candidate) = do
+            best <- getBestCandidate state
             let Just d         = cast $ decider state
                 Just myBestCoh = cast $ candidateSuccessCoherence best
                 itBestCoh      = candidateCoherence candidate
             if commonBetter d myBestCoh itBestCoh  then do  yieldTo candidate
                                                             return WillYield
                                                    else return WontYield
+        onConfirm (AskedToYield candidate) WillYield Confirm = yieldTo candidate
+    in mbResp $ respondConfirmating f (Confirm ==) onConfirm
 
 \end{code}
 
