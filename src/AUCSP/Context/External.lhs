@@ -100,6 +100,7 @@ instance (Typeable a, Num a) => Context External a where
 data OpinionRel a = OpinionRel
 
 newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
+
 -- data MyOpinion = forall a . (Show a, Typeable a) =>
 --     MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
 
@@ -126,6 +127,16 @@ instance BinaryIORelation OpinionRel where
           class'   <- collectInf b
           return $ do  resp <- askKnownAgent knownAg (OpinionAbout class')
                        return . fmap fromUnitInterval $ extractMyOpinion =<< resp
+
+-- -----------------------------------------------
+
+data ExternalDetails a = ExternalDetails { externalRejected :: [(Class, AgentRef, a)] }
+
+type instance AssessmentDetails External = ExternalDetails
+
+instance (Num a, Typeable a) => ContextDetails External ExternalDetails a where
+    type PartialAssessmentDetails External ExternalDetails = ExternalDetails
+
 
 \end{code}
 

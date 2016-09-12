@@ -48,7 +48,7 @@ library
     default-extensions: MultiParamTypeClasses FunctionalDependencies
                         ExistentialQuantification TypeFamilies DataKinds FlexibleContexts
                         FlexibleInstances UndecidableInstances RankNTypes ConstraintKinds
-                        TypeOperators
+                        TypeOperators PolyKinds
     hs-source-dirs: src
 --    other-modules:
 

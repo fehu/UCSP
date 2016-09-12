@@ -165,19 +165,15 @@ the demanding agent must yield instead.
 \begin{code}
 
 execDecision d s (AskToYield c@(Failure {assessHistory=(h:_), candidate=cand} )) =
-    do let CandidateAssessment {assessedAt=at, assessedDelails=details} = h
-       case at
-        of SomeContext ctx ->
-            when  (contextName ctx /= "External")
-                  (fail "Expected assessment at the \"External\" context")
-       case collectInf' cand
-        of Just (Class class') ->                                                   -- TODO: class match
-            do res <- askConfirmating  (knownAgentRef <$> s `counterpartsOf` class')
-                                       (AskedToYield c)
-                                       (WillYield == )
-                                       Confirm Cancel
-               (if res then markYieldedTo else markWontYield) c
-
+  case extractSomeCxtDetails h
+   of Just (External{}, details) ->
+        case collectInf' cand
+         of Just (Class class') ->                                                   -- TODO: class match
+                do res <- askConfirmating  (knownAgentRef <$> s `counterpartsOf` class')
+                                           (AskedToYield c)
+                                           (WillYield == )
+                                           Confirm Cancel
+                   (if res then markYieldedTo else markWontYield) c
 
 -- TODO
 markYieldedTo :: Candidate a -> IO ()
@@ -289,7 +285,8 @@ Behavior constructor.
 
 type ContextConstraints s a =  ( Fractional a, Typeable a, Ord a, Show a
                                , AgentStates s a
-                               , Context (Capabilities (ContextsRole s)) a)
+                               , Context (Capabilities (ContextsRole s)) a
+                               , Typeable (ContextsRole s))
 
 internalContexts  :: ContextConstraints s a => s -> [SomeContext a]
 internalContexts s = ($ s) <$> [  SomeContext . capabilitiesContext

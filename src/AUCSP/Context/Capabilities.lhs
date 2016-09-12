@@ -125,5 +125,7 @@ instance (Num a) => Context (Capabilities ProfessorRole) a where
   combineBinRels      = Combine.binRelsProduct
   combineRels         = Combine.relsProduct
 
+type instance AssessmentDetails (Capabilities r) = NoDetails
+
 \end{code}
 

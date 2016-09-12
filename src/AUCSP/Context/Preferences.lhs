@@ -77,5 +77,7 @@ instance (Fractional a) => Context Preferences a where
   combineWholeRels    = Combine.wholeRelsProduct
   combineRels         = Combine.relsProduct
 
+type instance AssessmentDetails Preferences = NoDetails
+
 \end{code}
 

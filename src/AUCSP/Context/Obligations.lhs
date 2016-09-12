@@ -50,5 +50,7 @@ instance (Num a) => Context Obligations a where
   combineWholeRels  = Combine.wholeRelsProduct
   combineRels       = Combine.relsProduct
 
+type instance AssessmentDetails Obligations = NoDetails
+
 \end{code}
 
