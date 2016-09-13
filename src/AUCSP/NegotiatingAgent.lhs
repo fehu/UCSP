@@ -169,25 +169,24 @@ execDecision d s (AskToYield c@(Failure {assessHistory=(h:_), candidate=cand} ))
    of Just (External{}, details) ->
         case collectInf' cand
          of Just (Class class') ->                                                   -- TODO: class match
-                do res <- askConfirmating  (knownAgentRef <$> s `counterpartsOf` class')
-                                           (AskedToYield c)
-                                           (WillYield == )
-                                           Confirm Cancel
-                   (if res then markYieldedTo else markWontYield) c
+                do res@(_, rejected) <- askConfirmatingAll
+                                            (knownAgentRef <$> s `counterpartsOf` class')
+                                            (AskedToYield c)
+                                            (WillYield == )
+                                            Confirm Cancel
+                   (if null rejected then yieldedTo else wontYield) res c
 
--- TODO
-markYieldedTo :: Candidate a -> IO ()
-markYieldedTo c = undefined
+yieldedTo _ _ = return () -- Do nothing
 
-markWontYield :: Candidate a -> IO ()
-markWontYield c = undefined
+-- Remove the contradicting classes from the pool.
+wontYield (accepted, rejected) c = undefined
 
 \end{code}
 
 
 \subsubsection{Messages handling}
 
-Messages declarations (apart from those defined previously).
+Messages declarations.
 
 \begin{code}
 
@@ -199,7 +198,9 @@ data AskedToYield =  forall a. (Typeable a, Show a, Num a, Ord a) =>
                      AskedToYield (Candidate a) deriving Typeable
 instance Show AskedToYield where show (AskedToYield c) = show c
 
-data YieldResponse = WillYield | WontYield deriving (Typeable, Show, Eq)
+data YieldResponse = WillYield
+                   | WontYield -- { contradictingClasses :: [Class] }
+                   deriving (Typeable, Show, Eq)
 
 type instance ExpectedResponse AskedToYield = AwaitingResponse YieldResponse
 type instance ExpectedResponse YieldResponse = ConfirmOrCancel

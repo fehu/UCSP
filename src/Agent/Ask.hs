@@ -17,6 +17,7 @@ module Agent.Ask (
   ResponseRef(..), AwaitingResponse(..)
 
 , askConfirmating
+, askConfirmatingAll
 , respondConfirmating
 
 , ConfirmOrCancel (..)
@@ -45,9 +46,10 @@ instance (Show msg) => Show (AwaitingResponse msg) where
     show (AwaitingResponse (msg,_)) = show msg
 
 
--- | Ask agents with 'msg', while 'cond' holds.
---   Send 'cancel' to those already sent to, if any fails.
 
+-- | Ask agents ('msg'), while 'cond' holds.
+--   Send 'cancel' to those already sent to, if any fails.
+--   Returns 'True' if all the agents have responded positively and 'False' otherwise.
 askConfirmating :: ( Message msg, Message resp, Message cmsg
                    , ExpectedResponse msg ~ AwaitingResponse resp
                    , ExpectedResponse resp ~ cmsg
@@ -68,6 +70,32 @@ askConfirmating' (ref:rest) sent msg cond confirm cancel =
 askConfirmating' [] sent _ _ _ confirm =
     do forM_ sent (`respond` confirm)
        return True
+
+
+-- | Ask all agents ('msg'), and return the lists of confirmed
+--   and rejected agents (depending on 'cond').
+--   If any has rejected, send 'cancel' to all the confirmtion expecting agents.
+askConfirmatingAll :: ( Message msg, Message resp, Message cmsg
+                      , ExpectedResponse msg ~ AwaitingResponse resp
+                      , ExpectedResponse resp ~ cmsg
+                      ) =>
+                      [AgentRef] -> msg -> (resp -> Bool) -> cmsg -> cmsg
+                                 -> IO ([(AgentRef, resp)], [(AgentRef, resp)])
+
+askConfirmatingAll refs msg cond confirm cancel =
+    askConfirmatingAll' refs msg cond confirm cancel [] []
+
+askConfirmatingAll' (ref:rest) msg cond confirm cancel accepted rejected =
+    do  AwaitingResponse (resp, respf) <- ref `ask` msg
+        let  r        = (ref, resp)
+             (a', r') = if cond resp  then ((r, respf):accepted, rejected)
+                                      else (accepted, r:rejected)
+        askConfirmatingAll' rest msg cond confirm cancel a' r'
+
+askConfirmatingAll' [] _ _ confirm cancel accepted rejected =
+    let resp = if null rejected then confirm else cancel
+    in do  forM_ accepted $ (`respond` resp) . snd
+           return (fst <$> accepted, rejected)
 
 respondConfirmating :: ( Message msg, Message resp, Message cmsg
                        , ExpectedResponse msg ~ AwaitingResponse resp
