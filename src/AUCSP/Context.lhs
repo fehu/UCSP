@@ -7,10 +7,7 @@ module AUCSP.Context(
   Context(..), SomeContext(..)
 , SplittingContext(..)
 
-, AssessmentDetails(..)
-, ContextDetails (..)
-, NoDetails(..)
-
+, AssessmentDetails(..), NoDetails(..)
 
 , assessedVal', extractSomeCxtDetails
 
@@ -76,13 +73,17 @@ class Context (c :: * -> *) a where
   contextRelations    :: c a -> IO [IRelation a]
   contextThreshold    :: c a -> IO a
 
-  combineBinRels      :: c a -> RelValsBetween a    -> Maybe (CBin a)
-  combineWholeRels    :: c a -> RelValsWhole a      -> Maybe (CWhole a)
-  combineRels         :: c a -> CBin a -> CWhole a  -> a
+  type AssessmentDetails c :: * -> *
+
+  combineBinRels      :: c a -> RelValsBetween a         -> Maybe (CBin c a)
+  combineWholeRels    :: c a -> RelValsWhole a           -> Maybe (CWhole c a)
+  combineRels         :: c a -> CBin c a -> CWhole c a   -> (a, AssessmentDetails c a)
+
+  noAssessmentDetails :: c a -> AssessmentDetails c a
 
 
-newtype CBin a    = CBin a
-newtype CWhole a  = CWhole a
+newtype CBin c a    = CBin (a, AssessmentDetails c a)
+newtype CWhole c a  = CWhole (a, AssessmentDetails c a)
 
 getCBin    (CBin a)    = a
 getCWhole  (CWhole a)  = a
@@ -90,48 +91,11 @@ getCWhole  (CWhole a)  = a
 
 -- -----------------------------------------------
 
-type family AssessmentDetails (c :: a -> *)  :: a -> *
-
-class (Context c a, AssessmentDetails c a ~ details a) =>
-    ContextDetails  (c :: * -> *) (details :: * -> *) a
-  where
-  type PartialAssessmentDetails c details :: * -> *
-
-  binRelsDetails    :: c a  -> RelValsBetween a
-                            -> Maybe (CBin a, PartialAssessmentDetails c details a)
-
-  wholeRelsDetails  :: c a  -> RelValsWhole a
-                            -> Maybe (CWhole a, PartialAssessmentDetails c details a)
-
-  relsDetails       :: c a  -> (CBin a, PartialAssessmentDetails c details a)
-                            -> (CWhole a, PartialAssessmentDetails c details a)
-                            -> (a, details a)
-
-  completePartialDetails  :: c a  -> PartialAssessmentDetails c details a
-                                  -> details a
-  emptyAssessmentDetails  :: c a  -> details a
-
-
--- -----------------------------------------------
-
-
 data NoDetails a = NoDetails
 
-withNoDetails :: Maybe (c a) -> Maybe (c a, NoDetails a)
-withNoDetails = fmap (flip (,) NoDetails)
-
-instance (Context c a, AssessmentDetails c a ~ NoDetails a) => ContextDetails c NoDetails a
-  where
-    type PartialAssessmentDetails c NoDetails = NoDetails
-    binRelsDetails c    = withNoDetails . combineBinRels c
-    wholeRelsDetails c  = withNoDetails . combineWholeRels c
-    relsDetails c (b,_) (w,_) = (combineRels c b w, NoDetails)
-    completePartialDetails _ = id
-    emptyAssessmentDetails _ = NoDetails
-
 -- -----------------------------------------------
 
-data SomeContext a = forall c d . (ContextDetails c d a, Typeable c) => SomeContext (c a)
+data SomeContext a = forall c . (Context c a, Typeable c) => SomeContext (c a)
 
 instance Show (SomeContext a) where
     show (SomeContext c) = "Context " ++ show (contextName c)
@@ -144,8 +108,7 @@ mapEither :: AnyFunc1 r -> Either a b -> Either (r a) (r b)
 mapEither f (Left a)   = Left $ f a
 mapEither f (Right a)  = Right $ f a
 
-assessWithin' ::  ( ContextDetails c d a, Fractional a, Typeable a, Show a
-                  , AssessmentDetails c a ~ d a) =>
+assessWithin' ::  ( Context c a, Fractional a, Typeable a, Show a ) =>
                   [Information]
               ->  c a
               ->  IO (CandidateAssessment c a)
@@ -161,19 +124,14 @@ assessWithin' inf c = do
 
   let  assessedWithDetails = case (bins, whole) of
                     ([], [])  -> Nothing
-                    (_, [])   -> first getCBin .
-                                 second (completePartialDetails c)
-                                 <$> c `binRelsDetails` Map.fromList bins
-                    ([], _)   ->
-                                 first getCWhole .
-                                 second (completePartialDetails c)
-                                 <$> c `wholeRelsDetails`  Map.fromList whole
-                    _         -> do  b  <- c `binRelsDetails`    Map.fromList bins
-                                     w  <- c `wholeRelsDetails`  Map.fromList whole
-                                     return $ relsDetails c b w
+                    (_, [])   -> getCBin   <$> c `combineBinRels`    Map.fromList bins
+                    ([], _)   -> getCWhole <$> c `combineWholeRels`  Map.fromList whole
+                    _         -> do  b  <- c `combineBinRels`    Map.fromList bins
+                                     w  <- c `combineWholeRels`  Map.fromList whole
+                                     return $ combineRels c b w
 
        assessed  = fst <$> assessedWithDetails
-       details   = maybe (emptyAssessmentDetails c) snd assessedWithDetails
+       details   = maybe (noAssessmentDetails  c) snd assessedWithDetails
   return $ CandidateAssessment assessed c details
 
 -- -----------------------------------------------
@@ -220,7 +178,7 @@ newCandidate = Success []
 
 -- -----------------------------------------------
 
-assessWithin ::  ( ContextDetails c d a, Fractional a, Ord a, Typeable a, Show a, Typeable c
+assessWithin ::  ( Context c a, Fractional a, Ord a, Typeable a, Show a, Typeable c
                  , AssessmentDetails c a ~ d a ) =>
                  Candidate a -> c a -> IO (Candidate a)
 

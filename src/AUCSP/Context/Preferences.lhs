@@ -73,11 +73,13 @@ instance (Fractional a) => Context Preferences a where
   contextRelations    = return . map (fmap fromUnitInterval) . preferencesRels
   contextThreshold    = readIORef . preferencesThreshold
 
-  combineBinRels      = Combine.binRelsMeansProduct
-  combineWholeRels    = Combine.wholeRelsProduct
-  combineRels         = Combine.relsProduct
+  type AssessmentDetails Preferences = NoDetails
 
-type instance AssessmentDetails Preferences = NoDetails
+  combineBinRels      = Combine.binRelsMeansProduct (const NoDetails)
+  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
+  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+  noAssessmentDetails _ = NoDetails
 
 \end{code}
 

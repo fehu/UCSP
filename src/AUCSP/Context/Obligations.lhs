@@ -46,11 +46,13 @@ instance (Num a) => Context Obligations a where
   contextRelations    = return . map (fmap obligationToNum) . obligationsRels
   contextThreshold _  = return 0
 
-  combineBinRels    = Combine.binRelsProduct
-  combineWholeRels  = Combine.wholeRelsProduct
-  combineRels       = Combine.relsProduct
+  type AssessmentDetails Obligations = NoDetails
 
-type instance AssessmentDetails Obligations = NoDetails
+  combineBinRels    = Combine.binRelsProduct (const NoDetails)
+  combineWholeRels  = Combine.wholeRelsProduct (const NoDetails)
+  combineRels       = Combine.relsProduct (\_ _ -> NoDetails)
+
+  noAssessmentDetails _ = NoDetails
 
 \end{code}
 

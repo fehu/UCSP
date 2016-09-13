@@ -19,6 +19,7 @@ import qualified AUCSP.Context.Combine as Combine
 import Data.IORef (IORef, readIORef)
 import Data.Coerce (coerce)
 import Data.Maybe (catMaybes)
+import Data.Tuple
 import qualified Data.Map as Map
 
 import Control.Monad.Fix
@@ -124,6 +125,8 @@ instance InformationRelation TimeConsistency where
   relationName _ = "TimeConsistency"
   coerceRelation = coerce
 
+type instance RelationDetails TimeConsistency = NoDetails
+
 instance BinaryRelation TimeConsistency where
   binRelValue _ i1 i2 = do
     Class c1  <- collectInf i1
@@ -146,8 +149,8 @@ instance BinaryRelation TimeConsistency where
                     &&  sameDay
                     &&  (timeIntersects c1 c2 || timeIntersects c2 c1)
 
-    return $ if sameAbstract  then 0
-                              else if intersect then -1 else 1
+    return . swap . (,) NoDetails $ if sameAbstract  then 0
+                                                     else if intersect then -1 else 1
 
 instance (Num a) => Context Beliefs a where
   contextName _       = "Beliefs"
@@ -155,16 +158,20 @@ instance (Num a) => Context Beliefs a where
   contextRelations _  = return [RelBin TimeConsistency]
   contextThreshold _  = return 0
 
-  combineWholeRels    = Combine.wholeRelsProduct
-  combineBinRels      = Combine.binRelsProduct
-  combineRels         = Combine.relsProduct
+  type AssessmentDetails Beliefs = NoDetails
+
+  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
+  combineBinRels      = Combine.binRelsProduct (const NoDetails)
+  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+  noAssessmentDetails _ = NoDetails
 
 
 instance (Num a) => SplittingContext Beliefs a where
   splitGraph b gr = do
     iGraph <- readIORef $ knownProposals b
     let  cNodes = catMaybes $ collectInf <$> graphNodes gr
-         consistent x y = binRelValue TimeConsistency x y == Just 1
+         consistent x y = fmap fst (binRelValue TimeConsistency x y) == Just 1
          extendCandidate Failure{} = []
          extendCandidate Success{candidate=inf} = do
              c <- cNodes

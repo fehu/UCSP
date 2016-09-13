@@ -19,6 +19,7 @@ import qualified AUCSP.Context.Combine as Combine
 
 import Data.Coerce (coerce)
 import Data.Set (member)
+import Data.Typeable (Typeable)
 
 import qualified Data.Set as Set
 import qualified Data.Map as Map
@@ -66,10 +67,10 @@ data instance Capabilities ProfessorRole a = FullTimeProfCapabilities {
 
 -- -----------------------------------------------
 
-data CanTeachRel a = CanTeachRel
+data CanTeachRel a = CanTeachRel deriving Typeable
 
 instance Functor CanTeachRel where fmap _ = const CanTeachRel
-
+type instance RelationDetails CanTeachRel = NoDetails
 instance InformationRelation CanTeachRel where
     relationName _ = "CanTeach"
     coerceRelation = coerce
@@ -79,8 +80,8 @@ instance BinaryRelation CanTeachRel where
      let v ds c = if classDiscipline c `member` ds then 1 else 0
      in case collectInf a of
         Just (CanTeach ds)  -> let
-            r1  = case collectInf b of Just (SomeClass c)  -> Just $ v ds c
-            r2  = case collectInf b of Just (Class c)      -> Just $ v ds c
+            r1  = case collectInf b of Just (SomeClass c)  -> Just (v ds c, NoDetails)
+            r2  = case collectInf b of Just (Class c)      -> Just (v ds c, NoDetails)
             in  r1 <|> r2
         _                   -> Nothing
 
@@ -89,13 +90,14 @@ instance BinaryRelation CanTeachRel where
 data NeedsDisciplineRel a = NeedsDisciplineRel
 
 instance Functor NeedsDisciplineRel where fmap _ = const NeedsDisciplineRel
+type instance RelationDetails NeedsDisciplineRel = NoDetails
 instance InformationRelation NeedsDisciplineRel where  relationName _ = "Needs Discipline"
                                                        coerceRelation = coerce
 instance BinaryRelation NeedsDisciplineRel where
     binRelValue _ a b = do  let v ds c = if classDiscipline c `member` ds then 1 else 0
                             Needs ds <- collectInf a
-                            let r1  = case collectInf b of Just (SomeClass c)  -> Just $ v ds c
-                                r2  = case collectInf b of Just (Class c)      -> Just $ v ds c
+                            let r1  = case collectInf b of Just (SomeClass c)  -> Just (v ds c, NoDetails)
+                                r2  = case collectInf b of Just (Class c)      -> Just (v ds c, NoDetails)
                             r1 <|> r2
 
 -- -----------------------------------------------
@@ -108,9 +110,13 @@ instance (Num a) => Context (Capabilities GroupRole) a where
   contextRelations _  = return [RelBin NeedsDisciplineRel]
   contextThreshold _  = return 0
 
-  combineWholeRels    = Combine.wholeRelsProduct
-  combineBinRels      = Combine.binRelsProduct
-  combineRels         = Combine.relsProduct
+  type AssessmentDetails (Capabilities GroupRole) = NoDetails
+
+  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
+  combineBinRels      = Combine.binRelsProduct (const NoDetails)
+  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+  noAssessmentDetails _ = NoDetails
 
 
 instance (Num a) => Context (Capabilities ProfessorRole) a where
@@ -121,11 +127,13 @@ instance (Num a) => Context (Capabilities ProfessorRole) a where
   contextRelations _  = return [RelBin CanTeachRel]
   contextThreshold _  = return 0
 
-  combineWholeRels    = Combine.wholeRelsProduct
-  combineBinRels      = Combine.binRelsProduct
-  combineRels         = Combine.relsProduct
+  type AssessmentDetails (Capabilities ProfessorRole) = NoDetails
 
-type instance AssessmentDetails (Capabilities r) = NoDetails
+  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
+  combineBinRels      = Combine.binRelsProduct (const NoDetails)
+  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+  noAssessmentDetails _ = NoDetails
 
 \end{code}
 

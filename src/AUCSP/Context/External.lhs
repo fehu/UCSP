@@ -27,7 +27,9 @@ import Data.Typeable (Typeable, cast)
 import Data.Function (on)
 import Data.IORef
 import Data.Coerce (coerce)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromMaybe, mapMaybe)
+
+import Control.Arrow ( (&&&) )
 
 \end{code}
 %endif
@@ -91,18 +93,26 @@ instance (Typeable a, Num a) => Context External a where
                       . readIORef . knownAgents
   contextRelations r  = return [ RelBinIO OpinionRel ]
   contextThreshold    = readIORef . externalThreshold
-  combineBinRels      = Combine.binRelsProduct
+
+  type AssessmentDetails External = ExternalDetails
+
+  combineBinRels = Combine.binRelsProduct $
+        ExternalDetails . concatMap (
+            mapMaybe  (extractDetails . relBetweenDetails) . snd
+        )
+
   combineWholeRels    = undefined -- None
   combineRels         = undefined -- None
 
+  noAssessmentDetails _ = ExternalDetails []
+
 -- -----------------------------------------------
 
-data OpinionRel a = OpinionRel
+data OpinionRel a = OpinionRel deriving Typeable
 
 newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
 
--- data MyOpinion = forall a . (Show a, Typeable a) =>
---     MyOpinion (Maybe (InUnitInterval a)) deriving Typeable
+type instance RelationDetails OpinionRel = OpinionRelDetail
 
 data MyOpinion = forall a . (Show a, Typeable a, Fractional a) =>
      MyOpinion a deriving Typeable
@@ -122,20 +132,23 @@ instance InformationRelation OpinionRel where
   coerceRelation  = coerce
 
 instance BinaryIORelation OpinionRel where
-  binRelIOValue rel a b = fromMaybe (return Nothing)
+  binRelIOValue rel a b = maybe (return Nothing)
+                                (fmap (fmap (opinionVal &&& id)))
     $ do  knownAg  <- collectInf a
           class'   <- collectInf b
           return $ do  resp <- askKnownAgent knownAg (OpinionAbout class')
-                       return . fmap fromUnitInterval $ extractMyOpinion =<< resp
+                       let mbA = fmap fromUnitInterval $ extractMyOpinion =<< resp
+                       return $ fmap (OpinionRelDetail class' knownAg) mbA
 
 -- -----------------------------------------------
 
-data ExternalDetails a = ExternalDetails { externalRejected :: [(Class, AgentRef, a)] }
+data OpinionRelDetail a = OpinionRelDetail{
+    opinionAbout  :: Class,
+    opinionOf     :: KnownAgent,
+    opinionVal    :: a
+    }
 
-type instance AssessmentDetails External = ExternalDetails
-
-instance (Num a, Typeable a) => ContextDetails External ExternalDetails a where
-    type PartialAssessmentDetails External ExternalDetails = ExternalDetails
+newtype ExternalDetails a = ExternalDetails [OpinionRelDetail a]
 
 
 \end{code}
