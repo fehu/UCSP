@@ -62,7 +62,6 @@ class Decider d a where  type Decision d a :: *
 There possible decisions are:
 \begin{enumerate}
 \item Aggregate a new proposal.
-\item Ask counterpart(s) to \emph{yield}.
 \item Accept some proposal as the chosen and ask the counterparts for confirmation.
 \end{enumerate}
 
@@ -70,17 +69,15 @@ There possible decisions are:
 
 data DeciderUCSP a = DeciderUCSP  {  newProposal   :: [Candidate a] -> IO Class
                                   ,  commonGoal    :: Candidate a -> a
-                                  ,  commonBetter  :: a -> a -> Bool
                                   }
 
 data DecisionUCSP a  =  AggregateProposal Class
-                     |  AskToYield (Candidate a)
                      |  AcceptCandidate (Candidate a)
 
 instance (Ord a) => Decider DeciderUCSP a where
     type Decision DeciderUCSP a = IO (DecisionUCSP a)
 
-    decide  d@DeciderUCSP{commonGoal=goal, commonBetter=better}
+    decide  d@DeciderUCSP{newProposal=newProp, commonGoal=goal}
             candidates =
 
 \end{code}
@@ -93,23 +90,9 @@ common goal completion is set as the \emph{accepted candidate}.
 \begin{code}
 
            let  bestByGoal = sortWith (Down . snd) $ zipmapr goal candidates
-
-                muchBetter  = better `on` snd
-                isSuccess   = candidateSuccess . fst
-
                 (successes, failures) = (candidateSuccess . fst) `span` bestByGoal
-                mbAskYield = case bestByGoal of
-                                    (theBest:sndBest:_) | isSuccess theBest             -> Nothing
-                                                        | theBest `muchBetter` sndBest  -> Just theBest
-                                                        | otherwise                     -> Nothing
-                                    _ -> Nothing
-
-           in case mbAskYield of  Just (askYield, _)   -> return $ AskToYield askYield
-                                  _  | null successes  ->  AggregateProposal <$>
-                                                           newProposal d  (fst <$> bestByGoal)
-                                  _                    -> return  . AcceptCandidate . fst
-                                                                  . head $ successes
-
+           in if null successes  then AggregateProposal <$> newProp (fst <$> bestByGoal)
+                                 else return  . AcceptCandidate . fst . head $ successes
 
 zipmapl :: (a -> b) -> [a] -> [(b, a)]
 zipmapl f = map $ \x -> (f x, x)
@@ -155,31 +138,6 @@ A new class should be added by every agent, mentioned in the class.
 execDecision d s (AggregateProposal cl@(Class c)) =
     do modifyKnownClasses s (`graphJoin` [Information cl])
        forM_ (counterpartsOf s c) ((`send` NewClassAdded cl) . knownAgentRef)
-
-\end{code}
-
-An agent should ask each counterpart of every contradicting class to \emph{yield}.
-If any rejects the demand, then those counterpart must cancel yeild procedure, while
-the demanding agent must yield instead.
-
-\begin{code}
-
-execDecision d s (AskToYield c@(Failure {assessHistory=(h:_), candidate=cand} )) =
-  case extractSomeCxtDetails h
-   of Just (External{}, details) ->
-        case collectInf' cand
-         of Just (Class class') ->                                                   -- TODO: class match
-                do res@(_, rejected) <- askConfirmatingAll
-                                            (knownAgentRef <$> s `counterpartsOf` class')
-                                            (AskedToYield c)
-                                            (WillYield == )
-                                            Confirm Cancel
-                   (if null rejected then yieldedTo else wontYield) res c
-
-yieldedTo _ _ = return () -- Do nothing
-
--- Remove the contradicting classes from the pool.
-wontYield (accepted, rejected) c = undefined
 
 \end{code}
 
@@ -234,31 +192,12 @@ Respond messages.
 
 > , respondMessage = \i state -> selectResponse [
 
-Yield decision consists in comparing the coherence, achieved by another agent,
-with the best coherence, achieved by the current one. Coherence superiority
-must be significant.
-
-\begin{code}
-
-    let f (AskedToYield candidate) = do
-            best <- getBestCandidate state
-            let Just d         = cast $ decider state
-                Just myBestCoh = cast $ candidateSuccessCoherence best
-                itBestCoh      = candidateCoherence candidate
-            if commonBetter d myBestCoh itBestCoh  then do  yieldTo candidate
-                                                            return WillYield
-                                                   else return WontYield
-        onConfirm (AskedToYield candidate) WillYield Confirm = yieldTo candidate
-    in mbResp $ respondConfirmating f (Confirm ==) onConfirm
-
-\end{code}
-
 Agent's opinion about a class is the \emph{internal} (without considering the
-\emph{external} context) coherence of the one-class candidate.
+\emph{external} context) coherence of the \red{one-class candidate (NO!)}.
 
 \begin{code}
 
-    , mbResp $ \(OpinionAbout class') ->
+    mbResp $ \(OpinionAbout class') ->
         do let c = newCandidate [Information class']
            [c'] <- propagateThroughContexts [c] $ internalContexts state
            return . MyOpinion $ candidateSuccessCoherence c'
