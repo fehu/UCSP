@@ -47,13 +47,13 @@ pingDescriptor pingBehaviour counterpart maxCount = AgentDescriptor{
   , newAgentStates = do count <- newIORef 0
                         first <- newIORef True
                         return $ PingAgentState counterpart count first
-  , nextAgentId    = return $ AgentId "Ping"
+  , nextAgentId    = const . return $ AgentId "Ping"
   }
 
 
 pongDescriptor pongBehaviour counterpart = AgentDescriptor pongBehaviour
                                              (return $ PongAgentState counterpart)
-                                             (return $ AgentId "Pong")
+                                             (const . return $ AgentId "Pong")
 
 -----------------------------------------------------------------------------
 

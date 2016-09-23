@@ -1,7 +1,7 @@
 %if standalone
 \documentclass{article}
 
-%include format.fmt
+%include src/Document/format.fmt
 %include polycode.fmt
 %include forall.fmt
 
@@ -354,7 +354,7 @@ A simple \emph{agent descriptor} that can be used for agent creation.
 data AgentDescriptor states = AgentDescriptor{
   agentBehaviour  :: AgentBehavior states,
   newAgentStates  :: IO states,
-  nextAgentId     :: IO AgentId
+  nextAgentId     :: states -> IO AgentId
   }
 
 \end{code}
@@ -367,7 +367,7 @@ data AgentDescriptor states = AgentDescriptor{
 
 
 %%% Local Variables:
-%%% latex-build-command: "LGSTex"
+%%% latex-build-command: "lhsTeX"
 %%% lhs-build-standalone-flag: t
 %%% eval: (haskell-indentation-mode)
 %%% eval: (interactive-haskell-mode)

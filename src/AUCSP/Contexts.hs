@@ -23,7 +23,8 @@ import AUCSP.Classes (AbstractClass)
 
 class Contexts c a | c -> a
   where
-    type ContextsRole c :: *
+    type ContextsRole c  :: *
+    agentRole            :: c -> ContextsRole c
     capabilitiesContext  :: c -> Capabilities (ContextsRole c) a
     beliefsContext       :: c -> Beliefs a
     obligationsContext   :: c -> Obligations a

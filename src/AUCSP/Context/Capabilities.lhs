@@ -11,7 +11,7 @@ module AUCSP.Context.Capabilities(
 ) where
 
 import AUCSP.Classes
-import AUCSP.NegotiationRoles
+import qualified AUCSP.NegotiationRoles as Role
 import AUCSP.Coherence
 import AUCSP.Context
 
@@ -57,11 +57,11 @@ further avoid making same kind of proposals to the uncapable agent.
 
 data family Capabilities (agentRole :: *) :: * -> *
 
-data instance Capabilities GroupRole a = GroupCapabilities {
+data instance Capabilities Role.Group a = GroupCapabilities {
   needsDisciplines :: [Discipline]
   }
 
-data instance Capabilities ProfessorRole a = FullTimeProfCapabilities {
+data instance Capabilities Role.Professor a = FullTimeProfCapabilities {
   canTeachFullTime :: [Discipline]
   }
 
@@ -102,7 +102,7 @@ instance BinaryRelation NeedsDisciplineRel where
 
 -- -----------------------------------------------
 
-instance (Num a) => Context (Capabilities GroupRole) a where
+instance (Num a) => Context (Capabilities Role.Group) a where
   contextName _       = "Capabilities"
   contextInformation  = return . fromNodes . (:[])
                       . Information . Needs
@@ -110,7 +110,7 @@ instance (Num a) => Context (Capabilities GroupRole) a where
   contextRelations _  = return [RelBin NeedsDisciplineRel]
   contextThreshold _  = return 0
 
-  type AssessmentDetails (Capabilities GroupRole) = NoDetails
+  type AssessmentDetails (Capabilities Role.Group) = NoDetails
 
   combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
   combineBinRels      = Combine.binRelsProduct (const NoDetails)
@@ -119,7 +119,7 @@ instance (Num a) => Context (Capabilities GroupRole) a where
   noAssessmentDetails _ = NoDetails
 
 
-instance (Num a) => Context (Capabilities ProfessorRole) a where
+instance (Num a) => Context (Capabilities Role.Professor) a where
   contextName _       = "Capabilities"
   contextInformation  = return . fromNodes . (:[])
                       . Information . CanTeach
@@ -127,7 +127,7 @@ instance (Num a) => Context (Capabilities ProfessorRole) a where
   contextRelations _  = return [RelBin CanTeachRel]
   contextThreshold _  = return 0
 
-  type AssessmentDetails (Capabilities ProfessorRole) = NoDetails
+  type AssessmentDetails (Capabilities Role.Professor) = NoDetails
 
   combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
   combineBinRels      = Combine.binRelsProduct (const NoDetails)

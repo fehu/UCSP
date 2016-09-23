@@ -39,7 +39,7 @@
 
 %%% Local Variables:
 %%% latex-build-command: "lhsTeX"
-%%% lhs-copy-literate-src=flag: t
+%%% lhs-copy-literate-src-flag: t
 %%% lhs-build-standalone-flag: t
 %%% eval: (haskell-indentation-mode)
 %%% eval: (interactive-haskell-mode)

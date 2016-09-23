@@ -177,7 +177,7 @@ instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r)
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
                                  ,  newAgentStates=newStates
                                  ,  nextAgentId=nextId } =
-        do  id        <- nextId
+        do  id        <- nextId undefined
             states    <- newStates
             runState  <- newTVarIO Created
 

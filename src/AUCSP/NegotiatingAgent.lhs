@@ -3,6 +3,22 @@
 \begin{code}
 module AUCSP.NegotiatingAgent (
 
+ Decider(..), DeciderUCSP(..), DecisionUCSP(..)
+
+, negotiatingAgentDescriptor
+, NextId(nextId)
+, IDGenerators(..), IDGenerator(..)
+
+, splitAndPropagateThroughContexts
+, propagateThroughContexts
+
+, AgentStates(..)
+, ContextConstraints
+, internalContexts
+
+, negotiationAgentHandleMessages
+, negotiatingAgentBehavior
+
 ) where
 
 import Agent.Abstract
@@ -10,6 +26,7 @@ import Agent.Ask
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Contexts
+import qualified AUCSP.NegotiationRoles as Role
 
 import Data.Typeable (Typeable, cast, gcast)
 import Data.List (span)
@@ -113,10 +130,8 @@ class (Contexts s a, Num a) => AgentStates s a | s -> a
     getKnownClasses     :: s -> IO IGraph
     modifyKnownClasses  :: s -> (IGraph -> IGraph) -> IO ()
 
-    getBestCandidate  :: s -> IO (Candidate a)
-    setBestCandidate  :: s -> Candidate a -> IO ()
-
-    decider :: s -> DeciderUCSP a
+    decider   :: s -> DeciderUCSP a
+    newStates :: DeciderUCSP a -> IO s
 
     getKnownClasses = readIORef . knownProposals . beliefsContext
     -- modification is strict
@@ -141,6 +156,7 @@ execDecision d s (AggregateProposal cl@(Class c)) =
 
 \end{code}
 
+\red{TODO: AcceptCandidate}
 
 \subsubsection{Messages handling}
 
@@ -152,21 +168,17 @@ data NewClassAdded = NewClassAdded Class deriving (Typeable, Show)
 
 -- -----------------------------------------------
 
-data AskedToYield =  forall a. (Typeable a, Show a, Num a, Ord a) =>
-                     AskedToYield (Candidate a) deriving Typeable
-instance Show AskedToYield where show (AskedToYield c) = show c
+data AcceptCandidateReq =  forall a. (Typeable a, Show a, Num a, Ord a) =>
+                           AcceptCandidateReq (Candidate a) deriving Typeable
+instance Show AcceptCandidateReq where
+    show (AcceptCandidateReq c) = "AcceptCandidateReq(" ++ show c ++ ")"
 
-data YieldResponse = WillYield
-                   | WontYield -- { contradictingClasses :: [Class] }
+data AcceptCandidateResp = WillAccept
+                         | WontAccept
                    deriving (Typeable, Show, Eq)
 
-type instance ExpectedResponse AskedToYield = AwaitingResponse YieldResponse
-type instance ExpectedResponse YieldResponse = ConfirmOrCancel
-
-data CancelYield = forall a. (Typeable a, Show a, Num a, Ord a) =>
-                   CancelYield (Candidate a) deriving Typeable
-
-instance Show CancelYield where show (CancelYield c) = "CancelYield(" ++ show c ++ ")"
+type instance ExpectedResponse AcceptCandidateReq  = AwaitingResponse AcceptCandidateResp
+type instance ExpectedResponse AcceptCandidateResp = ConfirmOrCancel
 
 -- -----------------------------------------------
 
@@ -204,17 +216,9 @@ Agent's opinion about a class is the \emph{internal} (without considering the
 
 \end{code}
 
+\red{TODO: AcceptCandidate}
+
 > ] }
-
-
-Classes, contradicting the better candidate (yielded to), should have their coherence decreased.
-\red{??? TODO ???}
-
-\begin{code}
-
-yieldTo = undefined -- TODO
-
-\end{code}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -234,7 +238,7 @@ internalContexts s = ($ s) <$> [  SomeContext . capabilitiesContext
                                ,  SomeContext . preferencesContext
                                ]
 
-negotiatingAgentBehavior  :: ( ContextConstraints s a)
+negotiatingAgentBehavior  :: (ContextConstraints s a)
                           => DeciderUCSP a -> AgentBehavior s
 negotiatingAgentBehavior d = AgentBehavior
   { act = \i s -> let  c0  = beliefsContext s
@@ -248,8 +252,45 @@ negotiatingAgentBehavior d = AgentBehavior
 
 \end{code}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+AgentDescriptor
 
 \begin{code}
 
+data IDGenerator = IDGenerator {  idPrefix :: String
+                               ,  lastId   :: IORef Integer
+                               }
+nextId_ gen = do  id <- fmap (+1) . readIORef $ lastId gen
+                  writeIORef (lastId gen) id
+                  return $ idPrefix gen ++ show id
+
+data IDGenerators = IDGenerators{
+    groupIdGen  :: IDGenerator,
+    profIdGen   :: IDGenerator,
+    roomIdGen   :: IDGenerator
+    }
+
+class (Contexts c a, ContextsRole c ~ r) => NextId c r a where
+    nextId :: IDGenerators -> c -> IO String
+
+instance (Contexts c a, ContextsRole c ~ Role.Group) => NextId c Role.Group a where
+    nextId = const . nextId_ . groupIdGen
+instance (Contexts c a, ContextsRole c ~ Role.Professor) => NextId c Role.Professor a where
+    nextId = const . nextId_ . profIdGen
+instance (Contexts c a, ContextsRole c ~ Role.Classroom) => NextId c Role.Classroom a where
+    nextId = const . nextId_ . roomIdGen
+
+
+negotiatingAgentDescriptor  :: (ContextConstraints s a, NextId s (ContextsRole s) a)
+                            => IDGenerators -> DeciderUCSP a -> AgentDescriptor s
+negotiatingAgentDescriptor gens decider = AgentDescriptor{
+    agentBehaviour  = negotiatingAgentBehavior decider,
+    newAgentStates  = newStates decider,
+    nextAgentId     = fmap AgentId . nextId gens
+    }
+
+
 \end{code}
+
+

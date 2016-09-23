@@ -5,9 +5,9 @@ module AUCSP.NegotiationRoles(
 
   RoleIx(..), AnyRole(..), roleIx'
 
-, GroupRole(..)
-, ClassroomRole(..)
-, ProfessorRole(..)
+, Group(..)
+, Classroom(..)
+, Professor(..)
 
 ) where
 
@@ -48,9 +48,10 @@ Such an agent must
 
 \begin{code}
 
-data GroupRole      = GroupRole      deriving (Show, Typeable)
-data ClassroomRole  = ClassroomRole  deriving (Show, Typeable)
-data ProfessorRole  = FullTimeProfRole | PartTimeProfRole
+data Group      = Group      deriving (Show, Typeable)
+data Classroom  = Classroom  deriving (Show, Typeable)
+data Professor  = FullTimeProfessor
+                | PartTimeProfessor
     deriving (Show, Typeable)
 
 
