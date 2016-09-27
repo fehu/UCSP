@@ -17,14 +17,17 @@
 \begin{code}
 module AUCSP.NegotiationEnvironment (
 
+  FixedNegotiationEnvironment(..)
+, createFixedEnvironment
+
+, NegotiationStatus(..), newNegotiationStatus
+
 ) where
 
-  import Agent.Abstract
-  import AUCSP.NegotiatingAgent
--- import qualified AUCSP.NegotiationRoles as Role
+  import Agent.Controller
   import AUCSP.Context
 
-  import Control.Exception
+  import Data.Typeable
   import Control.Concurrent.STM
 
 \end{code}
@@ -39,68 +42,43 @@ module AUCSP.NegotiationEnvironment (
 The initial negotiation environment is represented by the agents and their
 internal knowledge.
 
+
+
+
+
+
+
+
 \begin{code}
 
-  data AgentStatus a  =  Initialized
-                      |  Negotiating
-                      |  Waiting (Candidate a)
-                      |  Locked
-                      |  Terminated (SomeException)
-
-  type Millis = Integer -- Milliseconds
-
-  type AgentWithStatus a = (AgentFullRef, TVar (AgentStatus a))
-
-  data NegotiationEnvironment a = NegotiationEnvironment{
-    negotiationBegan  ::  TVar (Maybe Millis),
-    negotiationEnded  ::  TVar (Maybe Millis)
+  data FixedNegotiationEnvironment = FixedNegotiationEnvironment {
+    fixedEnvStatus          :: NegotiationStatus,
+    fixedEnvRootController  :: SomeParentController
     }
 
-\end{code}
+  data NegotiationStatus = NegotiationStatus{
+    negotiationBegan   :: TMVar Millis,
+    negotiationEnded   :: TMVar Millis,
+    negotiationResult  :: TMVar [SomeCandidate]
+    }
 
-The negotiation is created and monitored by the \emph{controller(s)}, that
-may be composed into hierarchical structure.
-
-> class Controller c a | c -> a where
-
-\begin{itemize}
-\item Creates agents from descriptors, returning the corresponding references.
-
->  newAgents :: forall states . c -> [AgentDescriptor states] -> IO [AgentWithStatus a]
-
-\item Guards all the created agents.
-
->  negotiatingAgents :: c -> IO [AgentWithStatus a]
-
-\item Monitors agent's status.
-
->  type ControllerAction c :: *
->  monitorStatus   :: AgentWithStatus a -> STM (ControllerAction c)
->  monitorStatus'  :: c -> [ControllerAction c] -> IO ()
-
-\item Notifies the parent controller.
-
->  type ControllerNotification c :: *
->  parentController  :: forall p . (Controller p a
->                                  , ControllerNotification c ~ ControllerNotification p)
->                    => c -> Maybe p
->  notifyParentCtrl  :: c -> ControllerNotification c -> IO ()
-
-\end{itemize}
+  newNegotiationStatus =
+    atomically $ do  began   <- newEmptyTMVar
+                     ended   <- newEmptyTMVar
+                     result  <- newEmptyTMVar
+                     return $ NegotiationStatus began ended result
 
 
-Controller implementation:
+  createFixedEnvironment  :: ControllerSystemDescriptor
+                          -> IO FixedNegotiationEnvironment
+  createFixedEnvironment (ControllerSystemDescriptor rd ds) =
+    do ctrl    <- newRootController rd ds
+       status  <- newNegotiationStatus
+       return  . FixedNegotiationEnvironment status
+               $ SomeParentController ctrl
 
-\begin{code}
-
-  data ControllerImpl a = ControllerImpl {
-
-  }
-
---  instance Controller ControllerImpl
 
 \end{code}
-
 
 
 %if standalone

@@ -22,6 +22,7 @@ library
         Agent.Extra
         Agent.Manager
         Agent.Ask
+        Agent.Controller
 
         AUCSP.Classes
         AUCSP.NegotiationRoles
@@ -39,6 +40,9 @@ library
         AUCSP.Contexts
         AUCSP.NegotiatingAgent
         AUCSP.NegotiationEnvironment
+        AUCSP.NegotiationStates
+
+        AUCSP.Test.TestData01
 
     build-depends:
         base >=4.8 && <4.9,
@@ -49,31 +53,41 @@ library
     default-extensions: MultiParamTypeClasses FunctionalDependencies
                         ExistentialQuantification TypeFamilies DataKinds FlexibleContexts
                         FlexibleInstances UndecidableInstances RankNTypes ConstraintKinds
-                        TypeOperators PolyKinds
+                        TypeOperators PolyKinds ScopedTypeVariables
     hs-source-dirs: src
 --    other-modules:
 
 
+executable test-env-01
+    hs-source-dirs: test
+    main-is: AUCSP/Test/Environment01.lhs
+    build-depends:
+        Thesis-UCSP -any,
+        base >=4.8 && <4.9,
+        containers >=0.5
+    default-language: Haskell2010
+    default-extensions: MultiParamTypeClasses FlexibleInstances TypeFamilies FlexibleContexts
+--    other-modules: Agent.Test.Environment01.
+
+
 executable run-ping-pong
+    hs-source-dirs: test
     main-is: Agent/Test/RunPingPong.hs
     build-depends:
         Thesis-UCSP -any,
         base >=4.8 && <4.9,
-        hspec -any,
-        Thesis-UCSP >=0.1.0.0 && <0.2
+        hspec -any
     default-language: Haskell2010
-    hs-source-dirs: test
 
 test-suite test-generic-agent
     type: exitcode-stdio-1.0
+    hs-source-dirs: test
     main-is: Agent/Test.hs
     build-depends:
         Thesis-UCSP -any,
         base >=4.8 && <4.9,
-        hspec -any,
-        Thesis-UCSP >=0.1.0.0 && <0.2
+        hspec -any
     default-language: Haskell2010
-    hs-source-dirs: test
     other-modules:
         Agent.Test.PingPong
         Agent.Test.PingPongAgentsSend

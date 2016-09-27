@@ -13,7 +13,7 @@ module AUCSP.Context(
 
 , CandidateAssessment(..)
 , SomeCandidateAssessment(..)
-, Candidate(..), newCandidate
+, Candidate(..), SomeCandidate(..), newCandidate
 , mbCandidateCoherence, candidateCoherence
 , candidateSuccess, candidateSuccessCoherence
 
@@ -175,6 +175,10 @@ candidateSuccessCoherence c | candidateSuccess c  = candidateCoherence c
 candidateSuccessCoherence _                       = 0
 
 newCandidate = Success []
+
+data SomeCandidate = forall a . SomeCandidate (Candidate a)
+
+instance Show SomeCandidate where show (SomeCandidate c) = show c
 
 -- -----------------------------------------------
 

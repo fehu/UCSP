@@ -64,10 +64,10 @@ createPingPong' pingBehaviour pongBehaviour maxCount =
        let pingD = pingDescriptor pingBehaviour (readIORef pongRef) maxCount
            pongD = pongDescriptor pongBehaviour (readIORef pingRef)
 
-       m  <- newAgentsManager :: IO SimpleAgentsManager
+       m  <- newAgentsManager :: IO StatelessAgentsManager
 
-       (ping :: GenericAgent, piFRref) <- m `createWithManager` pingD
-       (pong :: GenericAgent, poFRref) <- m `createWithManager` pongD
+       (ping :: GenericAgent, (piFRref, _)) <- createWithManager m pingD (const $ return ())
+       (pong :: GenericAgent, (poFRref, _)) <- createWithManager m pongD (const $ return ())
 
        pingRef `writeIORef` fromFullRef piFRref
        pongRef `writeIORef` fromFullRef poFRref
