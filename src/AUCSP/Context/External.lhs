@@ -7,9 +7,14 @@ module AUCSP.Context.External(
   External(..)
 
 , KnownAgent(..), askKnownAgent
+, KnownAgents(..), emptyKnownAgents, flattenKnownAgents
+, findKnownAgent, getKnownAgent
+, getKnownGroup, getKnownProfessor, getKnownClassroom
 
 , OpinionRel(..), OpinionAbout(..)
 , MyOpinion(..), extractMyOpinion
+
+
 
 ) where
 
@@ -25,11 +30,12 @@ import qualified AUCSP.Context.Combine as Combine
 
 import Data.Typeable (Typeable, cast)
 import Data.Function (on)
-import Data.IORef
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe, mapMaybe)
+import Data.List (find)
 
 import Control.Arrow ( (&&&) )
+import Control.Concurrent.STM
 
 \end{code}
 %endif
@@ -82,17 +88,17 @@ instance InformationPiece KnownAgent
 -- -----------------------------------------------
 
 data External a = External {
-    knownAgents        :: IORef [KnownAgent]
-  , externalThreshold  :: IORef a
+    knownAgents        :: KnownAgents
+  , externalThreshold  :: IO a
   }
 
 
 instance (Typeable a, Num a) => Context External a where
   contextName _       = "External"
   contextInformation  = fmap (fromNodes . map Information)
-                      . readIORef . knownAgents
+                      . flattenKnownAgents . knownAgents
   contextRelations r  = return [ RelBinIO OpinionRel ]
-  contextThreshold    = readIORef . externalThreshold
+  contextThreshold    = externalThreshold
 
   type AssessmentDetails External = ExternalDetails
 
@@ -149,6 +155,42 @@ data OpinionRelDetail a = OpinionRelDetail{
     }
 
 newtype ExternalDetails a = ExternalDetails [OpinionRelDetail a]
+
+-- -----------------------------------------------
+
+data KnownAgents = KnownAgents{
+  knownGroups       :: TVar [KnownAgent],
+  knownProfessors   :: TVar [KnownAgent],
+  knownClassrooms   :: TVar [KnownAgent]
+  }
+
+flattenKnownAgents (KnownAgents gsv psv rsv) = atomically $ do
+    gs <- readTVar gsv
+    ps <- readTVar psv
+    rs <- readTVar rsv
+    return $ gs ++ ps ++ rs
+
+emptyKnownAgents = atomically $ do
+    groups  <- newTVar []
+    profs   <- newTVar []
+    rooms   <- newTVar []
+    return $ KnownAgents groups profs rooms
+
+findKnownAgent var ref = do  ags <- readTVarIO var
+                             return $ find ((ref ==) . knownAgentRef) ags
+
+getKnownAgent v r  = findKnownAgent v r
+                   >>= maybe (fail $ "agent not known: " ++ show r) return
+
+
+getKnownGroup kn c     = getKnownAgent  (knownGroups kn)
+                                        (simpleRef $ classGroup c)
+
+getKnownProfessor kn c = getKnownAgent  (knownProfessors kn)
+                                        (simpleRef $ classProfessor c)
+
+getKnownClassroom kn c = getKnownAgent  (knownClassrooms kn)
+                                        (simpleRef $ classRoom c)
 
 
 \end{code}

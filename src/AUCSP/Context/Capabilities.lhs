@@ -4,7 +4,7 @@
 
 module AUCSP.Context.Capabilities(
 
-  Capabilities(GroupCapabilities, FullTimeProfCapabilities)
+  Capabilities(GroupCapabilities, FullTimeProfCapabilities, ClassroomCapabilities)
 
 , CanTeachRel(..), NeedsDisciplineRel(..)
 
@@ -58,11 +58,17 @@ further avoid making same kind of proposals to the uncapable agent.
 data family Capabilities (agentRole :: *) :: * -> *
 
 data instance Capabilities Role.Group a = GroupCapabilities {
-  needsDisciplines :: [Discipline]
+  groupSize         :: Int,
+  needsDisciplines  :: [Discipline]
   }
 
 data instance Capabilities Role.Professor a = FullTimeProfCapabilities {
   canTeachFullTime :: [Discipline]
+  }
+
+data instance Capabilities Role.Classroom a = ClassroomCapabilities {
+  classroomCapacity      :: Int,
+  classroomCapabilities  :: [Requirement]
   }
 
 -- -----------------------------------------------

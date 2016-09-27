@@ -16,13 +16,13 @@ import AUCSP.Context
 
 import qualified AUCSP.Context.Combine as Combine
 
-import Data.IORef (IORef, readIORef)
 import Data.Coerce (coerce)
 import Data.Maybe (catMaybes)
 import Data.Tuple
 import qualified Data.Map as Map
 
 import Control.Monad.Fix
+import Control.Concurrent.STM
 
 \end{code}
 %endif
@@ -115,7 +115,7 @@ The splitting is implemented as follows:
 %{
 %format SomeTime (x) = x
 \begin{code}
-data Beliefs a = Beliefs  {  knownProposals  :: IORef IGraph }
+data Beliefs a = Beliefs  {  knownProposals  :: TVar IGraph }
 
 data TimeConsistency a = TimeConsistency
 
@@ -154,7 +154,7 @@ instance BinaryRelation TimeConsistency where
 
 instance (Num a) => Context Beliefs a where
   contextName _       = "Beliefs"
-  contextInformation  = readIORef . knownProposals
+  contextInformation  = readTVarIO . knownProposals
   contextRelations _  = return [RelBin TimeConsistency]
   contextThreshold _  = return 0
 
@@ -169,7 +169,7 @@ instance (Num a) => Context Beliefs a where
 
 instance (Num a) => SplittingContext Beliefs a where
   splitGraph b gr = do
-    iGraph <- readIORef $ knownProposals b
+    iGraph <- readTVarIO $ knownProposals b
     let  cNodes = catMaybes $ collectInf <$> graphNodes gr
          consistent x y = fmap fst (binRelValue TimeConsistency x y) == Just 1
          extendCandidate Failure{} = []

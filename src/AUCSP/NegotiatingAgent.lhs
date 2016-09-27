@@ -8,6 +8,7 @@ module AUCSP.NegotiatingAgent (
 , negotiatingAgentDescriptor
 , NextId(nextId)
 , IDGenerators(..), IDGenerator(..)
+, newIDGenerators, newIDGenerator
 
 , splitAndPropagateThroughContexts
 , propagateThroughContexts
@@ -30,10 +31,11 @@ import qualified AUCSP.NegotiationRoles as Role
 
 import Data.Typeable (Typeable, cast, gcast)
 import Data.List (span)
-import Data.Function (on)
 import Data.IORef
+import Data.Function (on)
 
 import Control.Monad
+import Control.Concurrent.STM
 
 import GHC.Exts (sortWith, Down(..))
 
@@ -130,12 +132,16 @@ class (Contexts s a, Num a) => AgentStates s a | s -> a
     getKnownClasses     :: s -> IO IGraph
     modifyKnownClasses  :: s -> (IGraph -> IGraph) -> IO ()
 
-    decider   :: s -> DeciderUCSP a
-    newStates :: DeciderUCSP a -> IO s
+    getKnownAgents      :: s -> KnownAgents
 
-    getKnownClasses = readIORef . knownProposals . beliefsContext
+    decider   :: s -> DeciderUCSP a
+    -- newStates :: DeciderUCSP a -> IO s
+
+    getKnownClasses = readTVarIO . knownProposals . beliefsContext
     -- modification is strict
-    modifyKnownClasses s = modifyIORef' . knownProposals $ beliefsContext s
+    modifyKnownClasses s = atomically . modifyTVar' (knownProposals $ beliefsContext s)
+
+    getKnownAgents = knownAgents . externalContext
 
 
 
@@ -152,7 +158,7 @@ A new class should be added by every agent, mentioned in the class.
 \begin{code}
 execDecision d s (AggregateProposal cl@(Class c)) =
     do modifyKnownClasses s (`graphJoin` [Information cl])
-       forM_ (counterpartsOf s c) ((`send` NewClassAdded cl) . knownAgentRef)
+       counterpartsOf s c >>= mapM_ ((`send` NewClassAdded cl) . knownAgentRef)
 
 \end{code}
 
@@ -254,7 +260,7 @@ negotiatingAgentBehavior d = AgentBehavior
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-AgentDescriptor
+Agent descriptor.
 
 \begin{code}
 
@@ -271,6 +277,12 @@ data IDGenerators = IDGenerators{
     roomIdGen   :: IDGenerator
     }
 
+newIDGenerator prefix = IDGenerator prefix <$> newIORef 0
+newIDGenerators = do  g <- newIDGenerator "Group-"
+                      p <- newIDGenerator "Professor-"
+                      r <- newIDGenerator "Classroom-"
+                      return $ IDGenerators g p r
+
 class (Contexts c a, ContextsRole c ~ r) => NextId c r a where
     nextId :: IDGenerators -> c -> IO String
 
@@ -283,8 +295,11 @@ instance (Contexts c a, ContextsRole c ~ Role.Classroom) => NextId c Role.Classr
 
 
 negotiatingAgentDescriptor  :: (ContextConstraints s a, NextId s (ContextsRole s) a)
-                            => IDGenerators -> DeciderUCSP a -> AgentDescriptor s
-negotiatingAgentDescriptor gens decider = AgentDescriptor{
+                            => IDGenerators
+                            -> DeciderUCSP a
+                            -> (DeciderUCSP a -> IO s)
+                            -> AgentDescriptor s
+negotiatingAgentDescriptor gens decider newStates = AgentDescriptor{
     agentBehaviour  = negotiatingAgentBehavior decider,
     newAgentStates  = newStates decider,
     nextAgentId     = fmap AgentId . nextId gens
@@ -292,5 +307,4 @@ negotiatingAgentDescriptor gens decider = AgentDescriptor{
 
 
 \end{code}
-
 

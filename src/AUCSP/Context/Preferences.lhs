@@ -16,8 +16,6 @@ import AUCSP.Context.InUnitInterval
 
 import qualified AUCSP.Context.Combine as Combine
 
-import Data.IORef
-
 \end{code}
 %endif
 
@@ -64,14 +62,14 @@ over-restrictions due to conflicting personal interests.
 data Preferences a = Preferences  {
   preferencesInfo       :: [Information],
   preferencesRels       :: [IRelation (InUnitInterval a)],
-  preferencesThreshold  :: IORef a
+  preferencesThreshold  :: IO a
   }
 
 instance (Fractional a) => Context Preferences a where
   contextName _ = "Preferences"
   contextInformation  = return . fromNodes . preferencesInfo
   contextRelations    = return . map (fmap fromUnitInterval) . preferencesRels
-  contextThreshold    = readIORef . preferencesThreshold
+  contextThreshold    = preferencesThreshold
 
   type AssessmentDetails Preferences = NoDetails
 
