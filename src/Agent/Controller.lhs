@@ -39,8 +39,6 @@ module Agent.Controller (
   import Agent
   import Agent.Manager
 
---  import AUCSP.Context
-
   import Data.Typeable
   import Data.Maybe (maybeToList, fromJust)
 
@@ -65,8 +63,9 @@ may be composed into hierarchical structure.
 >  type NegotiationResult c :: *
 >  type AgentsStatus c :: *
 >  type AgentRunRole c :: *
->  newAgents  :: forall states . (Typeable states)
->             => c  -> [AgentDescriptor states (NegotiationResult c)]
+>  newAgents  :: forall states res ag s . ( Typeable ag, Typeable s, Show s
+>                                         , AgentCreate (AgentDescriptor states res) ag )
+>             => c  -> [CreateAgent states res ag s] -- [AgentDescriptor states (NegotiationResult c)]
 >                   -> IO [AgentWithStatus c]
 
 \item Guards all the created agents.
@@ -205,9 +204,7 @@ Controller implementation.
     negotiatingAgents  = listAgentStates . controllerMA
     newAgents ctrl ds  = sequence $ ds >>=
         \d -> return $ do
-            let create = createAgent <$> ds
-                       :: [IO (AgentRunOfRole r, AgentFullRef)]
-            AgentsCreated ags <- controllerMA ctrl `ask` CreateAgents create
+            AgentsCreated ags <- controllerMA ctrl `ask` CreateAgents ds
             return . fromJust $ cast ags -- @UNSAFE
 
     monitorStatus c = do  ags <- negotiatingAgents c
@@ -273,9 +270,8 @@ Controller and underlying entities creation.
   managerAgentDescriptor  :: (Typeable r, Show res, Typeable res, EmptyResult res)
                           => Millis
                           -> IO (ControllerImpl r res)
-                          -> ExtractStateFunc (AgentStatus' res)
                           -> IO ManagerAgentDescriptor
-  managerAgentDescriptor waitTime getCtrl exState = do
+  managerAgentDescriptor waitTime getCtrl = do
     ctrl  <- getCtrl
     cnt   <- newTVarIO 0
 
@@ -286,8 +282,8 @@ Controller and underlying entities creation.
       ,  aManagerIdPrefix_ = "ChildController-"
       ,  aManagerCount_ = cnt
       ,  amHandleMessage_ =  [ handleStart undefined, handleStop undefined
-                             , handleCreateAgents manager exState ]
-      ,  amRespondMessage_ = [responseCreateAgents manager exState]
+                             , handleCreateAgents manager ]
+      ,  amRespondMessage_ = [ responseCreateAgents manager ]
       }
 
   controllerAct waitTime ctrl  = do maybe (return ()) (notifyParentCtrl ctrl)
@@ -371,10 +367,11 @@ Controllers creation.
 
 \begin{code}
 
-  data ControlledAgentsDescriptor = forall r ag . (Typeable r, Typeable ag) =>
+  data ControlledAgentsDescriptor = forall states r ag res s . ( Typeable r, Typeable ag, Typeable s, Show s
+                                                               , AgentCreate (AgentDescriptor states res) ag ) =>
        ControlledAgentsDescriptor  ManagerAgentDescriptor
                                    r
-                                   [IO (ag, AgentFullRef)]
+                                   [CreateAgent states res ag s]
 
 
 

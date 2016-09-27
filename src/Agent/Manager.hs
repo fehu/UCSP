@@ -19,7 +19,7 @@ module Agent.Manager (
 
 , EmptyResult(..)
 
-, CreateAgents(..), AgentsCreated(..), ExtractStateFunc
+, CreateAgent(..), CreateAgents(..), AgentsCreated(..)
 
 , handleCreateAgents, responseCreateAgents
 , handleStart, handleStop
@@ -31,6 +31,7 @@ import Agent.Extra
 
 import Data.Function (on)
 import Data.Typeable
+import Data.Maybe (fromJust)
 import Data.List (delete)
 import Data.Map (Map)
 import qualified Data.Map as Map
@@ -44,7 +45,7 @@ import Control.Concurrent.STM
 -- | A manager registers/unregisters agent references and provides
 --   agent-related operations over them.
 
--- \begin{code}
+
 class AgentsManager m s | m -> s where
   newAgentsManager :: IO m
   listAgents       :: m -> IO [AgentFullRef]
@@ -88,8 +89,6 @@ class AgentsManagerOps m where
 
   sendEachAgent      :: (Message msg) => m -> msg -> IO ()
   orderEachAgent     :: (Message msg) => m -> msg -> IO ()
-
--- \end{code}
 
 
 -- -----------------------------------------------
@@ -217,12 +216,18 @@ newAgentsManagerAgent descr noResult_ = do
 
 -- -----------------------------------------------
 
-data CreateAgents = forall ag . (Typeable ag) =>
-     CreateAgents [IO (ag, AgentFullRef)]
+data CreateAgent states res ag s = CreateAgent{
+    crAgDescriptor  :: AgentDescriptor states res,
+    crAgExtState    :: ag -> s
+    }
+
+data CreateAgents = forall states res ag s . ( Typeable ag, Typeable s, Show s
+                                             , AgentCreate (AgentDescriptor states res) ag ) =>
+     CreateAgents [CreateAgent states res ag s]
     deriving Typeable
 
-data AgentsCreated = forall exState . (Typeable exState, Show exState) =>
-     AgentsCreated [(AgentFullRef, exState)]
+data AgentsCreated = forall s . (Typeable s, Show s) =>
+     AgentsCreated [(AgentFullRef, s)]
     deriving Typeable
 
 type instance ExpectedResponse CreateAgents = AgentsCreated
@@ -234,31 +239,28 @@ instance Show AgentsCreated where
     show (AgentsCreated as)  = "AgentsCreated failed:" ++ show as
 
 
-type ExtractStateFunc ex = forall s . Typeable s => s -> ex
-
 responseCreateAgents  :: ( resp ~ ExpectedResponse msg
                          , Message msg, Message resp
                          , AgentsManager m s
                          , Typeable s, Show s
                          )
-                      => m    -> ExtractStateFunc s
+                      => m  --  -> ExtractStateFunc s
                       -> msg  -> Maybe (IO resp)
-responseCreateAgents m exs =
-    mbResp $ \(CreateAgents fs) -> createAgents_ fs m exs
+responseCreateAgents m = mbResp $ \(CreateAgents cas) -> createAgents_ cas m
 
 handleCreateAgents  :: ( Message msg, AgentsManager m s
                        , Typeable s, Show s )
-                    => m    -> ExtractStateFunc s
+                    => m   -- -> ExtractStateFunc s
                     -> msg  -> Maybe (IO ())
-handleCreateAgents m exs = mbHandle $ \(CreateAgents fs) -> void $ createAgents_ fs m exs
+handleCreateAgents m = mbHandle $ \(CreateAgents cas) -> void $ createAgents_ cas m
 
-createAgents_ fs manager externalState =
+createAgents_ cas manager = -- externalState =
         liftM AgentsCreated $
         sequence =<<
-        forM fs (
-          \f -> return $
-            do (ag, ref) <- f
-               let eState = externalState ag
+        forM cas (
+          \(CreateAgent d sf) -> return $
+            do (ag, ref) <- createAgent d
+               let eState = fromJust . cast $ sf ag
                manager `registerAgent` (ref, eState)
                return (ref, eState)
                )
