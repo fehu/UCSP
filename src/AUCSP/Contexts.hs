@@ -31,5 +31,5 @@ class Contexts c a | c -> a
     preferencesContext   :: c -> Preferences a
     externalContext      :: c -> External a
 
-    counterpartsOf :: (AbstractClass cl) => c -> cl -> IO [KnownAgent]
+    counterpartsOf :: (AbstractClass cl) => c -> cl -> IO [SomeKnownAgent]
 

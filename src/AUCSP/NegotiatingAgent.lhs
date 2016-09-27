@@ -30,6 +30,7 @@ import AUCSP.Contexts
 import qualified AUCSP.NegotiationRoles as Role
 
 import Data.Typeable (Typeable, cast, gcast)
+import Data.Maybe (maybeToList)
 import Data.List (span)
 import Data.IORef
 import Data.Function (on)
@@ -132,10 +133,9 @@ class (Contexts s a, Num a) => AgentStates s a | s -> a
     getKnownClasses     :: s -> IO IGraph
     modifyKnownClasses  :: s -> (IGraph -> IGraph) -> IO ()
 
-    getKnownAgents      :: s -> KnownAgents
+    getKnownAgents      :: s -> KnownAgents a
 
-    decider   :: s -> DeciderUCSP a
-    -- newStates :: DeciderUCSP a -> IO s
+    decider             :: s -> DeciderUCSP a
 
     getKnownClasses = readTVarIO . knownProposals . beliefsContext
     -- modification is strict
@@ -158,7 +158,7 @@ A new class should be added by every agent, mentioned in the class.
 \begin{code}
 execDecision d s (AggregateProposal cl@(Class c)) =
     do modifyKnownClasses s (`graphJoin` [Information cl])
-       counterpartsOf s c >>= mapM_ ((`send` NewClassAdded cl) . knownAgentRef)
+       counterpartsOf s c >>= mapM_ ((`send` NewClassAdded cl) . knownAgentRef')
 
 \end{code}
 
@@ -188,8 +188,51 @@ type instance ExpectedResponse AcceptCandidateResp = ConfirmOrCancel
 
 -- -----------------------------------------------
 
+data WhoAreYou = WhoAreYou deriving (Typeable, Show)
+
+data MyCapabilities =  forall r a . ( Typeable r, Typeable a
+                                    , Typeable (Capabilities r a) ) =>
+                       MyCapabilities (Capabilities r a)
+    deriving Typeable
+
+instance Show MyCapabilities where show (MyCapabilities caps) = "*MyCapabilities*"
+
+type instance ExpectedResponse WhoAreYou = MyCapabilities
+
 \end{code}
 
+
+The only way the agents may learn others' references is by the following message.
+\begin{code}
+data ConnectWith = ConnectWith [AgentRef] deriving (Typeable, Show)
+\end{code}
+
+The agent should then ask the new connections for identity and guard it.
+\begin{code}
+
+connectWith state refs = do
+    caps <- mapM (\ref -> (,) ref <$> ref `ask` WhoAreYou) refs
+    let  k = getKnownAgents state
+    atomically $ do
+        guardKnownAgents (knownGroups k)      Role.Group              $ collectCaps caps
+        guardKnownAgents (knownProfessors k)  Role.FullTimeProfessor  $ collectCaps caps
+        guardKnownAgents (knownClassrooms k)  Role.Classroom          $ collectCaps caps
+
+
+guardKnownAgents :: TVar [KnownAgent r a] -> r -> [(AgentRef, Capabilities r a)] -> STM ()
+guardKnownAgents var r new = modifyTVar' var (++ (flip map new $ \(ref,c) -> KnownAgent ref r c) )
+
+collect :: [a] -> (a -> Maybe b) -> [b]
+collect xs f = (maybeToList . f) =<< xs
+
+collectCaps :: (Typeable r, Typeable a) => [(x, MyCapabilities)] -> [(x, Capabilities r a)]
+collectCaps = flip collect $ \(ref, MyCapabilities cap) -> (,) ref <$> cast cap
+
+\end{code}
+
+
+
+Messages handling:
 
 \begin{code}
 negotiationAgentHandleMessages :: (ContextConstraints s a) => AgentHandleMessages s
@@ -200,9 +243,11 @@ Handle simple messages (without response).
 
 \begin{code}
 
-    handleMessage = \i state msg ->
-        case cast msg of Just (NewClassAdded c) ->  modifyKnownClasses state
-                                                    (`graphJoin` [Information c])
+    handleMessage = \i state -> selectMessageHandler [
+        mbHandle $ \(NewClassAdded c)   -> modifyKnownClasses state
+                                           (`graphJoin` [Information c]),
+        mbHandle $ \(ConnectWith refs)  -> connectWith state refs
+        ]
 
 \end{code}
 
@@ -218,7 +263,16 @@ Agent's opinion about a class is the \emph{internal} (without considering the
     mbResp $ \(OpinionAbout class') ->
         do let c = newCandidate [Information class']
            [c'] <- propagateThroughContexts [c] $ internalContexts state
-           return . MyOpinion $ candidateSuccessCoherence c'
+           return . MyOpinion $ candidateSuccessCoherence c',
+
+\end{code}
+
+Agent should report it's capabilities on 'WhoAreYou' message.
+
+\begin{code}
+
+    mbResp $ \WhoAreYou ->
+        return . MyCapabilities $ capabilitiesContext state
 
 \end{code}
 

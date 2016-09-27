@@ -35,6 +35,8 @@ import AUCSP.Coherence
 import AUCSP.NegotiatingAgent
 import qualified AUCSP.NegotiationRoles as Role
 
+import Data.Typeable
+
 import Control.Concurrent.STM
 
 \end{code}
@@ -59,7 +61,7 @@ data ContextsHolder r a = ContextsHolder{
 
 data RoleDef r a = RoleDef{
   role_             :: r,
-  counterpartsOf_   :: forall cl . AbstractClass cl => States r a -> cl -> IO [KnownAgent]
+  counterpartsOf_   :: forall cl . AbstractClass cl => States r a -> cl -> IO [SomeKnownAgent]
   }
 
 
@@ -84,34 +86,37 @@ instance (Num a) => Contexts (States r a) a where
 instance (Num a) => AgentStates (States r a) a where
     decider = decider_
 
-rCounterparts l s c = mapM (($ (getKnownAgents s,c)) . uncurry) l
+rCounterparts l s c = mapM ($ (getKnownAgents s, c)) l
 
 mkStates roledef initialStatus ctx decider = do
     status  <- newTVarIO initialStatus
     return  $ States status decider roledef ctx
 
-groupStates  :: (Num a) =>
+groupStates  :: (Num a, Typeable a) =>
                 AgentStatus SomeCandidate
              -> ContextsHolder Role.Group a -> DeciderUCSP a
              -> IO (States Role.Group a)
 groupStates =  mkStates $ RoleDef Role.Group $
-               rCounterparts [ getKnownProfessor, getKnownClassroom ]
+               rCounterparts [ fmap SomeKnownAgent . uncurry getKnownProfessor
+                             , fmap SomeKnownAgent . uncurry getKnownClassroom ]
 
-professorStates  :: (Num a) =>
+professorStates  :: (Num a, Typeable a) =>
                     AgentStatus SomeCandidate
                  -> ContextsHolder Role.Professor a
                  -> DeciderUCSP a
                  -> IO (States Role.Professor a)
 professorStates =  mkStates $ RoleDef Role.FullTimeProfessor $
-                   rCounterparts [ getKnownGroup, getKnownClassroom ]
+                   rCounterparts [ fmap SomeKnownAgent . uncurry getKnownGroup
+                                 , fmap SomeKnownAgent . uncurry getKnownClassroom ]
 
-classroomStates  :: (Num a) =>
+classroomStates  :: (Num a, Typeable a) =>
                     AgentStatus SomeCandidate
                  -> ContextsHolder Role.Classroom a
                  -> DeciderUCSP a
                  -> IO (States Role.Classroom a)
 classroomStates =  mkStates $ RoleDef Role.Classroom $
-                   rCounterparts [ getKnownGroup, getKnownProfessor ]
+                   rCounterparts [ fmap SomeKnownAgent . uncurry getKnownGroup
+                                 , fmap SomeKnownAgent . uncurry getKnownProfessor ]
 
 
 \end{code}
