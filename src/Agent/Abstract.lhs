@@ -18,7 +18,7 @@
 module Agent.Abstract(
 
   AgentComm(..), ExpectedResponse
-, AgentRef(..), AgentRef'(..)
+, AgentRef(..), AgentRef'(..), simpleRef
 
 , AgentCommRole(..), ExpectedResponseForRole
 , System(System), Generic(Generic)
@@ -31,7 +31,8 @@ module Agent.Abstract(
 , AgentFullRef(..)
 , AgentThread(..), AgentThreads(..)
 
-, AgentBehavior(..), AgentHandleMessages(..)
+, AgentBehavior(..), AgentAct, AgentHandleMessages(..)
+, selectMessageHandler, mbHandle
 , selectResponse, mbResp
 
 , AgentCreate(..), AgentDescriptor(..)
@@ -63,9 +64,11 @@ Agent's behavior is defined by its \emph{action loop} and incoming
 \begin{code}
 
 data AgentBehavior states = AgentBehavior {
-  act :: forall i . (AgentInnerInterface i) => i -> states -> IO (),
-  handleMessages :: AgentHandleMessages states
+  act             :: AgentAct states,
+  handleMessages  :: AgentHandleMessages states
   }
+
+type AgentAct states = forall i . (AgentInnerInterface i) => i -> states -> IO ()
 
 \end{code}
 
@@ -113,6 +116,22 @@ intended to get responses.
 type family ExpectedResponse (msg :: *) :: *
 
 \end{code}
+
+Helper functions for handling messages.
+
+\begin{code}
+
+mbHandle  :: (Message msg0, Message msg)
+          => (msg -> IO ()) -> msg0 -> Maybe (IO ())
+mbHandle f msg = f <$> cast msg
+
+selectMessageHandler :: Message msg => [msg -> Maybe (IO ())] -> msg -> IO ()
+selectMessageHandler rfs msg = fromMaybe failed  $ foldr (<|>) Nothing
+                                                 $ ($ msg) <$> rfs
+    where failed = fail $ "Couldn't match received message: " ++ show msg
+
+\end{code}
+
 
 Helper functions for building responses.
 
@@ -201,6 +220,8 @@ There is also a role-dependent reference, that contains some instance of \verb|A
 
 data AgentRef' r = forall ref . (AgentCommRole r ref) => AgentRef' (ref r)
 
+simpleRef (AgentRef' ref) = AgentRef ref
+
 \end{code}
 
 
@@ -277,6 +298,9 @@ about agent's threads.
 data AgentFullRef =  forall ref . (AgentControl ref) =>
                      AgentFullRef ref AgentThreads
 
+instance Show AgentFullRef where
+    show (AgentFullRef ref _) = "AgentFullRef " ++ show (agentId ref)
+
 \end{code}
 
 Each agent is expected to be composed of two execution threads:
@@ -343,7 +367,7 @@ Generic creation is defined in for types $\mathrm{from}$ and $\mathrm{ag}$.
 \begin{code}
 
 class (AgentControl ag) => AgentCreate from ag where
-  createAgent :: from -> IO (ag, AgentFullRef)
+  createAgent   :: from -> IO (ag, AgentFullRef)
 
 \end{code}
 
@@ -356,6 +380,9 @@ data AgentDescriptor states = AgentDescriptor{
   newAgentStates  :: IO states,
   nextAgentId     :: states -> IO AgentId
   }
+
+instance Show (AgentDescriptor states) where
+    show _ = "*AgentDescriptor*"
 
 \end{code}
 

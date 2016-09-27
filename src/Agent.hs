@@ -72,12 +72,13 @@ instance Show (MessageWithResponse r) where
 
 -- -----------------------------------------------
 
-data AgentRunOfRole r = forall states . AgentRunOfRole (AgentRun r states)
+data AgentRunOfRole r = forall states . Typeable states => AgentRunOfRole (AgentRun r states)
 agentRunOfRoleId (AgentRunOfRole run) = _agentId run
 
 instance Eq (AgentRunOfRole r)   where (==)     = (==) `on` agentRunOfRoleId
 instance Ord (AgentRunOfRole r)  where compare  = compare `on` agentRunOfRoleId
 
+--extractAgentState f (AgentRunOfRole ag) = f <$> cast (_states ag)
 
 -- -----------------------------------------------
 
@@ -166,14 +167,15 @@ _runAgent (AgentRunOfRole ag) = do
                       Running    -> act (_agentBehaviour ag) ag (_states ag)
 
 
-instance (Typeable r) => AgentInnerInterface (AgentRun r state) where
+instance (Typeable r, Typeable states) => AgentInnerInterface (AgentRun r states) where
     selfRef  arun  = AgentRef (AgentRunOfRole arun)
     selfStop arun  = atomically $ _runState arun `writeTVar` Terminate
 
 -- -----------------------------------------------
 -- -----------------------------------------------
 
-instance (Typeable r) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r) where
+instance (Typeable r, Typeable states) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r)
+  where
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
                                  ,  newAgentStates=newStates
                                  ,  nextAgentId=nextId } =
