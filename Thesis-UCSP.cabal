@@ -20,8 +20,9 @@ library
         Agent
         Agent.Abstract
         Agent.Extra
-        Agent.Manager
         Agent.Ask
+        Agent.Manager
+        Agent.Manager.CreateAgent
         Agent.Controller
 
         AUCSP.Classes
