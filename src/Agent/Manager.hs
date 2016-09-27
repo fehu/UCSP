@@ -17,6 +17,8 @@ module Agent.Manager (
 , ManagerAgent(..), AgentsManagerRole(..)
 , ManagerAgentDescriptor(..), newAgentsManagerAgent
 
+, EmptyResult(..)
+
 , CreateAgents(..), AgentsCreated(..), ExtractStateFunc
 
 , handleCreateAgents, responseCreateAgents
@@ -130,35 +132,41 @@ type StatelessAgentsManager = SimpleAgentsManager ()
 -- -----------------------------------------------
 -- -----------------------------------------------
 
-data ManagerAgent s = ManagerAgent AgentFullRef (SimpleAgentsManager s)
+data ManagerAgent s res = ManagerAgent AgentFullRef (SimpleAgentsManager s) res
+    deriving Typeable
 
 data AgentsManagerRole = AgentsManagerRole
 
-managerAgentRef  (ManagerAgent ref _)  = ref
-managerAgentM_   (ManagerAgent _ m)     = m
+managerAgentRef    (ManagerAgent ref _ _)  = ref
+managerAgentM_     (ManagerAgent _ m _)    = m
+-- managerAgentNoRes  (ManagerAgent _ _ res)  = res
 
-instance Eq (ManagerAgent s)   where (==) = (==) `on` managerAgentRef
-instance Ord (ManagerAgent s)  where compare = compare `on` managerAgentRef
-instance (Typeable s) => AgentComm (ManagerAgent s) where
+instance Eq (ManagerAgent s res)   where (==) = (==) `on` managerAgentRef
+instance Ord (ManagerAgent s res)  where compare = compare `on` managerAgentRef
+instance (Typeable s, Typeable res) => AgentComm (ManagerAgent s res) where
     agentId  = agentId . managerAgentRef
     send     = send . managerAgentRef
     ask      = ask . managerAgentRef
-instance (Typeable s) => AgentCommPriority (ManagerAgent s) where
+instance (Typeable s, Typeable res) => AgentCommPriority (ManagerAgent s res) where
     sendPriority  = sendPriority . managerAgentRef
     askPriority   = askPriority . managerAgentRef
 
-instance AgentsManager (ManagerAgent s) s where
-    newAgentsManager   = newAgentsManagerAgent =<< emptyManagerAgentDescriptor
+instance (EmptyResult res) => AgentsManager (ManagerAgent s res) s where
+    newAgentsManager   = flip newAgentsManagerAgent emptyResult
+                       =<< emptyManagerAgentDescriptor
     listAgents         = listAgents . managerAgentM_
     listAgentStates    = listAgentStates . managerAgentM_
     registerAgent      = registerAgent . managerAgentM_
     unregisterAgent    = unregisterAgent . managerAgentM_
     createWithManager  = createWithManager . managerAgentM_
-instance AgentsManagerOps (ManagerAgent s) where
+instance AgentsManagerOps (ManagerAgent s res) where
     agentsStopped   = agentsStopped . managerAgentM_
     waitAllAgents   = waitAllAgents . managerAgentM_
     sendEachAgent   = sendEachAgent . managerAgentM_
     orderEachAgent  = orderEachAgent . managerAgentM_
+
+class EmptyResult a where emptyResult :: a
+
 
 data ManagerAgentDescriptor = ManagerAgentDescriptor
   {  managerAct_ :: forall i . AgentInnerInterface i => i -> IO ()
@@ -170,8 +178,8 @@ data ManagerAgentDescriptor = ManagerAgentDescriptor
                                            => [msg -> Maybe (IO resp)]
   }
 
-managerAgentDescriptor :: ManagerAgentDescriptor -> AgentDescriptor ()
-managerAgentDescriptor descr =
+managerAgentDescriptor :: ManagerAgentDescriptor -> res -> AgentDescriptor () res
+managerAgentDescriptor descr noResult_ =
     AgentDescriptor{
       newAgentStates = return ()
     , nextAgentId  = const $ do i <- atomically $ do aManagerCount_ descr `modifyTVar` (+1)
@@ -184,6 +192,7 @@ managerAgentDescriptor descr =
           respondMessage = \i states -> selectResponse $ amRespondMessage_ descr
           }
       }
+    , noResult = noResult_
     }
 
 emptyManagerAgentDescriptor :: IO ManagerAgentDescriptor
@@ -197,12 +206,12 @@ emptyManagerAgentDescriptor = do
       amRespondMessage_ = []
       }
 
-newAgentsManagerAgent :: ManagerAgentDescriptor -> IO (ManagerAgent s)
-newAgentsManagerAgent descr = do
-    let d =  managerAgentDescriptor descr
+newAgentsManagerAgent :: ManagerAgentDescriptor -> res -> IO (ManagerAgent s res)
+newAgentsManagerAgent descr noResult_ = do
+    let d =  managerAgentDescriptor descr noResult_
     (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent d
     m <- newAgentsManager
-    return $ ManagerAgent ref m
+    return $ ManagerAgent ref m noResult_
 
 
 

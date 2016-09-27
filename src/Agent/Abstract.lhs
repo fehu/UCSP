@@ -375,13 +375,14 @@ A simple \emph{agent descriptor} that can be used for agent creation.
 
 \begin{code}
 
-data AgentDescriptor states = AgentDescriptor{
+data AgentDescriptor states result = AgentDescriptor{
   agentBehaviour  :: AgentBehavior states,
   newAgentStates  :: IO states,
-  nextAgentId     :: states -> IO AgentId
+  nextAgentId     :: states -> IO AgentId,
+  noResult        :: result
   }
 
-instance Show (AgentDescriptor states) where
+instance Show (AgentDescriptor states res) where
     show _ = "*AgentDescriptor*"
 
 \end{code}

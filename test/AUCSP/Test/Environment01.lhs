@@ -21,6 +21,7 @@ module Main where
 import Agent
 import Agent.Controller
 
+import AUCSP.Contexts
 import AUCSP.NegotiatingAgent
 import AUCSP.NegotiationRoles (NegotiationRole)
 import AUCSP.NegotiationStates
@@ -61,13 +62,13 @@ descriptor :: ( Typeable r, NextId (States r a) r a
               , ContextConstraints (States r a) a )
            => DeciderUCSP a
            -> (DeciderUCSP a -> IO (States r a))
-           -> IO (AgentDescriptor (States r a))
+           -> IO (AgentDescriptor (States r a) SomeCandidate)
 descriptor decider' newStates = do
     idGens <- newIDGenerators
     return $ negotiatingAgentDescriptor idGens decider' newStates
 
 
-groupAgent  :: AgentStatus
+groupAgent  :: AgentStatus SomeCandidate
             -> ContextsHolder Role.Group Float
             -> IO (AgentRunOfRole NegotiationRole, AgentFullRef)
 

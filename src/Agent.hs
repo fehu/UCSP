@@ -174,7 +174,8 @@ instance (Typeable r, Typeable states) => AgentInnerInterface (AgentRun r states
 -- -----------------------------------------------
 -- -----------------------------------------------
 
-instance (Typeable r, Typeable states) => AgentCreate (AgentDescriptor states) (AgentRunOfRole r)
+instance (Typeable r, Typeable states) => AgentCreate  (AgentDescriptor states res)
+                                                       (AgentRunOfRole r)
   where
     createAgent AgentDescriptor  {  agentBehaviour=behaviour
                                  ,  newAgentStates=newStates

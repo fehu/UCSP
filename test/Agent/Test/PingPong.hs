@@ -48,6 +48,7 @@ pingDescriptor pingBehaviour counterpart maxCount = AgentDescriptor{
                         first <- newIORef True
                         return $ PingAgentState counterpart count first
   , nextAgentId    = const . return $ AgentId "Ping"
+  , noResult       = ()
   }
 
 
@@ -62,7 +63,7 @@ createPingPong' pingBehaviour pongBehaviour maxCount =
        pongRef <- newIORef undefined
 
        let pingD = pingDescriptor pingBehaviour (readIORef pongRef) maxCount
-           pongD = pongDescriptor pongBehaviour (readIORef pingRef)
+           pongD = pongDescriptor pongBehaviour (readIORef pingRef) maxCount
 
        m  <- newAgentsManager :: IO StatelessAgentsManager
 

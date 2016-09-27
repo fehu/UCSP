@@ -17,15 +17,16 @@
 \begin{code}
 module AUCSP.NegotiationEnvironment (
 
-  FixedNegotiationEnvironment(..)
-, createFixedEnvironment
-
-, NegotiationStatus(..), newNegotiationStatus
+  module Export
+,
 
 ) where
 
-  import Agent.Controller
-  import AUCSP.Context
+  import Agent                      as Export
+  import Agent.Controller           as Export
+  import AUCSP.NegotiationStates    as Export
+  import AUCSP.NegotiatingAgent     as Export
+  import AUCSP.Context              as Export
 
   import Data.Typeable
   import Control.Concurrent.STM
@@ -40,42 +41,20 @@ module AUCSP.NegotiationEnvironment (
 
 
 The initial negotiation environment is represented by the agents and their
-internal knowledge.
+internal knowledge. All the (initial) internal knowledge is found in the contexts.
+
+\begin{code}
 
 
 
-
+\end{code}
 
 
 
 
 \begin{code}
 
-  data FixedNegotiationEnvironment = FixedNegotiationEnvironment {
-    fixedEnvStatus          :: NegotiationStatus,
-    fixedEnvRootController  :: SomeParentController
-    }
-
-  data NegotiationStatus = NegotiationStatus{
-    negotiationBegan   :: TMVar Millis,
-    negotiationEnded   :: TMVar Millis,
-    negotiationResult  :: TMVar [SomeCandidate]
-    }
-
-  newNegotiationStatus =
-    atomically $ do  began   <- newEmptyTMVar
-                     ended   <- newEmptyTMVar
-                     result  <- newEmptyTMVar
-                     return $ NegotiationStatus began ended result
-
-
-  createFixedEnvironment  :: ControllerSystemDescriptor
-                          -> IO FixedNegotiationEnvironment
-  createFixedEnvironment (ControllerSystemDescriptor rd ds) =
-    do ctrl    <- newRootController rd ds
-       status  <- newNegotiationStatus
-       return  . FixedNegotiationEnvironment status
-               $ SomeParentController ctrl
+  instance EmptyResult SomeCandidate where emptyResult = NoCandidate
 
 
 \end{code}

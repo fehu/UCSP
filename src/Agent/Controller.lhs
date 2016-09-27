@@ -30,6 +30,7 @@ module Agent.Controller (
 
 , ControlledAgentsDescriptor(..), Millis
 , ControllerSystemDescriptor(..), createControllerSystem
+, NegotiationSysCtrl(..)
 
 , module Agent.Manager
 
@@ -52,43 +53,6 @@ module Agent.Controller (
 %endif
 
 
-Agent's status represents it's execution state at the moment.
-
-
-\begin{code}
-
-  data AgentStatus  =  Initialized
-                    |  Negotiating
-                    |  Waiting SomeCandidate
-                    |  Locked  SomeCandidate
-                    |  Terminated (SomeException) deriving Show
-
-  isWaiting (Waiting _)  = True
-  isWaiting _            = False
-
-  isLocked (Locked _)  = True
-  isLocked _           = False
-
-  getLocked (Locked l) = l
-
-  isTerminated (Terminated _)  = True
-  isTerminated _               = False
-
-  mbTerminated (Terminated ex)  = Just ex
-  mbTerminated _                = Nothing
-
-
-  type AgentStatus' = TVar AgentStatus
-  type AgentWithStatus = (AgentFullRef, AgentStatus')
-
-  data ControllerNotification  = AllWaiting
-                               | AllLocked         [(AgentFullRef, SomeCandidate)]
-                               | AgentsTerminated  [(AgentFullRef, SomeException)]
-    deriving (Typeable, Show)
-
-\end{code}
-
-
 The negotiation is created and monitored by the \emph{controller(s)}, that
 may be composed into hierarchical structure.
 
@@ -98,20 +62,42 @@ may be composed into hierarchical structure.
 \item Creates agents from descriptors, returning the corresponding references.
       All agents would belong to the same execution role.
 
->  newAgents  :: forall states . (Typeable states)
->             => c -> [AgentDescriptor states] -> IO [AgentWithStatus]
+>  type NegotiationResult c :: *
+>  type AgentsStatus c :: *
 >  type AgentRunRole c :: *
+>  newAgents  :: forall states . (Typeable states)
+>             => c  -> [AgentDescriptor states (NegotiationResult c)]
+>                   -> IO [AgentWithStatus c]
 
 \item Guards all the created agents.
 
->  negotiatingAgents :: c -> IO [AgentWithStatus]
+>  negotiatingAgents :: c -> IO [AgentWithStatus c]
 
 \item Monitors agent's status.
 
->  monitorStatus   :: c -> IO (Maybe ControllerNotification)
->  monitorStatus'  :: c -> [(AgentFullRef, AgentStatus)] -> Maybe ControllerNotification
+>  monitorStatus   :: c  -> IO (Maybe (ControllerNotification c))
+>  monitorStatus'  :: c  -> [(AgentFullRef, AgentsStatus c)]
+>                        -> Maybe (ControllerNotification c)
 
 \end{itemize}
+
+\begin{code}
+
+  data ControllerNotification c  = AllWaiting
+                                 | AllLocked         [(AgentFullRef, NegotiationResult c)]
+                                 | AgentsTerminated  [(AgentFullRef, SomeException)]
+    deriving Typeable
+
+  instance (Show (NegotiationResult c)) => Show (ControllerNotification c)
+    where  show AllWaiting              = "AllWaiting"
+           show (AllLocked ls)          = "AllLocked " ++ show ls
+           show (AgentsTerminated ls)   = "AgentsTerminated " ++ show ls
+
+  type AgentWithStatus c = (AgentFullRef, TVar (AgentsStatus c))
+
+\end{code}
+
+
 
 A child controller controller should notify the parent controller.
 
@@ -161,20 +147,62 @@ A parent controller must:
 
 
 
+
+Agent's status represents it's execution state at the moment.
+
+
+
+\begin{code}
+
+  data AgentStatus res  =  Initialized
+                        |  Negotiating
+                        |  Waiting res
+                        |  Locked  res
+                        |  Terminated (SomeException) deriving Show
+
+  isWaiting (Waiting _)  = True
+  isWaiting _            = False
+
+  isLocked (Locked _)  = True
+  isLocked _           = False
+
+  getLocked (Locked l) = l
+
+  isTerminated (Terminated _)  = True
+  isTerminated _               = False
+
+  mbTerminated (Terminated ex)  = Just ex
+  mbTerminated _                = Nothing
+
+
+  type AgentStatus' res = TVar (AgentStatus res)
+
+
+\end{code}
+
+
+
+
+
+
 Controller implementation.
 
 \begin{code}
 
-  data ControllerImpl r = ControllerImpl {
-   controllerMA       :: ManagerAgent AgentStatus',
+  data ControllerImpl r res = ControllerImpl {
+   controllerMA       :: ManagerAgent (AgentStatus' res) res,
    controlledRole     :: r,
    parentController_  :: SomeParentController
    }
 
-  instance (Typeable r) => Controller (ControllerImpl r) where
-    negotiatingAgents  = listAgentStates . controllerMA
+  instance ( Typeable r, Typeable res, EmptyResult res ) =>
+    Controller (ControllerImpl r res) where
 
-    type AgentRunRole (ControllerImpl r) = r
+    type NegotiationResult (ControllerImpl r res)  = res
+    type AgentsStatus (ControllerImpl r res)       = AgentStatus res
+    type AgentRunRole (ControllerImpl r res)       = r
+
+    negotiatingAgents  = listAgentStates . controllerMA
     newAgents ctrl ds  = sequence $ ds >>=
         \d -> return $ do
             let create = createAgent <$> ds
@@ -198,7 +226,7 @@ Controller implementation.
                              maybeToList  . fmap ((,) r)
                                                       $ mbTerminated s
 
-  instance ChildController (ControllerImpl r) where
+  instance (Typeable res) => ChildController (ControllerImpl r res) where
     parentController = parentController_
     orderController ctrl  = send  $ controllerMA ctrl
     askController ctrl    = ask   $ controllerMA ctrl
@@ -232,8 +260,8 @@ Controller and underlying entities creation.
 
 \begin{code}
 
-  newChildController descr r parent = do
-    ma <- newAgentsManagerAgent descr
+  newChildController descr r noRes parent = do
+    ma <- newAgentsManagerAgent descr noRes
     return ControllerImpl
       {  controllerMA       = ma
       ,  controlledRole     = r
@@ -242,10 +270,10 @@ Controller and underlying entities creation.
 
   type Millis = Int -- Milliseconds
 
-  managerAgentDescriptor  :: (Typeable r)
+  managerAgentDescriptor  :: (Typeable r, Show res, Typeable res, EmptyResult res)
                           => Millis
-                          -> IO (ControllerImpl r)
-                          -> ExtractStateFunc AgentStatus'
+                          -> IO (ControllerImpl r res)
+                          -> ExtractStateFunc (AgentStatus' res)
                           -> IO ManagerAgentDescriptor
   managerAgentDescriptor waitTime getCtrl exState = do
     ctrl  <- getCtrl
@@ -266,21 +294,29 @@ Controller and underlying entities creation.
                                            =<< monitorStatus ctrl
                                     threadDelay waitTime
 
-  instance Show (TVar AgentStatus) where
+  instance Show (TVar (AgentStatus res)) where
     show _ = "TVar AgentStatus"
 
 
-  data RootControllerDescriptor = RootControllerDescriptor
+  data RootControllerDescriptor res = RootControllerDescriptor
     {  rootControllerIdPrefix  :: String
     ,  rootControllerCount     :: TVar Int
     ,  rootControllerAct       :: forall i . AgentInnerInterface i => i -> IO ()
     ,  rootControllerHandle    :: forall msg i . ( AgentInnerInterface i
                                                  , Message msg )
                                => i -> [msg -> Maybe (IO ())]
+    , rootNoResult             :: res
     }
 
+  data NegotiationSysCtrl result = NegotiationSysCtrl {
+    negotiationBegan   :: TMVar Millis,
+    negotiationEnded   :: TMVar Millis,
+    negotiationResult  :: TMVar [result],
 
-  newRootController  (RootControllerDescriptor pref cVar act' handle)
+    rootController     :: RootController
+    }
+
+  newRootController  (RootControllerDescriptor pref cVar act' handle noRes)
                      childrenDescrs
     = do
       let  rootDescriptor = AgentDescriptor{
@@ -295,7 +331,8 @@ Controller and underlying entities creation.
                   handleMessage   = \i _ -> selectMessageHandler $ handle i,
                   respondMessage  = \i _ _ -> undefined
                   }
-                }
+                },
+              noResult = noRes
             }
       (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent rootDescriptor
       chVar <- newTVarIO []
@@ -304,11 +341,19 @@ Controller and underlying entities creation.
            root'  = SomeParentController root
 
       children <- sequence $ do  (ControlledAgentsDescriptor d r chs) <- childrenDescrs
-                                 return $ do  ctrl <- newChildController d r root'
+                                 return $ do  ctrl <- newChildController d r noRes root'
                                               ctrl `askController` CreateAgents chs
                                               return $ SomeChildController ctrl
-      atomically $ chVar `writeTVar` children
-      return root
+      atomically $ do  chVar `writeTVar` children
+                       began   <- newEmptyTMVar
+                       ended   <- newEmptyTMVar
+                       result  <- newEmptyTMVar
+                       return NegotiationSysCtrl {
+                          negotiationBegan   = began,
+                          negotiationEnded   = ended,
+                          negotiationResult  = result,
+                          rootController     = root
+                       }
 
 \end{code}
 
@@ -333,12 +378,13 @@ Controllers creation.
 
 
 
-  data ControllerSystemDescriptor =
-       ControllerSystemDescriptor  RootControllerDescriptor
+  data ControllerSystemDescriptor result =
+       ControllerSystemDescriptor  (RootControllerDescriptor result)
                                    [ControlledAgentsDescriptor]
 
 
-  createControllerSystem  :: ControllerSystemDescriptor -> IO RootController
+  createControllerSystem  :: (Typeable result) =>
+                          ControllerSystemDescriptor result -> IO (NegotiationSysCtrl result)
   createControllerSystem (ControllerSystemDescriptor rd ds) = newRootController rd ds
 
 

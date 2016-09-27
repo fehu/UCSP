@@ -64,7 +64,7 @@ data RoleDef r a = RoleDef{
 
 
 data States r a = States {
-  statusState  :: AgentStatus',
+  statusState  :: AgentStatus' SomeCandidate,
   decider_     :: DeciderUCSP a,
   roledef_     :: RoleDef r a,
   ctx_         :: ContextsHolder r a
@@ -90,18 +90,26 @@ mkStates roledef initialStatus ctx decider = do
     status  <- newTVarIO initialStatus
     return  $ States status decider roledef ctx
 
-groupStates :: (Num a) => AgentStatus -> ContextsHolder Role.Group a -> DeciderUCSP a
+groupStates  :: (Num a) =>
+                AgentStatus SomeCandidate
+             -> ContextsHolder Role.Group a -> DeciderUCSP a
              -> IO (States Role.Group a)
 groupStates =  mkStates $ RoleDef Role.Group $
                rCounterparts [ getKnownProfessor, getKnownClassroom ]
 
-professorStates :: (Num a) => AgentStatus -> ContextsHolder Role.Professor a -> DeciderUCSP a
-                -> IO (States Role.Professor a)
+professorStates  :: (Num a) =>
+                    AgentStatus SomeCandidate
+                 -> ContextsHolder Role.Professor a
+                 -> DeciderUCSP a
+                 -> IO (States Role.Professor a)
 professorStates =  mkStates $ RoleDef Role.FullTimeProfessor $
                    rCounterparts [ getKnownGroup, getKnownClassroom ]
 
-classroomStates :: (Num a) => AgentStatus -> ContextsHolder Role.Classroom a -> DeciderUCSP a
-                -> IO (States Role.Classroom a)
+classroomStates  :: (Num a) =>
+                    AgentStatus SomeCandidate
+                 -> ContextsHolder Role.Classroom a
+                 -> DeciderUCSP a
+                 -> IO (States Role.Classroom a)
 classroomStates =  mkStates $ RoleDef Role.Classroom $
                    rCounterparts [ getKnownGroup, getKnownProfessor ]
 

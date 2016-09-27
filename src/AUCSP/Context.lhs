@@ -176,7 +176,8 @@ candidateSuccessCoherence _                       = 0
 
 newCandidate = Success []
 
-data SomeCandidate = forall a . SomeCandidate (Candidate a)
+data SomeCandidate  = forall a . SomeCandidate (Candidate a)
+                    | NoCandidate
 
 instance Show SomeCandidate where show (SomeCandidate c) = show c
 

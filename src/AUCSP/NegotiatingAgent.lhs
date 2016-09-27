@@ -298,7 +298,7 @@ negotiatingAgentDescriptor  :: (ContextConstraints s a, NextId s (ContextsRole s
                             => IDGenerators
                             -> DeciderUCSP a
                             -> (DeciderUCSP a -> IO s)
-                            -> AgentDescriptor s
+                            -> AgentDescriptor s SomeCandidate
 negotiatingAgentDescriptor gens decider newStates = AgentDescriptor{
     agentBehaviour  = negotiatingAgentBehavior decider,
     newAgentStates  = newStates decider,
