@@ -244,17 +244,15 @@ responseCreateAgents  :: ( resp ~ ExpectedResponse msg
                          , AgentsManager m s
                          , Typeable s, Show s
                          )
-                      => m  --  -> ExtractStateFunc s
-                      -> msg  -> Maybe (IO resp)
+                      => m -> msg -> Maybe (IO resp)
 responseCreateAgents m = mbResp $ \(CreateAgents cas) -> createAgents_ cas m
 
 handleCreateAgents  :: ( Message msg, AgentsManager m s
                        , Typeable s, Show s )
-                    => m   -- -> ExtractStateFunc s
-                    -> msg  -> Maybe (IO ())
+                    => m -> msg -> Maybe (IO ())
 handleCreateAgents m = mbHandle $ \(CreateAgents cas) -> void $ createAgents_ cas m
 
-createAgents_ cas manager = -- externalState =
+createAgents_ cas manager =
         liftM AgentsCreated $
         sequence =<<
         forM cas (
