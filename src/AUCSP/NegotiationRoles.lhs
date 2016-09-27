@@ -9,6 +9,8 @@ module AUCSP.NegotiationRoles(
 , Classroom(..)
 , Professor(..)
 
+, NegotiationRole(..)
+
 ) where
 
 import Data.Typeable
@@ -68,6 +70,14 @@ roleIx' (AnyRole r) = roleIx r
 instance Show  AnyRole where show (AnyRole r) = show r
 instance Eq    AnyRole where (==) = (==) `on` roleIx'
 instance Ord   AnyRole where compare = compare `on` roleIx'
+
+-- -----------------------------------------------
+
+data NegotiationRole = GroupRole
+                     | ClassroomRole
+                     | FullTimeProfRole
+                     | PartTimeProfRole
+    deriving (Typeable, Show, Eq, Ord, Enum)
 
 \end{code}
 
