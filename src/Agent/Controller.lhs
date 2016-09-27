@@ -28,16 +28,17 @@ module Agent.Controller (
 , managerAgentDescriptor , RootControllerDescriptor(..)
 , newChildController, newRootController
 
-, ControlledAgentsDescriptor(..), Millis
+, ControlledAgentsDescriptor(..)
 , ControllerSystemDescriptor(..), createControllerSystem
 , NegotiationSysCtrl(..)
 
-, module Agent.Manager
+, module Export
 
 ) where
 
   import Agent
-  import Agent.Manager
+  import Agent.Manager              as Export
+  import Agent.Manager.CreateAgent  as Export
 
   import Data.Typeable
   import Data.Maybe (maybeToList, fromJust)
@@ -65,7 +66,7 @@ may be composed into hierarchical structure.
 >  type AgentRunRole c :: *
 >  newAgents  :: forall states res ag s . ( Typeable ag, Typeable s, Show s
 >                                         , AgentCreate (AgentDescriptor states res) ag )
->             => c  -> [CreateAgent states res ag s] -- [AgentDescriptor states (NegotiationResult c)]
+>             => c  -> [CreateAgent states res ag s]
 >                   -> IO [AgentWithStatus c]
 
 \item Guards all the created agents.
@@ -264,8 +265,6 @@ Controller and underlying entities creation.
       ,  controlledRole     = r
       ,  parentController_  = parent
       }
-
-  type Millis = Int -- Milliseconds
 
   managerAgentDescriptor  :: (Typeable r, Show res, Typeable res, EmptyResult res)
                           => Millis
