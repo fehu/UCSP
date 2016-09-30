@@ -20,6 +20,9 @@ import qualified Agent.Test.PingPongAgentsAsk2 as PPAAsk2
 
 import System.Environment
 
+import Control.Exception
+import Control.Monad
+
 -----------------------------------------------------------------------------
 
 
@@ -29,13 +32,16 @@ main = do args <- getArgs
           let maxCount = case args of [s] -> read s
                                       _   -> defaultMaxCount
 
-          putStrLn "Testing Ping-Pong (send)"
-          PPASend.testPingPong maxCount
+          putStrLn "Testing Ping-Pong (send)\n"
+          exec $ PPASend.testPingPong maxCount
 
-          putStrLn "Testing Ping-Pong (ask)"
-          PPAAsk.testPingPong maxCount
+          putStrLn "\n\nTesting Ping-Pong (ask)\n"
+          exec $ PPAAsk.testPingPong maxCount
 
-          putStrLn "Testing Ping-Pong (ask 2)"
-          PPAAsk2.testPingPong maxCount
+          putStrLn "\n\nTesting Ping-Pong (ask 2)\n"
+          exec $ PPAAsk2.testPingPong maxCount
 
 
+exec f = do res <- try f
+            putStrLn $  case res of Left (SomeException ex) -> "Test Error: " ++ show ex
+                                    Right _                 -> "Test OK"

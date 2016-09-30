@@ -267,40 +267,41 @@ Controller and underlying entities creation.
       }
 
   managerAgentDescriptor  :: (Typeable r, Show res, Typeable res, EmptyResult res)
-                          => Millis
+                          => Maybe Millis
+                          -> Bool
                           -> IO (ControllerImpl r res)
                           -> IO ManagerAgentDescriptor
-  managerAgentDescriptor waitTime getCtrl = do
+  managerAgentDescriptor waitTime debug getCtrl = do
     ctrl  <- getCtrl
     cnt   <- newTVarIO 0
 
     let  manager = controllerMA ctrl
 
     return ManagerAgentDescriptor
-      {  managerAct_ = const $ controllerAct waitTime ctrl
+      {  managerBehaviour  = AgentBehavior (AgentActRepeat (controllerAct ctrl) waitTime)
+                           $ AgentHandleMessages
+                                (\_ _ -> selectMessageHandler
+                                    [  handleStart undefined, handleStop undefined
+                                    ,  handleCreateAgents manager ])
+                                (\_ _ -> selectResponse [ responseCreateAgents manager ])
       ,  aManagerIdPrefix_ = "ChildController-"
-      ,  aManagerCount_ = cnt
-      ,  amHandleMessage_ =  [ handleStart undefined, handleStop undefined
-                             , handleCreateAgents manager ]
-      ,  amRespondMessage_ = [ responseCreateAgents manager ]
+      ,  aManagerCount_ = cnt,
+      debugManager = debug
       }
 
-  controllerAct waitTime ctrl  = do maybe (return ()) (notifyParentCtrl ctrl)
-                                           =<< monitorStatus ctrl
-                                    threadDelay waitTime
+  controllerAct ctrl _ _  = maybe (return ()) (notifyParentCtrl ctrl)
+                          =<< monitorStatus ctrl
 
   instance Show (TVar (AgentStatus res)) where
     show _ = "TVar AgentStatus"
 
 
   data RootControllerDescriptor res = RootControllerDescriptor
-    {  rootControllerIdPrefix  :: String
-    ,  rootControllerCount     :: TVar Int
-    ,  rootControllerAct       :: forall i . AgentInnerInterface i => i -> IO ()
-    ,  rootControllerHandle    :: forall msg i . ( AgentInnerInterface i
-                                                 , Message msg )
-                               => i -> [msg -> Maybe (IO ())]
-    , rootNoResult             :: res
+    {  rootControllerIdPrefix   :: String
+    ,  rootControllerCount      :: TVar Int
+    ,  rootControllerBehaviour  :: AgentBehavior ()
+    ,  rootControllerDebug      :: Bool
+    ,  rootNoResult             :: res
     }
 
   data NegotiationSysCtrl result = NegotiationSysCtrl {
@@ -311,7 +312,7 @@ Controller and underlying entities creation.
     rootController     :: RootController
     }
 
-  newRootController  (RootControllerDescriptor pref cVar act' handle noRes)
+  newRootController  (RootControllerDescriptor pref cVar behaviour debug noRes)
                      childrenDescrs
     = do
       let  rootDescriptor = AgentDescriptor{
@@ -320,14 +321,9 @@ Controller and underlying entities creation.
                                   do  c <- atomically $ do  cVar `modifyTVar` (+1)
                                                             readTVar cVar
                                       return $ pref ++ show c,
-              agentBehaviour  = AgentBehavior{
-                act             = \i _ -> act' i,
-                handleMessages  = AgentHandleMessages{
-                  handleMessage   = \i _ -> selectMessageHandler $ handle i,
-                  respondMessage  = \i _ _ -> undefined
-                  }
-                },
-              noResult = noRes
+              agentDefaultBehaviour = behaviour,
+              noResult = noRes,
+              debugAgent = debug
             }
       (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent rootDescriptor
       chVar <- newTVarIO []

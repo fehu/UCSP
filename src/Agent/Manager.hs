@@ -164,13 +164,10 @@ class EmptyResult a where emptyResult :: a
 
 
 data ManagerAgentDescriptor = ManagerAgentDescriptor
-  {  managerAct_ :: forall i . AgentInnerInterface i => i -> IO ()
+  {  managerBehaviour   :: AgentBehavior ()
   ,  aManagerIdPrefix_  :: String
   ,  aManagerCount_     :: TVar Int
-  ,  amHandleMessage_    :: forall msg . Message msg => [msg -> Maybe (IO ())]
-  ,  amRespondMessage_   :: forall msg resp . ( Message msg, Message resp
-                                              , ExpectedResponse msg ~ resp )
-                                           => [msg -> Maybe (IO resp)]
+  ,  debugManager       :: Bool
   }
 
 managerAgentDescriptor :: ManagerAgentDescriptor -> res -> AgentDescriptor () res
@@ -180,25 +177,19 @@ managerAgentDescriptor descr noResult_ =
     , nextAgentId  = const $ do i <- atomically $ do aManagerCount_ descr `modifyTVar` (+1)
                                                      readTVar $ aManagerCount_ descr
                                 return . AgentId $ aManagerIdPrefix_ descr ++ show i
-    , agentBehaviour = AgentBehavior{
-        act = \i _ -> managerAct_ descr i,
-        handleMessages = AgentHandleMessages{
-          handleMessage = \i states -> selectMessageHandler $ amHandleMessage_ descr,
-          respondMessage = \i states -> selectResponse $ amRespondMessage_ descr
-          }
-      }
+    , agentDefaultBehaviour = managerBehaviour descr
     , noResult = noResult_
+    , debugAgent = debugManager descr
     }
 
 emptyManagerAgentDescriptor :: IO ManagerAgentDescriptor
 emptyManagerAgentDescriptor = do
     cnt <- newTVarIO 0
     return ManagerAgentDescriptor{
-      managerAct_ = const $ return (),
-      aManagerIdPrefix_ = "EmptyManagerAgent_",
+      managerBehaviour = agentNoBehaviour,
+      aManagerIdPrefix_ = "SomeManagerAgent_",
       aManagerCount_ = cnt,
-      amHandleMessage_ = [],
-      amRespondMessage_ = []
+      debugManager = False
       }
 
 newAgentsManagerAgent :: ManagerAgentDescriptor -> res -> IO (ManagerAgent s res)

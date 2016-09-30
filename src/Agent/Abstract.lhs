@@ -17,7 +17,10 @@
 
 module Agent.Abstract(
 
-  AgentComm(..), ExpectedResponse
+  AgentAct, AgentBehavior(..)
+, AgentHandleMessages(..)
+
+, AgentComm(..), ExpectedResponse
 , AgentRef(..), AgentRef'(..), simpleRef
 
 , AgentCommRole(..), ExpectedResponseForRole
@@ -26,12 +29,14 @@ module Agent.Abstract(
 , Message
 , StartMessage(StartMessage), StopMessage(StopMessage)
 
-, AgentId(..), AgentInnerInterface(..)
+, AgentExecControl(..), AgentInnerInterface
+, AgentActControl(..), Millis
+
+, AgentId(..)
 , AgentCommPriority(..), AgentControl(..)
 , AgentFullRef(..)
 , AgentThread(..), AgentThreads(..)
 
-, AgentBehavior(..), AgentAct, AgentHandleMessages(..)
 , selectMessageHandler, mbHandle
 , selectResponse, mbResp
 
@@ -56,7 +61,59 @@ import GHC.Exts (Constraint)
 \begin{document}
 %endif
 
-\subsubsection{Behavior definition}
+An agent is represented by two processes: active actions (not caused by external reason)
+and messages handling. Both are defined flexibly and can be changed during the execution through
+'AgentExecControl' or 'AgentInnerInterface'. It is also used to reference agent-self within behavior definitions.
+
+\begin{code}
+
+type AgentAct states = forall i . (AgentExecControl i states) => i -> states -> IO ()
+
+type Millis = Int -- Milliseconds
+
+class AgentExecControl i states | i -> states where
+    agentRef        :: i -> AgentRef
+    agentTerminate  :: i -> IO ()
+
+    actOnce    :: i -> AgentAct states -> IO ()
+    actRepeat  :: i -> AgentAct states -> Maybe Millis -> IO ()
+    actPause   :: i -> IO ()
+
+    setMessageHandlers  :: i -> AgentHandleMessages states -> IO ()
+    setAgentBehavior    :: i -> AgentBehavior states -> IO ()
+
+    agentDebug  :: i -> Bool
+    whenDebug   :: i -> IO () -> IO ()
+    debugMsg    :: Show a => i -> a -> IO ()
+
+    whenDebug i  = when (agentDebug i)
+    debugMsg i   = whenDebug i . putStrLn . (debugPref ++) . show
+                 where debugPref = "[DEBUG][" ++ show (agentId $ agentRef i) ++ "]"
+
+-- Alias for AgentExecControl
+type AgentInnerInterface = AgentExecControl
+
+\end{code}
+
+Agent also provides complex actions:
+\begin{code}
+data AgentActControl states =
+\end{code}
+\begin{itemize}
+  \item actions sequence;
+
+>    AgentActOnce    (AgentAct states) (AgentActControl states) |
+
+  \item repeating action;
+
+>    AgentActRepeat  (AgentAct states) (Maybe Millis) |
+
+  \item no action.
+
+>    AgentNoAct
+
+\end{itemize}
+
 
 Agent's behavior is defined by its \emph{action loop} and incoming
 \emph{messages handling}.
@@ -64,13 +121,16 @@ Agent's behavior is defined by its \emph{action loop} and incoming
 \begin{code}
 
 data AgentBehavior states = AgentBehavior {
-  act             :: AgentAct states,
+  agentAct        :: AgentActControl states,
   handleMessages  :: AgentHandleMessages states
   }
 
-type AgentAct states = forall i . (AgentInnerInterface i) => i -> states -> IO ()
 
 \end{code}
+
+
+\subsubsection{Behavior definition}
+
 
 Messages can be just \emph{sent} to any agent or a specific \emph{response} may
 be \emph{asked}.
@@ -95,14 +155,14 @@ data AgentHandleMessages states = AgentHandleMessages {
   \item react to sent messages (sent with \verb|send|):
 
 > handleMessage :: forall msg i .  ( Message msg
->                                  , AgentInnerInterface i) =>
+>                                  , AgentInnerInterface i states) =>
 >                  i -> states -> msg -> IO (),
 
   \item respond un-typed messages (responding to \verb|ask|):
 
 > respondMessage :: forall msg resp i .  ( Message msg, Message resp
 >                                        , ExpectedResponse msg ~ resp
->                                        , AgentInnerInterface i) =>
+>                                        , AgentInnerInterface i states) =>
 >                   i -> states -> msg -> IO resp
 > }
 
@@ -163,12 +223,6 @@ data StopMessage   = StopMessage   deriving (Typeable, Show)
 
 \end{code}
 
-Agent interface is used to reference agent-self within behavior definitions.
-
-\begin{code}
-class AgentInnerInterface i where  selfRef   :: i -> AgentRef
-                                   selfStop  :: i -> IO ()
-\end{code}
 
 \subsubsection{Role-depending behavior}
 The expected response may depend on agent's \emph{role}.
@@ -371,19 +425,29 @@ class (AgentControl ag) => AgentCreate from ag where
 
 \end{code}
 
+
+
+
 A simple \emph{agent descriptor} that can be used for agent creation.
 
 \begin{code}
 
 data AgentDescriptor states result = AgentDescriptor{
-  agentBehaviour  :: AgentBehavior states,
-  newAgentStates  :: IO states,
-  nextAgentId     :: states -> IO AgentId,
-  noResult        :: result
+  agentDefaultBehaviour  :: AgentBehavior states,
+  newAgentStates         :: IO states,
+  nextAgentId            :: states -> IO AgentId,
+  noResult               :: result,
+  debugAgent             :: Bool
   }
 
 instance Show (AgentDescriptor states res) where
     show _ = "*AgentDescriptor*"
+
+instance Show (AgentActControl states) where
+    show (AgentActRepeat _ t)  = "AgentActRepeat" ++ maybe ""
+                               (\t -> " every " ++ show t ++ "milliseconds") t
+    show (AgentActOnce _ a)    = "AgentActOnce and then " ++ show a
+    show AgentNoAct            = "AgentNoAct"
 
 \end{code}
 

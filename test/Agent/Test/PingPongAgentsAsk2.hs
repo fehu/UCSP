@@ -31,7 +31,7 @@ askPing maxCount c i state = do counterpart <- pingCounterpart state
                                          Pong c' <- counterpart `ask` Ping c
                                          askPing maxCount c' i state
                                  else do putStrLn "Finished"
-                                         selfStop i
+                                         agentTerminate i
 
 -- | TODO
 pingBehaviour :: Int -> AgentBehavior PingAgentState
@@ -40,7 +40,7 @@ pingBehaviour maxCount = AgentBehavior{
             handleMessage       = \_ _ -> undefined
           , respondMessage      = \_ _ -> undefined
           }
-  , act = askPing maxCount 0
+  , agentAct = AgentActRepeat (askPing maxCount 0) Nothing
   }
 
 
@@ -54,7 +54,7 @@ pongBehaviour = AgentBehavior{
               mbResp $ \(Ping c) -> return $ Pong (c + 1)
             ]
         }
-  , act = \_ _ -> return ()
+  , agentAct = AgentNoAct
   }
 
 

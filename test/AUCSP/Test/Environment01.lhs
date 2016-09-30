@@ -54,27 +54,26 @@ Creation:
 createAgent' :: ( Typeable r , NextId (States r a) r a
                 , ContextConstraints (States r a) a )
              => DeciderUCSP a
+             -> Maybe Millis
              -> (DeciderUCSP a -> IO (States r a))
+             -> Bool
              -> IO (AgentRunOfRole NegotiationRole, AgentFullRef)
-createAgent' d = createAgent <=< descriptor d
+createAgent' d w ns = createAgent <=< descriptor d w ns
 
-descriptor :: ( Typeable r, NextId (States r a) r a
-              , ContextConstraints (States r a) a )
-           => DeciderUCSP a
-           -> (DeciderUCSP a -> IO (States r a))
-           -> IO (AgentDescriptor (States r a) SomeCandidate)
-descriptor decider' newStates = do
+descriptor decider' wait newStates debug = do
     idGens <- newIDGenerators
-    return $ negotiatingAgentDescriptor idGens decider' newStates
+    return $ negotiatingAgentDescriptor idGens decider' wait newStates debug
 
 
 groupAgent  :: AgentStatus SomeCandidate
+            -> Maybe Millis
             -> ContextsHolder Role.Group Float
+            -> Bool
             -> IO (AgentRunOfRole NegotiationRole, AgentFullRef)
 
-groupAgent d      = createAgent' groupDecider . groupStates d
-professorAgent d  = createAgent' professorDecider . professorStates d
-classroomAgent d  = createAgent' classroomDecider . professorStates d
+groupAgent d w      = createAgent' groupDecider w      . groupStates d
+professorAgent d w  = createAgent' professorDecider w  . professorStates d
+classroomAgent d w  = createAgent' classroomDecider w  . professorStates d
 
 
 fixedTest = ControllerSystemDescriptor
@@ -83,6 +82,12 @@ fixedTest = ControllerSystemDescriptor
 
 \end{code}
 
+
+descriptor :: ( Typeable r, NextId (States r a) r a
+              , ContextConstraints (States r a) a )
+           => DeciderUCSP a
+           -> (DeciderUCSP a -> IO (States r a))
+           -> IO (AgentDescriptor (States r a) SomeCandidate)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 

@@ -33,14 +33,15 @@ pingBehaviour maxCount = AgentBehavior{
                                                             putStrLn "Ping!"
                                                             counterpart `send` Ping
                                                     else do putStrLn "Finished"
-                                                            selfStop i
+                                                            agentTerminate i
                                  _         -> return ()
           , respondMessage      = \_ _ -> return undefined
           }
-  , act = \i state -> whenM (readIORef $ firstTime state)
-                          $ do firstTime state `writeIORef` False
-                               putStrLn "Ping!"
-                               pingCounterpart state >>= (`send` Ping)
+  , agentAct = AgentActOnce (\i state -> whenM (readIORef $ firstTime state)
+                            $ do firstTime state `writeIORef` False
+                                 putStrLn "Ping!"
+                                 pingCounterpart state >>= (`send` Ping)
+                            ) AgentNoAct
   }
 
 -----------------------------------------------------------------------------
@@ -54,7 +55,7 @@ pongBehaviour = AgentBehavior{
                              _         -> return ()
         , respondMessage      = \_ _ -> return undefined
         }
-  , act = \_ _ -> return ()
+  , agentAct = AgentNoAct
   }
 
 -----------------------------------------------------------------------------

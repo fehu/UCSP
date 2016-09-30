@@ -39,7 +39,7 @@ askPing maxCount i state = do c <- readIORef $ count state
                                          Pong <- counterpart `ask` Ping
                                          askPing maxCount i state
                                  else do putStrLn "Finished"
-                                         selfStop i
+                                         agentTerminate i
 
 -- | TODO
 pingBehaviour maxCount = AgentBehavior{
@@ -47,7 +47,7 @@ pingBehaviour maxCount = AgentBehavior{
             handleMessage       = \_ _ -> undefined
           , respondMessage      = \_ _ -> undefined
           }
-  , act = askPing maxCount
+  , agentAct = AgentActRepeat (askPing maxCount) Nothing
   }
 
 
@@ -57,9 +57,10 @@ pingBehaviour maxCount = AgentBehavior{
 pongBehaviour = AgentBehavior{
   handleMessages = AgentHandleMessages{
           handleMessage  = \_ _ -> return undefined
-        , respondMessage = \_ _ -> selectResponse [ mbResp $ \Ping -> return Pong ]
+        , respondMessage = \_ _ -> selectResponse [ mbResp $ \Ping -> do  putStrLn "Ping!"
+                                                                          return Pong ]
         }
-  , act = \_ _ -> return ()
+  , agentAct = AgentNoAct
   }
 
 -----------------------------------------------------------------------------

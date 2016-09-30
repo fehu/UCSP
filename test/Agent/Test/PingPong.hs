@@ -43,19 +43,23 @@ data PongAgentState = PongAgentState { pongCounterpart :: IO AgentRef }
 -----------------------------------------------------------------------------
 
 pingDescriptor pingBehaviour counterpart maxCount = AgentDescriptor{
-    agentBehaviour = pingBehaviour maxCount
+    agentDefaultBehaviour = pingBehaviour maxCount
   , newAgentStates = do count <- newIORef 0
                         first <- newIORef True
                         return $ PingAgentState counterpart count first
   , nextAgentId    = const . return $ AgentId "Ping"
   , noResult       = ()
+  , debugAgent = True
   }
 
 
-pongDescriptor pongBehaviour counterpart = AgentDescriptor pongBehaviour
-                                             (return $ PongAgentState counterpart)
-                                             (const . return $ AgentId "Pong")
-
+pongDescriptor pongBehaviour counterpart _ = AgentDescriptor{
+    agentDefaultBehaviour = pongBehaviour
+  , newAgentStates        = return $ PongAgentState counterpart
+  , nextAgentId           = const . return $ AgentId "Pong"
+  , noResult              = ()
+  , debugAgent            = True
+}
 -----------------------------------------------------------------------------
 
 createPingPong' pingBehaviour pongBehaviour maxCount =

@@ -299,13 +299,14 @@ internalContexts s = ($ s) <$> [  SomeContext . capabilitiesContext
                                ]
 
 negotiatingAgentBehavior  :: (ContextConstraints s a)
-                          => DeciderUCSP a -> AgentBehavior s
-negotiatingAgentBehavior d = AgentBehavior
-  { act = \i s -> let  c0  = beliefsContext s
-                       cs  = internalContexts s ++ [SomeContext $ externalContext s]
-                  in execDecision d s  =<<  decide d
-                                       =<<  splitAndPropagateThroughContexts c0 cs
-                                       =<<  contextInformation c0
+                          => DeciderUCSP a -> Maybe Millis -> AgentBehavior s
+negotiatingAgentBehavior d wait = AgentBehavior
+  { agentAct = let f s =  let  c0  = beliefsContext s
+                               cs  = internalContexts s ++ [SomeContext $ externalContext s]
+                          in execDecision d s  =<<  decide d
+                                               =<<  splitAndPropagateThroughContexts c0 cs
+                                               =<<  contextInformation c0
+               in AgentActRepeat (const f) wait
 
   , handleMessages = negotiationAgentHandleMessages
   }
@@ -351,12 +352,16 @@ instance (Contexts c a, ContextsRole c ~ Role.Classroom) => NextId c Role.Classr
 negotiatingAgentDescriptor  :: (ContextConstraints s a, NextId s (ContextsRole s) a)
                             => IDGenerators
                             -> DeciderUCSP a
+                            -> Maybe Millis
                             -> (DeciderUCSP a -> IO s)
+                            -> Bool
                             -> AgentDescriptor s SomeCandidate
-negotiatingAgentDescriptor gens decider newStates = AgentDescriptor{
-    agentBehaviour  = negotiatingAgentBehavior decider,
-    newAgentStates  = newStates decider,
-    nextAgentId     = fmap AgentId . nextId gens
+negotiatingAgentDescriptor gens decider wait newStates debug = AgentDescriptor{
+    agentDefaultBehaviour  = negotiatingAgentBehavior decider wait,
+    newAgentStates         = newStates decider,
+    nextAgentId            = fmap AgentId . nextId gens,
+    noResult               = NoCandidate,
+    debugAgent             = debug
     }
 
 
