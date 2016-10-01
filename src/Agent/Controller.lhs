@@ -25,12 +25,15 @@ module Agent.Controller (
 , ParentController(..), SomeParentController(..), RootController
 , ControllerNotification(..)
 
-, managerAgentDescriptor , RootControllerDescriptor(..)
+, controllerManagerDescriptor , RootControllerDescriptor(..)
 , newChildController, newRootController
 
 , ControlledAgentsDescriptor(..)
 , ControllerSystemDescriptor(..), createControllerSystem
 , NegotiationSysCtrl(..)
+
+, CManagerState(..)
+, controllerAct
 
 , module Export
 
@@ -42,6 +45,9 @@ module Agent.Controller (
 
   import Data.Typeable
   import Data.Maybe (maybeToList, fromJust)
+
+  import Data.Map (Map)
+  import qualified Data.Map as Map
 
   import Control.Exception
   import Control.Arrow
@@ -189,8 +195,15 @@ Controller implementation.
 
 \begin{code}
 
+  data CManagerState res  = forall m . ( AgentsManager m (AgentStatus' res)
+                                       , AgentsManagerOps m )
+                          => ManagerState  {  selfManager  :: m
+                                           ,  selfStatus   :: AgentStatus' res
+                                           }
+
+
   data ControllerImpl r res = ControllerImpl {
-   controllerMA       :: ManagerAgent (AgentStatus' res) res,
+   controllerMA       :: ManagerAgent (CManagerState res) res,
    controlledRole     :: r,
    parentController_  :: SomeParentController
    }
@@ -202,7 +215,7 @@ Controller implementation.
     type AgentsStatus (ControllerImpl r res)       = AgentStatus res
     type AgentRunRole (ControllerImpl r res)       = r
 
-    negotiatingAgents  = listAgentStates . controllerMA
+    negotiatingAgents  = fmap (map (second selfStatus)) . listAgentStates . controllerMA
     newAgents ctrl ds  = sequence $ ds >>=
         \d -> return $ do
             AgentsCreated ags <- controllerMA ctrl `ask` CreateAgents ds
@@ -234,11 +247,11 @@ Controller implementation.
 
   data RootController = RootController {
     rootAgent     :: AgentFullRef,
-    rootChildren  :: TVar [SomeChildController]
+    rootChildren  :: TVar (Map AnyRole SomeChildController)
     }
 
   instance ParentController RootController where
-    controllerChildren = readTVarIO . rootChildren
+    controllerChildren = fmap Map.elems . readTVarIO . rootChildren
     controllerNotification  = send . rootAgent
 
 
@@ -258,38 +271,35 @@ Controller and underlying entities creation.
 
 \begin{code}
 
-  newChildController descr r noRes parent = do
-    ma <- newAgentsManagerAgent descr noRes
+  newChildController descr r parent = do
+    ma <- newAgentsManagerAgent descr
     return ControllerImpl
       {  controllerMA       = ma
       ,  controlledRole     = r
       ,  parentController_  = parent
       }
 
-  managerAgentDescriptor  :: (Typeable r, Show res, Typeable res, EmptyResult res)
-                          => Maybe Millis
-                          -> Bool
-                          -> IO (ControllerImpl r res)
-                          -> IO ManagerAgentDescriptor
-  managerAgentDescriptor waitTime debug getCtrl = do
-    ctrl  <- getCtrl
+  controllerManagerDescriptor  :: Bool
+                               -> AgentBehavior s
+                               -> IO (ManagerAgentDescriptor s)
+  controllerManagerDescriptor debug behaviour = do
     cnt   <- newTVarIO 0
 
-    let  manager = controllerMA ctrl
-
     return ManagerAgentDescriptor
-      {  managerBehaviour  = AgentBehavior (AgentActRepeat (controllerAct ctrl) waitTime)
-                           $ AgentHandleMessages
-                                (\_ _ -> selectMessageHandler
-                                    [  handleStart undefined, handleStop undefined
-                                    ,  handleCreateAgents manager ])
-                                (\_ _ -> selectResponse [ responseCreateAgents manager ])
+      {  managerBehaviour  = behaviour
       ,  aManagerIdPrefix_ = "ChildController-"
-      ,  aManagerCount_ = cnt,
-      debugManager = debug
+      ,  aManagerCount_ = cnt
+      ,  debugManager = debug
       }
 
-  controllerAct ctrl _ _  = maybe (return ()) (notifyParentCtrl ctrl)
+-- managerBehaviour  = AgentBehavior (AgentActRepeat controllerAct waitTime)
+--                           $ AgentHandleMessages
+--                                (\_ m -> selectMessageHandler
+--                                    [  handleStart undefined, handleStop undefined
+--                                    ,  handleCreateAgents m ])
+--                                (\_ m -> selectResponse [ responseCreateAgents m ])
+
+  controllerAct _ ctrl  = maybe (return ()) (notifyParentCtrl ctrl)
                           =<< monitorStatus ctrl
 
   instance Show (TVar (AgentStatus res)) where
@@ -299,7 +309,7 @@ Controller and underlying entities creation.
   data RootControllerDescriptor res = RootControllerDescriptor
     {  rootControllerIdPrefix   :: String
     ,  rootControllerCount      :: TVar Int
-    ,  rootControllerBehaviour  :: AgentBehavior ()
+    ,  rootControllerBehaviour  :: AgentBehavior (TVar (Map AnyRole SomeChildController))
     ,  rootControllerDebug      :: Bool
     ,  rootNoResult             :: res
     }
@@ -315,8 +325,9 @@ Controller and underlying entities creation.
   newRootController  (RootControllerDescriptor pref cVar behaviour debug noRes)
                      childrenDescrs
     = do
+      chVar <- newTVarIO Map.empty
       let  rootDescriptor = AgentDescriptor{
-              newAgentStates  = return (),
+              newAgentStates  = return chVar,
               nextAgentId     = const $ AgentId <$>
                                   do  c <- atomically $ do  cVar `modifyTVar` (+1)
                                                             readTVar cVar
@@ -326,16 +337,16 @@ Controller and underlying entities creation.
               debugAgent = debug
             }
       (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent rootDescriptor
-      chVar <- newTVarIO []
 
       let  root   = RootController ref chVar
            root'  = SomeParentController root
 
       children <- sequence $ do  (ControlledAgentsDescriptor d r chs) <- childrenDescrs
-                                 return $ do  ctrl <- newChildController d r noRes root'
+                                 let ch = do  ctrl <- newChildController d r root'
                                               ctrl `askController` CreateAgents chs
                                               return $ SomeChildController ctrl
-      atomically $ do  chVar `writeTVar` children
+                                 return $ (,) (AnyRole r) <$> ch
+      atomically $ do  chVar `writeTVar` Map.fromList children
                        began   <- newEmptyTMVar
                        ended   <- newEmptyTMVar
                        result  <- newEmptyTMVar
@@ -362,21 +373,25 @@ Controllers creation.
 
 \begin{code}
 
-  data ControlledAgentsDescriptor = forall states r ag res s . ( Typeable r, Typeable ag, Typeable s, Show s
-                                                               , AgentCreate (AgentDescriptor states res) ag ) =>
-       ControlledAgentsDescriptor  ManagerAgentDescriptor
+  data ControlledAgentsDescriptor  = forall states r ag res exState . (
+                                        Typeable r, Show r, RoleIx r
+                                      , Typeable res, EmptyResult res
+                                      , Typeable ag, Typeable exState, Show exState
+                                      , AgentCreate (AgentDescriptor states res) ag
+                                   ) =>
+       ControlledAgentsDescriptor  (ManagerAgentDescriptor (CManagerState res))
                                    r
-                                   [CreateAgent states res ag s]
+                                   [CreateAgent states res ag exState]
 
 
 
-  data ControllerSystemDescriptor result =
+  data ControllerSystemDescriptor ms result =
        ControllerSystemDescriptor  (RootControllerDescriptor result)
                                    [ControlledAgentsDescriptor]
 
 
   createControllerSystem  :: (Typeable result) =>
-                          ControllerSystemDescriptor result -> IO (NegotiationSysCtrl result)
+                          ControllerSystemDescriptor ms result -> IO (NegotiationSysCtrl result)
   createControllerSystem (ControllerSystemDescriptor rd ds) = newRootController rd ds
 
 

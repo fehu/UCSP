@@ -20,6 +20,9 @@ module AUCSP.NegotiatingAgent (
 , negotiationAgentHandleMessages
 , negotiatingAgentBehavior
 
+, WhoAreYou(..), MyCapabilities(..)
+, ConnectWith(..)
+
 ) where
 
 import Agent.Abstract

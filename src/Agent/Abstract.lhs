@@ -24,6 +24,7 @@ module Agent.Abstract(
 , AgentRef(..), AgentRef'(..), simpleRef
 
 , AgentCommRole(..), ExpectedResponseForRole
+, RoleIx(..), AnyRole(..), roleIx'
 , System(System), Generic(Generic)
 
 , Message
@@ -46,6 +47,7 @@ module Agent.Abstract(
 
 import Data.Typeable
 import Data.Maybe (fromMaybe)
+import Data.Function (on)
 
 import Control.Applicative ((<|>))
 import Control.Monad
@@ -225,11 +227,29 @@ data StopMessage   = StopMessage   deriving (Typeable, Show)
 
 
 \subsubsection{Role-depending behavior}
+
+\begin{code}
+
+class RoleIx r where roleIx :: r -> Int
+
+
+data AnyRole = forall r . (RoleIx r, Show r, Typeable r) => AnyRole r
+
+roleIx' (AnyRole r) = roleIx r
+
+instance Show  AnyRole where show (AnyRole r) = show r
+instance Eq    AnyRole where (==) = (==) `on` roleIx'
+instance Ord   AnyRole where compare = compare `on` roleIx'
+
+
+\end{code}
+
+
 The expected response may depend on agent's \emph{role}.
 
 \begin{code}
 
-class (AgentComm (ref agRole)) => AgentCommRole agRole ref where
+class (AgentComm (ref agRole), RoleIx agRole) => AgentCommRole agRole ref where
   askR  :: (Message msg)     => ref agRole
                              -> msg
                              -> IO (ExpectedResponseForRole agRole msg)
@@ -299,7 +319,7 @@ The role-dependent reference is also an instance of \verb|AgentCommRole|.
 
 \begin{code}
 
-instance (Typeable r) => AgentCommRole r AgentRef' where
+instance (Typeable r, RoleIx r) => AgentCommRole r AgentRef' where
   askR   (AgentRef' ref)  = askR ref
 
 \end{code}

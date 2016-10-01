@@ -3,9 +3,7 @@
 \begin{code}
 module AUCSP.NegotiationRoles(
 
-  RoleIx(..), AnyRole(..), roleIx'
-
-, Group(..)
+  Group(..)
 , Classroom(..)
 , Professor(..)
 
@@ -14,7 +12,6 @@ module AUCSP.NegotiationRoles(
 ) where
 
 import Data.Typeable
-import Data.Function (on)
 
 
 \end{code}
@@ -56,20 +53,6 @@ data Professor  = FullTimeProfessor
                 | PartTimeProfessor
     deriving (Show, Typeable)
 
-
--- -----------------------------------------------
-
-class RoleIx r where roleIx :: r -> Int
-
--- -----------------------------------------------
-
-data AnyRole = forall r . (RoleIx r, Show r, Typeable r) => AnyRole r
-
-roleIx' (AnyRole r) = roleIx r
-
-instance Show  AnyRole where show (AnyRole r) = show r
-instance Eq    AnyRole where (==) = (==) `on` roleIx'
-instance Ord   AnyRole where compare = compare `on` roleIx'
 
 -- -----------------------------------------------
 

@@ -11,11 +11,14 @@
 module Agent.Manager (
   AgentsManager(..)
 , AgentsManagerOps (..)
+--, SomeAgentsManager(..)
 
 , SimpleAgentsManager, StatelessAgentsManager
 
 , ManagerAgent(..), AgentsManagerRole(..)
-, ManagerAgentDescriptor(..), newAgentsManagerAgent
+, ManagerAgentDescriptor(..)
+, generalizeManagerDescriptor
+, CreateAgentsManager(..)
 
 , EmptyResult(..)
 
@@ -87,6 +90,23 @@ class AgentsManagerOps m where
   orderEachAgent     :: (Message msg) => m -> msg -> IO ()
 
 
+--data SomeAgentsManager s = forall m . (AgentsManager m s, AgentsManagerOps m) =>
+--     SomeAgentsManager m
+
+--instance AgentsManager (SomeAgentsManager s) s where
+--    newAgentsManager = undefined -- TODO ?? no ops instance
+--    listAgents (SomeAgentsManager s) = listAgents s
+--    listAgentStates (SomeAgentsManager s) = listAgentStates s
+--    registerAgent (SomeAgentsManager s) = registerAgent s
+--    unregisterAgent (SomeAgentsManager s) = unregisterAgent s
+--    createWithManager (SomeAgentsManager s) = createWithManager s
+--
+--instance AgentsManagerOps (SomeAgentsManager s) where
+--    agentsStopped (SomeAgentsManager s) = agentsStopped s
+--    waitAllAgents (SomeAgentsManager s) = waitAllAgents s
+--    sendEachAgent (SomeAgentsManager s) = sendEachAgent s
+--    orderEachAgent (SomeAgentsManager s) = orderEachAgent s
+
 -- -----------------------------------------------
 -- -----------------------------------------------
 
@@ -146,9 +166,8 @@ instance (Typeable s, Typeable res) => AgentCommPriority (ManagerAgent s res) wh
     sendPriority  = sendPriority . managerAgentRef
     askPriority   = askPriority . managerAgentRef
 
-instance (EmptyResult res) => AgentsManager (ManagerAgent s res) s where
-    newAgentsManager   = flip newAgentsManagerAgent emptyResult
-                       =<< emptyManagerAgentDescriptor
+instance (EmptyResult res, Typeable res, Typeable s) => AgentsManager (ManagerAgent s res) s where
+    newAgentsManager   = newAgentsManagerAgent =<< emptyManagerAgentDescriptor
     listAgents         = listAgents . managerAgentM_
     listAgentStates    = listAgentStates . managerAgentM_
     registerAgent      = registerAgent . managerAgentM_
@@ -163,17 +182,19 @@ instance AgentsManagerOps (ManagerAgent s res) where
 class EmptyResult a where emptyResult :: a
 
 
-data ManagerAgentDescriptor = ManagerAgentDescriptor
-  {  managerBehaviour   :: AgentBehavior ()
+data ManagerAgentDescriptor s = ManagerAgentDescriptor
+  {  managerBehaviour   :: AgentBehavior s
   ,  aManagerIdPrefix_  :: String
   ,  aManagerCount_     :: TVar Int
   ,  debugManager       :: Bool
   }
 
-managerAgentDescriptor :: ManagerAgentDescriptor -> res -> AgentDescriptor () res
-managerAgentDescriptor descr noResult_ =
+generalizeManagerDescriptor :: ManagerAgentDescriptor m
+                            -> res
+                            -> AgentDescriptor m res
+generalizeManagerDescriptor descr noResult_ =
     AgentDescriptor{
-      newAgentStates = return ()
+      newAgentStates = return undefined
     , nextAgentId  = const $ do i <- atomically $ do aManagerCount_ descr `modifyTVar` (+1)
                                                      readTVar $ aManagerCount_ descr
                                 return . AgentId $ aManagerIdPrefix_ descr ++ show i
@@ -182,7 +203,7 @@ managerAgentDescriptor descr noResult_ =
     , debugAgent = debugManager descr
     }
 
-emptyManagerAgentDescriptor :: IO ManagerAgentDescriptor
+emptyManagerAgentDescriptor :: IO (ManagerAgentDescriptor s)
 emptyManagerAgentDescriptor = do
     cnt <- newTVarIO 0
     return ManagerAgentDescriptor{
@@ -192,12 +213,29 @@ emptyManagerAgentDescriptor = do
       debugManager = False
       }
 
-newAgentsManagerAgent :: ManagerAgentDescriptor -> res -> IO (ManagerAgent s res)
-newAgentsManagerAgent descr noResult_ = do
-    let d =  managerAgentDescriptor descr noResult_
-    (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent d
-    m <- newAgentsManager
-    return $ ManagerAgent ref m noResult_
+
+class CreateAgentsManager m s res | m -> s, m -> res
+  where
+    newAgentsManagerAgent :: ManagerAgentDescriptor s -> IO m
+
+
+instance (EmptyResult res, Typeable s) =>
+  CreateAgentsManager (ManagerAgent s res) s res where
+    newAgentsManagerAgent descr = do
+        let d =  generalizeManagerDescriptor descr (emptyResult :: res)
+        (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent d
+        m <- newAgentsManager
+        return $ ManagerAgent ref m emptyResult
+
+--newAgentsManagerAgent :: ( Typeable s, Typeable res
+--                         , AgentsManager m (s res), AgentsManagerOps m ) =>
+--                         ManagerAgentDescriptor (s res)
+--                      -> res -> IO m -- (ManagerAgent s res)
+--newAgentsManagerAgent descr noResult_ = do
+--    let d =  generalizeManagerDescriptor descr noResult_
+--    (_ :: AgentRunOfRole AgentsManagerRole, ref) <- createAgent d
+--    m <- newAgentsManager
+--    return $ ManagerAgent ref m noResult_
 
 -- -----------------------------------------------
 
