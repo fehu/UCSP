@@ -69,7 +69,7 @@ may be composed into hierarchical structure.
 
 >  type NegotiationResult c :: *
 >  type AgentsStatus c :: *
->  type AgentRunRole c :: *
+>  -- type AgentRunRole c :: *
 >  newAgents  :: forall states res ag s . ( Typeable ag, Typeable s, Show s
 >                                         , AgentCreate (AgentDescriptor states res) ag )
 >             => c  -> [CreateAgent states res ag s]
@@ -195,11 +195,42 @@ Controller implementation.
 
 \begin{code}
 
-  data CManagerState res  = forall m . ( AgentsManager m (AgentStatus' res)
-                                       , AgentsManagerOps m )
-                          => ManagerState  {  selfManager  :: m
-                                           ,  selfStatus   :: AgentStatus' res
-                                           }
+  data CManagerState res  = forall m ctrl . ( AgentsManager m (AgentStatus' res)
+                                            , AgentsManagerOps m
+                                            , Controller ctrl, Typeable ctrl
+                                            , ChildController ctrl
+                                            , Show (NegotiationResult ctrl)
+                                            )
+                          => CManagerState  {  selfManager  :: m
+                                            ,  selfCtrl     :: ctrl
+                                            ,  selfStatus   :: AgentStatus' res
+                                            }
+
+  instance Show (CManagerState res) where show CManagerState{} = "*ControllerManager State*"
+
+  instance AgentsManager (CManagerState res) (AgentStatus' res) where
+    newAgentsManager = undefined
+    listAgents CManagerState{selfManager}         = listAgents selfManager
+    listAgentStates CManagerState{selfManager}    = listAgentStates selfManager
+    registerAgent CManagerState{selfManager}      = registerAgent selfManager
+    unregisterAgent CManagerState{selfManager}    = unregisterAgent selfManager
+    createWithManager CManagerState{selfManager}  = createWithManager selfManager
+
+  instance ChildController (CManagerState res) where
+    parentController CManagerState{selfCtrl}  = parentController selfCtrl
+    orderController CManagerState{selfCtrl}   = orderController selfCtrl
+    askController CManagerState{selfCtrl}     = askController selfCtrl
+
+  instance Controller (CManagerState res) where
+    type NegotiationResult (CManagerState res) = res
+    type AgentsStatus (CManagerState res) = AgentStatus' res
+
+--    newAgents CManagerState{selfCtrl} = newAgents selfCtrl
+--    negotiatingAgents CManagerState{selfCtrl} = negotiatingAgents selfCtrl
+
+--    monitorStatus CManagerState{selfCtrl} = monitorStatus selfCtrl
+--    monitorStatus' CManagerState{selfCtrl} = monitorStatus' selfCtrl
+
 
 
   data ControllerImpl r res = ControllerImpl {
@@ -213,7 +244,7 @@ Controller implementation.
 
     type NegotiationResult (ControllerImpl r res)  = res
     type AgentsStatus (ControllerImpl r res)       = AgentStatus res
-    type AgentRunRole (ControllerImpl r res)       = r
+--    type AgentRunRole (ControllerImpl r res)       = r
 
     negotiatingAgents  = fmap (map (second selfStatus)) . listAgentStates . controllerMA
     newAgents ctrl ds  = sequence $ ds >>=
@@ -299,8 +330,8 @@ Controller and underlying entities creation.
 --                                    ,  handleCreateAgents m ])
 --                                (\_ m -> selectResponse [ responseCreateAgents m ])
 
-  controllerAct _ ctrl  = maybe (return ()) (notifyParentCtrl ctrl)
-                          =<< monitorStatus ctrl
+  controllerAct _ s  = maybe (return ()) (notifyParentCtrl s)
+                     =<< monitorStatus s
 
   instance Show (TVar (AgentStatus res)) where
     show _ = "TVar AgentStatus"

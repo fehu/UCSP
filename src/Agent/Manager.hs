@@ -22,7 +22,7 @@ module Agent.Manager (
 
 , EmptyResult(..)
 
-, handleStart, handleStop
+--, handleStart, handleStop
 )
 where
 
@@ -239,8 +239,8 @@ instance (EmptyResult res, Typeable s) =>
 
 -- -----------------------------------------------
 
-handleStart onStart  = mbHandle $ \StartMessage  -> onStart
-handleStop onStop    = mbHandle $ \StopMessage   -> onStop
+-- handleStart onStart  = mbHandle $ \StartMessage  -> onStart
+-- handleStop onStop    = mbHandle $ \StopMessage   -> onStop
 
 -- -----------------------------------------------
 
