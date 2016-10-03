@@ -71,6 +71,7 @@ data States r a = States {
   roledef_     :: RoleDef r a,
   ctx_         :: ContextsHolder r a
   }
+  deriving Typeable
 
 
 instance (Num a) => Contexts (States r a) a where
@@ -94,7 +95,8 @@ mkStates roledef initialStatus ctx decider = do
 
 groupStates  :: (Num a, Typeable a) =>
                 AgentStatus SomeCandidate
-             -> ContextsHolder Role.Group a -> DeciderUCSP a
+             -> ContextsHolder Role.Group a
+             -> DeciderUCSP a
              -> IO (States Role.Group a)
 groupStates =  mkStates $ RoleDef Role.Group $
                rCounterparts [ fmap SomeKnownAgent . uncurry getKnownProfessor

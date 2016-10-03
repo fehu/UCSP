@@ -180,6 +180,7 @@ data SomeCandidate  = forall a . SomeCandidate (Candidate a)
                     | NoCandidate
 
 instance Show SomeCandidate where show (SomeCandidate c) = show c
+                                  show NoCandidate = "NoCandidate"
 
 -- -----------------------------------------------
 

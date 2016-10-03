@@ -35,7 +35,7 @@ module Agent.Abstract(
 
 , AgentId(..)
 , AgentCommPriority(..), AgentControl(..)
-, AgentFullRef(..)
+, AgentFullRef(..), fullRef2Ref
 , AgentThread(..), AgentThreads(..)
 
 , selectMessageHandler, mbHandle
@@ -127,9 +127,7 @@ data AgentBehavior states = AgentBehavior {
   handleMessages  :: AgentHandleMessages states
   }
 
-
 \end{code}
-
 
 \subsubsection{Behavior definition}
 
@@ -374,6 +372,8 @@ data AgentFullRef =  forall ref . (AgentControl ref) =>
 
 instance Show AgentFullRef where
     show (AgentFullRef ref _) = "AgentFullRef " ++ show (agentId ref)
+
+fullRef2Ref (AgentFullRef ref _) = AgentRef ref
 
 \end{code}
 

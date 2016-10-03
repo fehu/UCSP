@@ -18,18 +18,10 @@
 \begin{code}
 module Main where
 
-import Agent
-import Agent.Controller
-
-import AUCSP.Contexts
-import AUCSP.NegotiatingAgent
-import AUCSP.NegotiationRoles (NegotiationRole)
-import AUCSP.NegotiationStates
+import AUCSP.NegotiationEnvironment
 import AUCSP.Test.TestData01
 
-import qualified AUCSP.NegotiationRoles as Role
-
-import Data.Typeable (Typeable)
+-- import Data.Typeable (Typeable)
 
 import Control.Monad
 
@@ -49,7 +41,7 @@ import Control.Monad
 
 Creation:
 
-\begin{code}
+% \begin{code}
 
 createAgent' :: ( Typeable r , NextId (States r a) r a
                 , ContextConstraints (States r a) a )
@@ -80,7 +72,7 @@ fixedTest = ControllerSystemDescriptor
                 undefined
                 []
 
-\end{code}
+% \end{code}
 
 
 descriptor :: ( Typeable r, NextId (States r a) r a
@@ -118,6 +110,23 @@ classroomDecider = decider'
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% \begin{code}
+
+groupsDescriptor wtime  = RoleAgentsDescriptor Group wtime
+                        $ describeNegotiation False [
+                          describeAgents groupDecider wtime
+                        ]
+
+% \end{code}
+
+
+
+
+
+
+
 
 
 \begin{code}
