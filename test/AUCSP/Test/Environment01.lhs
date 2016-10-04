@@ -36,67 +36,11 @@ import Control.Monad
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-
-\subsubsection{ Agents }
-
-Creation:
-
-% \begin{code}
-
-createAgent' :: ( Typeable r , NextId (States r a) r a
-                , ContextConstraints (States r a) a )
-             => DeciderUCSP a
-             -> Maybe Millis
-             -> (DeciderUCSP a -> IO (States r a))
-             -> Bool
-             -> IO (AgentRunOfRole NegotiationRole, AgentFullRef)
-createAgent' d w ns = createAgent <=< descriptor d w ns
-
-descriptor decider' wait newStates debug = do
-    idGens <- newIDGenerators
-    return $ negotiatingAgentDescriptor idGens decider' wait newStates debug
-
-
-groupAgent  :: AgentStatus SomeCandidate
-            -> Maybe Millis
-            -> ContextsHolder Role.Group Float
-            -> Bool
-            -> IO (AgentRunOfRole NegotiationRole, AgentFullRef)
-
-groupAgent d w      = createAgent' groupDecider w      . groupStates d
-professorAgent d w  = createAgent' professorDecider w  . professorStates d
-classroomAgent d w  = createAgent' classroomDecider w  . professorStates d
-
-
-fixedTest = ControllerSystemDescriptor
-                undefined
-                []
-
-% \end{code}
-
-
-descriptor :: ( Typeable r, NextId (States r a) r a
-              , ContextConstraints (States r a) a )
-           => DeciderUCSP a
-           -> (DeciderUCSP a -> IO (States r a))
-           -> IO (AgentDescriptor (States r a) SomeCandidate)
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-Contexts:
-
-%\begin{code}
-
-%\end{code}
-
-
-
-
 Deciders:
 
 \begin{code}
 
-decider' :: DeciderUCSP Float
+decider' :: DeciderUCSP Double
 decider' = DeciderUCSP {
   newProposal = undefined,
   commonGoal  = undefined
@@ -111,20 +55,17 @@ classroomDecider = decider'
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Descriptors:
 
-% \begin{code}
+\begin{code}
 
-groupsDescriptor wtime  = RoleAgentsDescriptor Group wtime
-                        $ describeNegotiation False [
-                          describeAgents groupDecider wtime
-                        ]
+describeGroups      = describeRole Group groupDecider groupStates [groupCtx]
+describeProfessors  = describeRole  FullTimeProfessor professorDecider
+                                    professorStates [profCtx1, profCtx2]
+describeClassrooms  = describeRole  Classroom classroomDecider
+                                    classroomStates [roomCtx1, roomCtx2]
 
-% \end{code}
-
-
-
-
-
+\end{code}
 
 
 

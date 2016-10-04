@@ -18,11 +18,14 @@
 module AUCSP.NegotiationEnvironment(
 
   newDefaultNegotiation
-, defaultControllerDescriptor
-, defaultRootControllerDescriptor
-, RoleAgentsDescriptor(..)
+, defaultControllerDescriptor, defaultRootControllerDescriptor
 
--- , describeNegotiation, describeAgents, newAgent
+, RoleAgentsDescriptor(..), SomeRoleAgentsDescriptor(..)
+
+, describeAgents, DescribeConstraints
+, DescribeAgents, DescribeAgentsBuild
+, describeRole, DescribeRole(..)
+, describeNegotiation, DescribeNegotiation(..)
 
 , module Export
 , module Role
@@ -35,6 +38,7 @@ where
   import AUCSP.NegotiationStates    as Export
   import AUCSP.NegotiatingAgent     as Export
   import AUCSP.Context              as Export
+  import AUCSP.Contexts             as Export
 
   import AUCSP.NegotiationRoles     as Role
 
@@ -154,13 +158,7 @@ changes.
  defaultControllerDescriptor  :: Maybe Millis
                               -> IO (ManagerAgentDescriptor (AgentStatus' SomeCandidate))
 
-> defaultControllerDescriptor
-
-  :: (Agent.Manager.AgentsManager s s1,
-      Agent.Controller.ChildController s,
-      Agent.Controller.Controller s) =>
-
->  :: -- (Show (NegotiationResult s)) =>
+> defaultControllerDescriptor ::
 >   Maybe Millis -> IO (ManagerAgentDescriptor (CManagerState SomeCandidate))
 
 > defaultControllerDescriptor waitTime = controllerManagerDescriptor False AgentBehavior {
@@ -227,61 +225,110 @@ Answers following messages:
 >       ctrlWaitTime        :: Maybe Millis,
 >       agentsDescriptors   :: [CreateNegotiationAgent r a] }
 
+> data SomeRoleAgentsDescriptor a = forall r . (Typeable r, RoleIx r, Show r) =>
+>      SomeRoleAgentsDescriptor (RoleAgentsDescriptor r a)
+
+
+> newDefaultNegotiation :: (Fractional a, Ord a, Show a, Typeable a) =>
+>                          [SomeRoleAgentsDescriptor a]
+>                       -> IO (NegotiationSysCtrl SomeCandidate)
 
 > newDefaultNegotiation roleDescrs = do
 >       root  <- defaultRootControllerDescriptor
 >       cads  <- sequence . flip map roleDescrs
->               $ \rd -> do
+>               $ \(SomeRoleAgentsDescriptor rd) -> do
 >                   md  <- defaultControllerDescriptor $ ctrlWaitTime rd
 >                   return $ ControlledAgentsDescriptor md
 >                          (agentsRole rd) (agentsDescriptors rd)
->       return  $ createControllerSystem
->               $ ControllerSystemDescriptor root cads
+>       createControllerSystem $ ControllerSystemDescriptor root cads
 
 
 
- type States' = forall r a . (Typeable r, Typeable a) => States r a
 
- newAgent :: (Typeable r) =>
-             DeciderUCSP a -> (DeciderUCSP a -> IO (States r a)) ->
-             Maybe Millis -> Bool -> IDGenerators -> CreateNegotiationAgent r a
-
-> newAgent decider newStates waitTime debug idGens = CreateAgent descr extractStatusState
+> newAgent decider newStates stateNumZero waitTime debug idGens =
+>   CreateAgent descr extractStatusState
 >    where  descr = negotiatingAgentDescriptor idGens decider waitTime newStates debug
 
->           extractStatusState :: AgentRunOfRole r -> AgentStatus' SomeCandidate
->           extractStatusState = undefined
+>           extractStatusState :: (Typeable r) => AgentRunOfRole r -> AgentStatus' SomeCandidate
+>           extractStatusState ag = statusState $ getStates stateNumZero ag
 
-           extractStatusState ag = fromJust $ getAgentState ag
-
-           f :: (Typeable r) => AgentRunOfRole r -> AgentStatus' SomeCandidate
-
-
-           f q = case findAgentState statusState q of Just s  -> s :: AgentStatus' SomeCandidate
-
- extractStatusState :: AgentRunOfRole r -> Maybe (AgentStatus' SomeCandidate)
- extractStatusState = undefined
-
- extractStatusState :: SomeStates -> AgentStatus' SomeCandidate
- extractStatusState (SomeStates s) = case cast s of Just States{statusState} -> statusState
-
-       where f = extractSomeState f
+> getStates :: (Typeable r, Typeable a) => a -> AgentRunOfRole r -> States r a
+> getStates _ = fromJust . extractAgentStates
 
 
- describeAgents  :: (Fractional a, Ord a, Show a, Typeable a, Typeable r ) =>
-                    DeciderUCSP a -> Maybe Millis
-                 -> Bool -> IDGenerators -> [DeciderUCSP a -> IO (States r a)]
-                 -> [CreateNegotiationAgent r a]
- describeAgents decider waitTime debug idGens = map $ \ns -> newAgent decider ns waitTime debug idGens
+> type DescribeConstraints r a = ( Fractional a, Ord a, Show a, Typeable a, Typeable r
+>                                , Context (Capabilities r) a, NextId (States r a) r a
+>                                )
 
- describeNegotiation :: Bool -> []
+> type DescribeAgents r a build = DeciderUCSP a -> [DeciderUCSP a -> IO (States r a)] -> build
+> type DescribeAgentsBuild r a  = Maybe Millis -> Bool -> a -> IDGenerators
+>                               -> [CreateNegotiationAgent r a]
 
-> describeNegotiation debug = map (($ newIDGenerators) . ($ debug))
 
- instance StatesAccess SomeStates (Maybe (AgentStatus' SomeCandidate))
-   where getState
+> describeAgents :: DescribeConstraints r a => DescribeAgents r a (DescribeAgentsBuild r a)
+> describeAgents  decider statesBuilders
+>                 waitTime debug zero idGens =
+>   map (\ns -> newAgent decider ns zero waitTime debug idGens) statesBuilders
+
+
+
+> data DescribeRole a = forall r . (Typeable r, RoleIx r, Show r) => DescribeRole {
+>       agentsRole'             :: r,
+>       agentsBuildDescriptors  :: DescribeAgentsBuild r a }
+
+
+> describeRole r decider mkStates ctxs =
+>    (DescribeRole r . describeAgents decider) <$> mapM (fmap $ mkStates Initialized) ctxs
+
+
+> data DescribeNegotiation a = DescribeNegotiation {
+>  negDebug          :: Bool,
+>  negAgentWaitTime  :: Maybe Millis,
+>  negCtrlWaitTime   :: Maybe Millis,
+>  negNumericZero    :: a,
+>  negRoles          :: [DescribeRole a]
+>  }
+
+
+
+> describeNegotiation :: (Fractional a, Ord a, Show a, Typeable a) =>
+>                        DescribeNegotiation a -> IDGenerators
+>                     -> [SomeRoleAgentsDescriptor a]
+> describeNegotiation d idGens = map build (negRoles d)
+>   where build (DescribeRole r b)  = SomeRoleAgentsDescriptor
+>               $ RoleAgentsDescriptor r (negCtrlWaitTime d)
+>               $ b (negAgentWaitTime d) (negDebug d) (negNumericZero d) idGens
+
+
 
 > instance EmptyResult SomeCandidate where emptyResult = NoCandidate
+
+> instance RoleIx Group      where roleIx _ = 1
+> instance RoleIx Professor  where roleIx _ = 2
+> instance RoleIx Classroom  where roleIx _ = 3
+
+
+
+
+Example.
+
+
+> describeExample = DescribeNegotiation  {
+>  negDebug          = False,
+>  negAgentWaitTime  = Just 100,
+>  negCtrlWaitTime   = Just 1000,
+>  negNumericZero    = 0 :: Float,
+>  negRoles          = [
+>    DescribeRole Group $ describeAgents groupDecider [st1, st2]
+>    ]
+>  }
+>    where  groupDecider = undefined
+>           st1 = undefined
+>           st2 = undefined
+
+> negotiationExample = do
+>   idGens <- newIDGenerators
+>   newDefaultNegotiation $ describeNegotiation describeExample idGens
 
 
 %if standalone

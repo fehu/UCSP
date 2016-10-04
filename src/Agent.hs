@@ -20,6 +20,8 @@ module Agent (
 
 , agentNoBehaviour
 
+, extractAgentStates
+
 , module A
 
 ) where
@@ -47,8 +49,6 @@ instance Show Message' where show (Message msg) = show msg
 
 -- -----------------------------------------------
 
---newtype AgentActDefault states = AgentActDefault (states -> Maybe (IO ()))
-
 data AgentRun r states = AgentRun {
   _agentId :: AgentId,
 
@@ -70,9 +70,13 @@ data AgentRun r states = AgentRun {
 
 getRunState = readTVar . _runState
 
--- updRunState :: forall r s . (Typeable r, Typeable s) => AgentRun r s -> RunState -> IO ()
 updRunState ag s = do  debugMsg ag $ "updating Run state: " ++ show s
                        atomically  $ _runStateUpdate ag `putTMVar` s
+
+
+extractAgentStates :: Typeable s => AgentRunOfRole r -> Maybe s
+extractAgentStates (AgentRunOfRole ag) = cast $ _states ag
+
 
 data MessageWithResponse r =
     forall msg resp . (Message msg, Message resp, ExpectedResponse msg ~ resp) =>

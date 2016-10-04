@@ -193,6 +193,10 @@ Agent's status represents it's execution state at the moment.
 
 Controller implementation.
 
+Controller's state --- \verb|CManagerState| ---  is an instance of 'Controller', but only type
+type instances are defined for it. Therefore no \verb|Controller|'s method should be used on
+\verb|CManagerState|. It has full \verb|ChildController| and \verb|AgentsManager| capabilities.
+
 \begin{code}
 
   data CManagerState res  = forall m ctrl . ( AgentsManager m (AgentStatus' res)
@@ -224,13 +228,6 @@ Controller implementation.
   instance Controller (CManagerState res) where
     type NegotiationResult (CManagerState res) = res
     type AgentsStatus (CManagerState res) = AgentStatus' res
-
---    newAgents CManagerState{selfCtrl} = newAgents selfCtrl
---    negotiatingAgents CManagerState{selfCtrl} = negotiatingAgents selfCtrl
-
---    monitorStatus CManagerState{selfCtrl} = monitorStatus selfCtrl
---    monitorStatus' CManagerState{selfCtrl} = monitorStatus' selfCtrl
-
 
 
   data ControllerImpl r res = ControllerImpl {
