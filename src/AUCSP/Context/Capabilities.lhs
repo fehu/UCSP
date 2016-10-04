@@ -7,8 +7,10 @@ module AUCSP.Context.Capabilities(
   Capabilities(GroupCapabilities, FullTimeProfCapabilities, ClassroomCapabilities)
 
 , CanTeachRel(..), NeedsDisciplineRel(..)
-
+, MeetsRequirementsRel(..), EnoughCapacityRel(..)
 ) where
+
+import Agent.Abstract
 
 import AUCSP.Classes
 import qualified AUCSP.NegotiationRoles as Role
@@ -108,6 +110,44 @@ instance BinaryRelation NeedsDisciplineRel where
 
 -- -----------------------------------------------
 
+data MeetsRequirementsRel a = MeetsRequirementsRel
+
+instance Functor MeetsRequirementsRel where fmap _ = const MeetsRequirementsRel
+type instance RelationDetails MeetsRequirementsRel = NoDetails
+instance InformationRelation MeetsRequirementsRel where  relationName _ = "Meets Requirements"
+                                                         coerceRelation = coerce
+instance BinaryRelation MeetsRequirementsRel where
+    binRelValue _ a b = do  let v reqs c =  if all (`member` reqs)
+                                                $ disciplineRequirements $ classDiscipline c
+                                          then 1 else 0
+                            RoomProvides rs <- collectInf a
+                            let r1  = case collectInf b of Just (SomeClass c)  -> Just (v rs c, NoDetails)
+                                r2  = case collectInf b of Just (Class c)      -> Just (v rs c, NoDetails)
+                            r1 <|> r2
+
+
+-- -----------------------------------------------
+
+data EnoughCapacityRel a = EnoughCapacityRel {
+    getGroupSize :: AgentRef' Role.Group -> Int
+    }
+
+instance Functor EnoughCapacityRel where fmap _ = EnoughCapacityRel . getGroupSize
+type instance RelationDetails EnoughCapacityRel = NoDetails
+instance InformationRelation EnoughCapacityRel where  relationName _ = "Enough Capacity"
+                                                      coerceRelation = coerce
+instance BinaryRelation EnoughCapacityRel where
+    binRelValue r a b = do  let v :: (AbstractClass c, Num n) => Int -> c -> n
+                                v size c =  if getGroupSize r (classGroup c) > size
+                                            then 0 else 1
+                            RoomCapacity cap <- collectInf a
+                            let r1  = case collectInf b of Just (SomeClass c)  -> Just (v cap c, NoDetails)
+                                r2  = case collectInf b of Just (Class c)      -> Just (v cap c, NoDetails)
+                            r1 <|> r2
+
+
+-- -----------------------------------------------
+
 instance (Num a) => Context (Capabilities Role.Group) a where
   contextName _       = "Capabilities"
   contextInformation  = return . fromNodes . (:[])
@@ -140,6 +180,30 @@ instance (Num a) => Context (Capabilities Role.Professor) a where
   combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
 
   noAssessmentDetails _ = NoDetails
+
+
+
+instance (Num a) => Context (Capabilities Role.Classroom) a where
+  contextName _         = "Capabilities"
+  contextInformation c  = return $ fromNodes [
+                        Information . RoomProvides . Set.fromList
+                            $ classroomCapabilities c,
+                        Information . RoomCapacity
+                            $ classroomCapacity c
+                        ]
+
+--    contextRelations _  = return [ RelBin MeetsRequirementsRel
+--                                 , RelBin EnoughCapacityRel ]
+--  contextThreshold _  = return 0
+
+--  type AssessmentDetails (Capabilities Role.Professor) = NoDetails
+
+--  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
+--  combineBinRels      = Combine.binRelsProduct (const NoDetails)
+--  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+--  noAssessmentDetails _ = NoDetails
+
 
 \end{code}
 

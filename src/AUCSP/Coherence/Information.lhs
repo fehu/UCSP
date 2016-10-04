@@ -13,7 +13,7 @@ module AUCSP.Coherence.Information (
 , collectInf, collectInf', collectInfs
 
 , Needs(..), CanTeach(..) -- TODO: Should be moved from here
-
+, RoomProvides(..), RoomCapacity(..)
 ) where
 
 import Agent.Abstract (AgentRef)
@@ -152,8 +152,16 @@ newtype Needs = Needs(Set Discipline)
 newtype CanTeach = CanTeach  (Set Discipline)
     deriving ( Eq, Ord, Show, Typeable )
 
+newtype RoomProvides = RoomProvides (Set Requirement)
+    deriving ( Eq, Ord, Show, Typeable )
+
+newtype RoomCapacity = RoomCapacity Int
+    deriving ( Eq, Ord, Show, Typeable )
+
 instance InformationPiece Needs
 instance InformationPiece CanTeach
+instance InformationPiece RoomProvides
+instance InformationPiece RoomCapacity
 
 
 \end{code}
