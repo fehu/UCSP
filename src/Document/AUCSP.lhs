@@ -19,7 +19,7 @@
 
 
 \subsection{University Classes}
-% include ../AUCSP/Classes.lhs
+%include ../AUCSP/Classes.lhs
 
 \subsection{Negotiating Agents}
 %include ../AUCSP/NegotiationRoles.lhs

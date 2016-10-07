@@ -55,7 +55,7 @@ agents with cached information about their capabilities.
 
 There is a single binary relation in this context --- \emph{opinion}
 of agent $\mathrm{ag}^\mathrm{role}_i$ about class $c_i$, of which consists
-the proposal in question $p_k$. They are combined using $\product$ operation.
+the proposal in question $p_k$. They are combined using $\prod$ operation.
 
 \begin{code}
 

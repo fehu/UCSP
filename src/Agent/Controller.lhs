@@ -69,7 +69,7 @@ may be composed into hierarchical structure.
 
 >  type NegotiationResult c :: *
 >  type AgentsStatus c :: *
->  -- type AgentRunRole c :: *
+
 >  newAgents  :: forall states res ag s . ( Typeable ag, Typeable s, Show s
 >                                         , AgentCreate (AgentDescriptor states res) ag )
 >             => c  -> [CreateAgent states res ag s]
@@ -154,7 +154,7 @@ A parent controller must:
 
 
 
-Agent's status represents it's execution state at the moment.
+% Agent's status represents it's execution state at the moment.
 
 
 
@@ -220,6 +220,7 @@ type instances are defined for it. Therefore no \verb|Controller|'s method shoul
     unregisterAgent CManagerState{selfManager}    = unregisterAgent selfManager
     createWithManager CManagerState{selfManager}  = createWithManager selfManager
 
+
   instance ChildController (CManagerState res) where
     parentController CManagerState{selfCtrl}  = parentController selfCtrl
     orderController CManagerState{selfCtrl}   = orderController selfCtrl
@@ -236,18 +237,18 @@ type instances are defined for it. Therefore no \verb|Controller|'s method shoul
    parentController_  :: SomeParentController
    }
 
+
   instance ( Typeable r, Typeable res, EmptyResult res ) =>
     Controller (ControllerImpl r res) where
 
     type NegotiationResult (ControllerImpl r res)  = res
     type AgentsStatus (ControllerImpl r res)       = AgentStatus res
---    type AgentRunRole (ControllerImpl r res)       = r
 
     negotiatingAgents  = fmap (map (second selfStatus)) . listAgentStates . controllerMA
     newAgents ctrl ds  = sequence $ ds >>=
         \d -> return $ do
             AgentsCreated ags <- controllerMA ctrl `ask` CreateAgents ds
-            return . fromJust $ cast ags -- @UNSAFE
+            return . fromJust $ cast ags -- UNSAFE!
 
     monitorStatus c = do  ags <- negotiatingAgents c
                           sts <-  atomically . sequence
@@ -264,6 +265,7 @@ type instances are defined for it. Therefore no \verb|Controller|'s method shoul
                              (r, s) <- rss
                              maybeToList  . fmap ((,) r)
                                                       $ mbTerminated s
+
 
   instance (Typeable res) => ChildController (ControllerImpl r res) where
     parentController = parentController_
@@ -319,13 +321,6 @@ Controller and underlying entities creation.
       ,  aManagerCount_ = cnt
       ,  debugManager = debug
       }
-
--- managerBehaviour  = AgentBehavior (AgentActRepeat controllerAct waitTime)
---                           $ AgentHandleMessages
---                                (\_ m -> selectMessageHandler
---                                    [  handleStart undefined, handleStop undefined
---                                    ,  handleCreateAgents m ])
---                                (\_ m -> selectResponse [ responseCreateAgents m ])
 
   controllerAct _ s  = maybe (return ()) (notifyParentCtrl s)
                      =<< monitorStatus s

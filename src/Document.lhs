@@ -25,11 +25,21 @@
 \subsection{Agent}
 %include Agent/Abstract.lhs
 
+
 \subsection{Agent Implementation}
+%include AUCSP/NegotiationStates.lhs
 %include AUCSP/NegotiatingAgent.lhs
 
 \subsection{Controller}
 %include Agent/Controller.lhs
+
+\subsection{Negotiation Environment}
+%include AUCSP/NegotiationEnvironment.lhs
+
+
+\section{Tests}
+
+%include AUCSP/Test/TestData01.lhs
 
 \end{document}
 
