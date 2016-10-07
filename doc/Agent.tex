@@ -23,7 +23,12 @@ with no ``external'' cause.
 Agents have \emph{roles}, that describe whom or what an agents represents
 in the negotiation.
 
-The negotiation is organized by special kind of agents --- \emph{controllers}.
+A negotiation has a \emph{classes pool}, distributed between the agents.
+A class $\left< d, g, p, r, \bar d, t, t \right>$ is known to agents,
+representing $g$, $p$ and $r$. 
+
+Negotiations are organized by special kind of agents --- \emph{controllers}.
+
 
 \subsection{Agents}
 
@@ -59,17 +64,19 @@ A \emph{coherence-based agent} bases its decisions on existing \emph{candidates}
 and their \emph{coherence}. It must contain it's contexts within the state,
 define contexts order and set the splitting one. It also must provide a
 \emph{decider}.
+\medskip
 
+\noindent
 Such agent acts as follows:
-\begin{enumerate*}
-\item Gets it's \emph{classes pool}, that may be stored within some context or
+\begin{enumerate}
+\item Gets its \emph{classes pool}, that may be stored within some context or
   somewhere else in the state.
 \item Generates the initial candidates, using the \emph{splitting context} and
   classes pool.
 \item Propagates the candidates through the contexts, as described in section
   \ref{section:coherence}.
 \item Passes the \emph{assessed candidates} to the \emph{decider}.
-\end{enumerate*}
+\end{enumerate}
 
 The decider must choose between two actions:
 \begin{itemize}
