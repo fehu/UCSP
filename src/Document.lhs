@@ -22,11 +22,14 @@
 \section{Implementation}
 %include Document/AUCSP.lhs
 
-\subsection{Generic Agent}
-%include GenericAgent.lhs
+\subsection{Agent}
+%include Agent/Abstract.lhs
 
 \subsection{Agent Implementation}
 %include AUCSP/NegotiatingAgent.lhs
+
+\subsection{Controller}
+%include Agent/Controller.lhs
 
 \end{document}
 

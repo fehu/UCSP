@@ -1,14 +1,14 @@
 %if standalone
 \documentclass{article}
 
-%include format.fmt
+%include Document/format.fmt
 %include polycode.fmt
 %include forall.fmt
 
 %format AnyFunc1 = "\mathrm{AnyFunc}_1"
 
 
-\input{Header}
+\input{Document/Header}
 
 %endif
 
@@ -19,7 +19,7 @@
 
 
 \subsection{University Classes}
-%include ../AUCSP/Classes.lhs
+% include ../AUCSP/Classes.lhs
 
 \subsection{Negotiating Agents}
 %include ../AUCSP/NegotiationRoles.lhs

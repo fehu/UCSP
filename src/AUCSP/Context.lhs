@@ -217,13 +217,13 @@ class (Context c a) => SplittingContext c a where
 
 
 
-%include Contexts/Combine.lhs
-%include Contexts/InUnitInterval.lhs
+%include Context/Combine.lhs
+%include Context/InUnitInterval.lhs
 
-%include Contexts/Capabilities.lhs
-%include Contexts/Beliefs.lhs
-%include Contexts/Obligations.lhs
-%include Contexts/Preferences.lhs
-%include Contexts/External.lhs
+%include Context/Capabilities.lhs
+%include Context/Beliefs.lhs
+%include Context/Obligations.lhs
+%include Context/Preferences.lhs
+%include Context/External.lhs
 
 
