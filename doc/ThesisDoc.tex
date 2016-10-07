@@ -1,0 +1,56 @@
+\documentclass{article}
+
+\usepackage[english]{babel}
+\usepackage{hyperref, float, amsmath} 
+\usepackage{tikz, xcolor} % ifthen, 
+
+%\usepackage[inline, shortlabels]{enumitem}
+
+\usetikzlibrary{fit, calc, arrows, shapes}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+
+
+\begin{document}
+
+% \begin{abstract}  % TODO
+% \emph{University classes scheduling} is an old, well-known problem, that
+% was attacked by the researches only recently, as the advances in electronics,
+% made in the last 10--15 years, permitted construction of computational
+% systems, far more advanced than \red{\dots}
+% \end{abstract}
+
+% Solutions to the problem are the \emph{university schedules}, that are
+% composed of \emph{individual schedules} for each \emph{group} (\emph{student}),
+% \emph{professor} and \emph{classroom}.
+
+% Individual schedules are represented by \emph{timetables}, that hold one's
+% \emph{classes} for a week. % TODO: rewrite this!
+% A \emph{class} denotes some activity for a group of students under professor's
+% supervision, that takes place in the classroom assigned. Actual activity and
+% therefore the requirements, imposed on both professor and classroom, are defined by the
+% \emph{discipline} in question.
+
+\begin{abstract}
+  
+University classes scheduling problem consists in assigning
+the \emph{classes}, defined by the academic program, for
+each group of students, possibly taking in account participants' interests.
+
+The problem is solved by agents negotiation over possible classes
+configurations. The \emph{negotiating agents} are grouped by \emph{roles}:
+\emph{professors} (\emph{full} and \emph{part time}), \emph{students} (\emph{groups}) and
+\emph{classrooms}. Each agent has the knowledge, required by it's role.
+
+The \emph{configuration} quality is assessed by it's \emph{coherence}.
+A solution must exceed some quality threshold.
+
+\end{abstract}
+
+\input{Problem}
+\input{Coherence}
+\input{Agent}
+
+
+\end{document}

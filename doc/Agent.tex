@@ -1,0 +1,172 @@
+%\begin{document}
+
+
+% \def\lifetime    {\mathit{lifetime}}
+% \def\class       {\mathit{class}}
+% \def\execute     {\mathit{execute}}
+% \def\decide      {\mathit{decide}}
+% \def\knownClasses{\overset{\mathrm{known}}{\mathit{classes}}}
+
+
+\section{Agents and Negotiation}
+
+The \emph{negotiating agents} are isolated proactive computational entities,
+capable of sending and receiving messages.
+
+The \emph{isolation} denotes that agents' internal states are protected
+from outside access. Messaging is the only way an agent can be interacted with.
+To ensure it, an agent is normally never interacted with directly, but 
+communicated via \emph{agent reference} instead.
+The \emph{pro-activity} implies a capacity of acting asynchronously, 
+with no ``external'' cause.
+
+Agents have \emph{roles}, that describe whom or what an agents represents
+in the negotiation.
+
+The negotiation is organized by special kind of agents --- \emph{controllers}.
+
+\subsection{Agents}
+
+In it's state an agent holds the \emph{run state} and special \emph{shared
+  state}, called \emph{status}. The run state controls agent's execution
+(and termination), while the status is monitored by the respective controller.
+Agents have three \emph{run states}: ``Paused'', ``Running'' and ``Terminate''.
+The first two states control pro-action; setting the last one causes all
+agent's processes to stop. The \emph{status}es are further described in
+section \ref{agentControllers}.
+
+\subsubsection{Behavior}
+
+Agent's behavior is flexible and may be changed during agent's lifetime.
+It is determined by \emph{message handling} and \emph{action} functions.
+
+An agent can simply \emph{send} a message, or it can \emph{ask} for some
+\emph{expected response}, corresponding to the message sent. Agents have
+separate handler functions for the two cases. All behavior functions
+accept two arguments:
+\begin{enumerate}
+\item the agent's \emph{inner interface}, that provides
+  control over agent's own behavior and lifetime;
+\item agent's \emph{internal state}.
+\end{enumerate}
+ 
+Agents are executed in two computational threads: one for message handling
+and another for proactive action.
+
+\subsubsection{Coherence-based}
+
+A \emph{coherence-based agent} bases its decisions on existing \emph{candidates}
+and their \emph{coherence}. It must contain it's contexts within the state,
+define contexts order and set the splitting one. It also must provide a
+\emph{decider}.
+
+Such agent acts as follows:
+\begin{enumerate*}
+\item Gets it's \emph{classes pool}, that may be stored within some context or
+  somewhere else in the state.
+\item Generates the initial candidates, using the \emph{splitting context} and
+  classes pool.
+\item Propagates the candidates through the contexts, as described in section
+  \ref{section:coherence}.
+\item Passes the \emph{assessed candidates} to the \emph{decider}.
+\end{enumerate*}
+
+The decider must choose between two actions:
+\begin{itemize}
+\item Add new class(es) to the \emph{pool}. Such decision is taken if
+  none of assessed candidates is \emph{acceptable}.
+\item Select best solution and wait. This should be done if a satisfying
+  solution was found. The agent's \emph{run state} is set to ``Paused'' and
+  the \emph{status} is updated to ``Waiting''.
+\end{itemize}
+
+\subsubsection{Classes generation}
+\red{TO DO}
+
+
+\subsubsection{Pool cleanup}
+\red{TO DO}
+
+
+
+
+
+\subsection{Controllers}
+
+The controllers create new negotiating agents, and monitor their \emph{status}es
+over their lifetimes. Controllers also provide communication references for the
+agents they control. In order to facilitate references sharing, the controllers
+are restricted to a single \emph{role} for it's agents.
+
+Controllers have hierarchical structure, starting with the \emph{root
+  controller}. The orders received by \emph{root} are propagated to
+the underlying controllers.
+
+\medskip
+
+As mentioned before, negotiating agents have a special state,
+called \emph{status}, that is monitored by the controllers. Apart
+from receiving agents' errors, the \emph{status}es are used to
+extract the \emph{distributed solution} from the agents.
+This is done using ``Waiting'' and ``Locked'' statuses.
+
+The agents set ``Waiting'' status when a suitable solution is found,
+and the corresponding controller waits for all of its subjugated
+agents to set it. When it is done, the controller sends ``Lock''
+command to the agents and notifies the \emph{parent controller}.
+When the \emph{root controller} receives ``Lock'' notifications from
+all the controllers, it sends ``Collect'' order. On that order, the controllers
+extract the solution parts (guarded in the statuses) and propagate them up to
+the root.
+
+
+
+
+
+
+
+% An agent is executing repetitively it's \emph{lifetime} function, while it remains
+% capable of responding messages.
+
+% \begin{align*}
+%   \knownClasses &: \{\class_i\} \\
+%   \lifetime &:~ \knownClasses \mapsto * \\
+%   \lifetime &=  \execute \circ \decide \\
+%   \decide   &:~ \knownClasses \mapsto
+%               \mathrm{New\,candidate} ~|~
+%               \mathrm{Ask\,acceptance} ~|~
+%               \mathrm{Ask\,to\,yield}
+% \end{align*}
+
+% \subsection{New candidate}
+% When no satisfying \emph{candidate} was found, new \emph{candidate}
+% needs to be aggregated to the \emph{known classes}.
+% The candidate must be \emph{internally coherent}.
+
+% The newly created \emph{classes} (of which consists a candidate) are
+% sent to the corresponding professor, group and classroom (except self).
+% A confirmation, based on \emph{capabilities} must be received from all
+% the candidates. Otherwise, another candidate must be generated.
+
+% \textit{A cache might be used for the capabilities.}
+
+
+% \subsection{Ask acceptance}
+% When a candidate has no no contradiction at any context, an agent may decide to
+% select it as it's part of solution and wait for the rest to do the same.
+% It can be woken by a successful yield demand, forcing the waiting agent to
+% search for a new solution.
+
+
+% \subsection{Ask to yield}
+% It is a solution when small percent of counterparts responded with a bad
+% opinion (\emph{external} context) about a candidate. It asks them to yield
+% to the candidate, that would mean (??) deleting (??) the contradicting classes
+% in case of acceptance.  All asked agents must respond positively in order for
+% the deletion to take place. In case of any refusal, the initial agent must
+% (??) delete (??) the contradicting classes instead.
+
+% The decision whether to yield or not is made considering the best inner
+% coherence of any configuration, containing any contradicting class.
+
+%\end{document}
