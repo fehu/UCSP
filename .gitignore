@@ -16,6 +16,13 @@ cabal.sandbox.config
 .stack-work/
 
 # LaTeX build and preview
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+
 *.dvi
 *.pdf
 
