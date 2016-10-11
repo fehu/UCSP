@@ -1,14 +1,19 @@
 \documentclass{article}
 
 \usepackage[english]{babel}
-\usepackage{hyperref, float, amsmath} 
+\usepackage{hyperref, float, amsmath}
 \usepackage{tikz, xcolor, ifthen}
+\usepackage{enumitem, caption, subcaption}
+
+%\usepackage[list=off]{caption}
 
 %\usepackage[inline, shortlabels]{enumitem}
 
 \usetikzlibrary{fit, calc, arrows, shapes}
 
 \newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\green}[1]{{\color{green} #1}}
+\newcommand{\yellow}[1]{{\color{yellow} #1}}
 
 
 
@@ -33,7 +38,7 @@
 % \emph{discipline} in question.
 
 \begin{abstract}
-  
+
 University classes scheduling problem consists in assigning
 the \emph{classes}, defined by the academic program, for
 each group of students, possibly taking in account participants' interests.
