@@ -57,7 +57,8 @@ each agent, mentioned by candidate's underlying classes, yields the same
 coherence assessment for the candidate.
 
 
-\begin{align*}
+\begin{align}
+  \label{eq:coh-fun-independ}
   \begin{aligned}
     &\forall \tilde{c} = \{c_k\} \\
     &\forall c_i \sim \left< \dots, g_i, p_i, r_i, \dots \right> \\
@@ -66,10 +67,10 @@ coherence assessment for the candidate.
 & \implies
   \begin{aligned}
    \coh[g_i](\tilde c) &= \coh[g_j](\tilde c) = \\
-   = \coh[p_i](\tilde c) &= \coh[p_j](\tilde c) = \\  
+   = \coh[p_i](\tilde c) &= \coh[p_j](\tilde c) = \\
    = \coh[r_i](\tilde c) &= \coh[r_j](\tilde c)
   \end{aligned}
-\end{align*}
+\end{align}
 
 \medskip
 
