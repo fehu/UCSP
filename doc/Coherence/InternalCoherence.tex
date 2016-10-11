@@ -14,6 +14,11 @@ All the relations should yield
   \item [0], otherwise.
 \end{itemize}
 
+The threshold for this context is $1$.
+All types of restrictions are combined by \emph{multiplication}, thus
+any broken condition would cause zero result.
+
+
 Institution restrictions:
 \begin{itemize}
 \item \textbf{Group:} the candidate has the correct amount of classes for each
@@ -156,7 +161,9 @@ The splitting process uses context's relation \emph{aggregation} strategy.
 
 The obligations determine custom \emph{strong restrictions} over the classes.
 As in the case of \emph{capabilities}, the obligation relations must yield a
-boolean result.
+boolean result. The threshold in this context is $1$ and the restrictions are
+combined by \emph{multiplication}.
+
 
 Possible \emph{obligation relations} examples: maximum classes per day,
 lunch recess time, lower/upper class time limit, two classes must/cannot follow etc.
@@ -168,6 +175,9 @@ lunch recess time, lower/upper class time limit, two classes must/cannot follow 
 
 The preferences define \emph{weak restrictions}. The relations values might be any
 value within $[0,1]$ interval. To avoid overrestrictions, this context's \emph{threshold}
-should decrease with time.
+should decrease with time. The binary and whole-graph relations are combined
+using \emph{mean} operation; the two results are combined by sum. The
+\emph{initial threshold value}, as well as preference threshold \emph{decrease rate}
+must be explicitly provided.
 
 \red{Possible preferences}
