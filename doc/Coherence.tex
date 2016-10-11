@@ -12,6 +12,9 @@
 
 %\begin{document}
 
+\def\coh{\mathrm{coh}}
+\def\cohi{\mathrm{\widetilde{coh}}}
+
 
 \section{Coherence and Contexts}
 \label{section:coherence}
@@ -102,10 +105,18 @@ contexts.
 \subsection{Internal Contexts}
 
 An internal context requires no knowledge from other agents.
+The combined coherence of all the internal contexts is called
+\emph{inner coherence} and is denoted as $\cohi$.
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \subsubsection{Capabilities}
 
 Represent \emph{strong} restrictions, imposed by the institution.
+All the relations should yield
+\begin{itemize}
+  \item [1], if the restriction is satistied;
+  \item [0], otherwise.
+\end{itemize}
 
 Institution restrictions:
 \begin{itemize}
@@ -126,6 +137,7 @@ of unacceptable classes.
 \end{figure}
 
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \subsubsection{Beliefs (Time Consistency)}
 
 Asserts that all the classes (concerning the assessing agent), are consistent in
@@ -133,13 +145,23 @@ time (do not intersect). This context is a splitting one, it uses the time
 consistence relation to generate all possible time-consistent candidates from
 given classes. It's internal knowledge should hold \emph{classes pool}, that
 would be used for candidates generation via \emph{graph splitting}.
+\\
 
-The splitting process uses \emph{aggregation} strategy.
+The \emph{time consistence} relation yields following values:
+\begin{itemize}[leftmargin=2cm]
+  \item[-1], if two classes intersect in time (are inconsistent);
+  \item[0], if two classes differ only by time
+            (while have same discipline, group, professor and classroom);
+  \item[1], otherwise (are consistent).
+\end{itemize}
+
+
+The splitting process uses context's relation \emph{aggregation} strategy.
 
 \begin{align*}
-  \mbox{Let } & C=\lbrace c \rbrace \text{ be a set of \emph{class proposals}}.\\
+  \mbox{Let } & C=\lbrace c \rbrace \text{ be the \emph{classes pool}}.\\
             ~ & A_i=\lbrace a_i \rbrace \text{ be a set of \emph{acceptable candidates},
-                                         composed of } i \text{ proposals.}\\
+                                         composed of } i \text{ classes.}\\
             ~ & A=\bigcup\limits_{i} A_i \text{ be a set of \emph{acceptable candidates}}.
 \end{align*}
 
@@ -147,12 +169,13 @@ The splitting process uses \emph{aggregation} strategy.
   \item Each single-class candidate is acceptable:
     $A_1 = \lbrace [ c ] ~||~ \forall ~ c \in C \rbrace$.
   \item Form $A_2$ by extending each candidate $[c'] = a_1 \in A_1$ with $c \in C$,
-    if and only if $c'$ and $c$ do not intersect. If $A_1 \not= \emptyset$,
-    then try to form $A_2$.
+    if and only if $c'$ and $c$ are \emph{consistent in time}.
+    If $A_1 \not= \emptyset$, then try to form $A_2$.
   \item[\vdots]
   \item[i.] Form $A_i$ by extending each candidate $[c'_1, \dots, c'_{i-1}] = a_{i-1}
     \in A_{i-1}$ with $c \in C$, if and only if $\forall c' \in a_{i-1}, ~c'$
-    and $c$ do not intersect. If $A_i \not= \emptyset$, then try to form $A_{i+1}$.
+    and $c$ are \emph{consistent in time}.
+    If $A_i \not= \emptyset$, then try to form $A_{i+1}$.
    \item[\vdots]
    \item[n.] $A_n = \emptyset \implies$ all the \emph{acceptable candidates}
      were generated. Done.
@@ -230,19 +253,34 @@ The splitting process uses \emph{aggregation} strategy.
                                     \textbf{3}  3-class candidates.}
 \end{figure}
 
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \subsubsection{Obligations}
 
-\red{TO DO}
+The obligations determine custom \emph{strong restrictions} over the classes.
+As in the case of \emph{capabilities}, the obligation relations must yield a
+boolean result.
 
+Possible \emph{obligation relations} examples: maximum classes per day,
+lunch recess time, lower/upper class time limit, two classes must/cannot follow etc.
+
+\red{At the moment there are no obligations used (but they are supported).}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \subsubsection{Preference}
 
-\red{TO DO}
+The preferences define \emph{weak restrictions}. The relations values might be any
+value within $[0,1]$ interval. To avoid overrestrictions, this context's \emph{threshold}
+should decrease with time.
 
+\red{Possible preferences}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \subsection{External}
 
 The external context asks counterparts an \emph{opinion} about a candidate.
-An opinion is the \emph{inner coherence} (coherence accumulated at internal
-contexts) of the agent being asked.
+An opinion is the \emph{inner coherence} of the agent being asked.
 
 \red{todo: images from g-drive ``ThesisCandidatesCommonGoal''}
 
