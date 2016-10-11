@@ -160,9 +160,12 @@ instance (Num a) => Context Beliefs a where
 
   type AssessmentDetails Beliefs = NoDetails
 
-  combineWholeRels    = Combine.wholeRelsProduct (const NoDetails)
-  combineBinRels      = Combine.binRelsProduct (const NoDetails)
-  combineRels         = Combine.relsProduct (\_ _ -> NoDetails)
+
+-- TODO must not be product !!!
+
+  combineWholeRels    = undefined -- Combine.wholeRelsProduct (const NoDetails)
+  combineBinRels      = undefined -- Combine.binRelsProduct (const NoDetails)
+  combineRels         = undefined -- Combine.relsProduct (\_ _ -> NoDetails)
 
   noAssessmentDetails _ = NoDetails
 
