@@ -15,9 +15,9 @@ capable of sending and receiving messages.
 
 The \emph{isolation} denotes that agents' internal states are protected
 from outside access. Messaging is the only way an agent can be interacted with.
-To ensure it, an agent is normally never interacted with directly, but 
+To ensure it, an agent is normally never interacted with directly, but
 communicated via \emph{agent reference} instead.
-The \emph{pro-activity} implies a capacity of acting asynchronously, 
+The \emph{pro-activity} implies a capacity of acting asynchronously,
 with no ``external'' cause.
 
 Agents have \emph{roles}, that describe whom or what an agents represents
@@ -25,7 +25,7 @@ in the negotiation.
 
 A negotiation has a \emph{classes pool}, distributed between the agents.
 A class $\left< d, g, p, r, \bar d, t, t \right>$ is known to agents,
-representing $g$, $p$ and $r$. 
+representing $g$, $p$ and $r$.
 
 Negotiations are organized by special kind of agents --- \emph{controllers}.
 
@@ -54,7 +54,7 @@ accept two arguments:
   control over agent's own behavior and lifetime;
 \item agent's \emph{internal state}.
 \end{enumerate}
- 
+
 Agents are executed in two computational threads: one for message handling
 and another for proactive action.
 
@@ -67,7 +67,7 @@ define contexts order and set the splitting one. It also must provide a
 \medskip
 
 \noindent
-Such agent acts as follows:
+Such agent acts repeatedly:
 \begin{enumerate}
 \item Gets its \emph{classes pool}, that may be stored within some context or
   somewhere else in the state.
@@ -88,10 +88,22 @@ The decider must choose between two actions:
 \end{itemize}
 
 \subsubsection{Classes generation}
-\red{TO DO}
+When no \emph{acceptable candidates} can be obtained by combining the classes
+from the \emph{pool}, new class need to be added (to the \emph{classes pool}).
 
+In order to avoid ``garbage'' classes generation, the newly created classes must:
+\begin{itemize}
+  \item Be \emph{capacity} consistent. The group, professor and classroom,
+    assigned to the class, must be \emph{capable} of handling the assigned discipline
+    (it must comply with their respective \emph{capabilities}).
+  \item Not be a repetition of any of \emph{discarted classes}
+    (see section \ref{section:clean-pool}).
+\end{itemize}
+
+\red{Furthermore, the generation \dots}
 
 \subsubsection{Pool cleanup}
+\label{section:clean-pool}
 \red{TO DO}
 
 
