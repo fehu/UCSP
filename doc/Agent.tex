@@ -88,22 +88,46 @@ The decider must choose between two actions:
 \end{itemize}
 
 \subsubsection{Classes generation}
+\label{section:class-gen}
 When no \emph{acceptable candidates} can be obtained by combining the classes
 from the \emph{pool}, new class need to be added (to the \emph{classes pool}).
 
 In order to avoid ``garbage'' classes generation, the newly created classes must:
-\begin{itemize}
+\begin{enumerate}[(1)]
   \item Be \emph{capacity} consistent. The group, professor and classroom,
     assigned to the class, must be \emph{capable} of handling the assigned discipline
     (it must comply with their respective \emph{capabilities}).
   \item Not be a repetition of any of \emph{discarted classes}
     (see section \ref{section:clean-pool}).
-\end{itemize}
+\end{enumerate}
 
-\red{Furthermore, the generation \dots}
+In order to keep track of discarted classes without keeping them around,
+class \emph{hashes} may be used. The only restriction on hash function is
+injectiveness:
+\begin{align*}
+  \forall c_1, c_2 \in \text{ \emph{classes}} & \\
+  \mathrm{hash}(c_1) &= \mathrm{hash}(c_2) \implies c_1 = c_2
+\end{align*}
 
 \subsubsection{Pool cleanup}
 \label{section:clean-pool}
+
+Even with no discipline-inconsistent classes being genrated
+(sec. \ref{section:class-gen} (1)), the amount of
+``bad'' classes (that worsen solutions) would be growing.
+Those classes need to be discarted and their \emph{hashes} guarded
+to be used in \ref{section:class-gen} (2). Discarted classes hashs must be
+shared between \emph{group}, \emph{professor} and \emph{classroom} agents,
+corresponding to the class.
+
+A class should be considered \emph{solution worsening} and be discarted, if
+\begin{enumerate}
+  \item no \emph{acceptable candidate} (after propagating through all the contexts)
+    contains the class;
+  \item \red{?}
+\end{enumerate}
+
+
 \red{TO DO}
 
 
