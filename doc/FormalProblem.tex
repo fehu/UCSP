@@ -7,6 +7,10 @@
 
 \def\coh{\mathrm{coh}}
 
+\def\restrC{\accentset{C}{\xi}^p_i}
+\def\restrT{\accentset{T}{\xi}}
+\def\restrS{\accentset{S}{\xi}^p_i}
+\def\restrW{\accentset{W}{\xi}^p_i}
 
 %\begin{document}
 
@@ -32,24 +36,38 @@ Let \begin{itemize}
   A classroom has two properties: capacity and special equipment installed.
 \item $D=\{\bar d_i\}$ be the set of working \emph{days}.
 \item $T=\{t_i\}$ be \emph{discrete time} (limited by working hours).
+\item $ c \sim \left< d, g, p, r, \bar d, t_b, t_e \right> $ be a \emph{class}
+  of discipline $d$ for group $g$, taught by professor $p$, that takes place
+  at classroom $r$ every day $d$ in time interval $t_b$--$t_e$.
+\item $\{\restrC\}$ be the restrictions over classes of participant $p$.
+      $\restrC : c \mapsto \mathrm{Bool}$
+\item $\restrT$ be the \emph{time-consistency} restriction, that ensures
+  classes non-intersection for each participant.
+      $\restrT : c \mapsto c \mapsto \mathrm{Bool}$
+\item $\{\restrS\}$ be the rest of strong restrictions, or \emph{obligations},
+      of participant $p$.
+      $\restrS : \{c\} \mapsto \mathrm{Bool}$
+\item $\{\restrW\}$ be the weak restrictions, or \emph{preferences}, of participant $p$.
+      In order to avoid overrestrictions, the preferences should weaken with time.
+      $\restrW : \tau \mapsto \{c\} \mapsto (0,1]$
+% \item $\xi^p$ be the combined restrictions of agent $p$.
+\item $\tau$ be \emph{negotiation time}. $\tau \in \mathbb{N}$
 \end{itemize}
 \medskip
 
-A \emph{class} denotes an event \emph{discipline} for some \emph{group}
-at some specific \emph{time interval} in the denoted \emph{classroom},
-performed by some \emph{professor}.
+A \emph{candidate} to solution $\tilde{c}$ is a configuration (set) of classes
+$\{c\}$, that form participant's individual schedule. An \emph{acceptable candidate}
+respects all the restrictions $\{\xi^p_i\}$ (of the participant $p$),
+thus can be selected as the solution (individual).
+% $\tilde{c}^+ | \forall c \in \tilde{c}^+ $
+\bigskip
 
-$$ c \sim \left< d, g, p, r, \bar d, t, t \right> $$
-\medskip
-
-A \emph{candidate} to solution is a configuration (set) of classes.
-It can be assessed by it's \emph{coherence}, that is properly discussed
-in \ref{sectionCoherence}. Coherence is estimated within an agent and
-depends on agent's knowledge.
-
-\begin{align*}
- \tilde{c} &= \{c_i\}  &\coh[a]: \tilde c &\mapsto \Re
-\end{align*}
+\noindent
+Restrictions compliance is assessed with \emph{coherence},
+$\coh[a]: \tilde c \mapsto \Re$
+that is properly discussed in \ref{sectionCoherence}.
+It defines an order over the candidates and permits
+agents to extract the \emph{acceptable} ones using a threshold.
 
 
 The coherence function is designed in such a way, that given a candidate,
@@ -72,13 +90,6 @@ coherence assessment for the candidate.
   \end{aligned}
 \end{align}
 
-\medskip
-
-\noindent
-The coherence function defines an order over the candidates and permits
-agents to extract the \emph{acceptable} ones using a threshold.
-The \textbf{negotiation goal} is to encounter an \emph{acceptable candidate}
-for each negotiation participant.
 
 
 

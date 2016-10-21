@@ -1,14 +1,15 @@
 \documentclass{article}
 
 \usepackage[english]{babel}
-\usepackage{hyperref, float, amsmath}
+\usepackage{hyperref, float, amsmath, amssymb}
 \usepackage{tikz, xcolor, ifthen}
 \usepackage{caption, subcaption}
-\usepackage[shortlabels]{enumitem} % inline,
+\usepackage{pgfplots, accents}
+\usepackage[inline,shortlabels]{enumitem}
 
 %\usepackage[list=off]{caption}
 
-\usetikzlibrary{fit, calc, arrows, shapes}
+\usetikzlibrary{ fit, calc, arrows, shapes }
 
 \newcommand{\red}[1]{{\color{red} #1}}
 \newcommand{\green}[1]{{\color{green} #1}}
@@ -56,9 +57,13 @@ A solution must exceed some quality threshold.
 \tableofcontents
 \newpage
 
-\input{Problem}
+\input{Introduction}
+\input{FormalProblem}
 \input{Coherence}
 \input{Agent}
 
+\newpage
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}

@@ -1,0 +1,22 @@
+
+\begin{tikzpicture}
+
+\begin{axis}[
+  xlabel=, % Time,
+  xticklabels={, 8:00, 9:00, 10:00, $\dots$},
+  ylabel=, %Day,
+  yticklabels={, Mon, Tue, $\dots$},
+  zlabel=, %Participant,
+  zticklabels = {, , ,Participant $i$}
+  ]
+
+  \foreach \i in {1,...,5}
+     \addplot3[surf] coordinates { (0,0,\i) (1,0,\i) (1,1,\i) (0,1,\i) (0,0,\i)  };
+
+  % \addplot3[surf] coordinates { (0,0,0) (1,0,0) (1,1,0) (0,1,0) (0,0,0)  };
+  % \addplot3[surf] coordinates { (0,0,1) (1,0,1) (1,1,1) (0,1,1) (0,0,1)  };
+
+\end{axis}
+
+
+\end{tikzpicture}
