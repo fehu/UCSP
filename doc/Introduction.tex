@@ -47,9 +47,25 @@ classes in the cells. Therefore the complete schedule can be represented as a
           }
 \end{figure}
 
-\noindent
-During the last years the constraint satisfaction problems has been a popular
-class of problems to research. Different algorithms and techniques where developed,
+
+Scheduling problems are \emph{n-p complete} \cite{ULLMAN1975384}
+and therefore the optimal solution can be found within finite (polynomial) time.
+But being finite, doesn't make the required time acceptable.
+To ensure solution perfection, one must consider \emph{every possible} classes
+configuration.
+
+For example, six working days in a week and twelve time slots every day
+(every hour from 8:00 to 20:00), would yield $6 \times 12 = 72$ options
+to place each class.
+Given that each group needs five diferent disciplines to be asssigned,
+there would be  $\multibinom{72}{5} = 18474840$ possible classes assignment for
+each group (without considering professors and classrooms).
+Thus, the time, required to find the \emph{optimal solution}, might exceed any
+reasonable limits, if the university is big.
+
+This problem is a typical one for the CSPs, and many researchers have
+been looking for means of solving such problems within reasonable time.
+During the last years different algorithms and techniques where developed,
 such as
 \emph{dynamic constraint satisfaction based on extension particle swarm
       optimization algorithm} \cite{CSPswarm},
