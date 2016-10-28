@@ -8,46 +8,72 @@
 % \def\knownClasses{\overset{\mathrm{known}}{\mathit{classes}}}
 
 
-\section{Agents and Negotiation}
+\section{Agents}
 
 The \emph{negotiating agents} are isolated proactive computational entities,
 capable of sending and receiving messages.
-
 The \emph{isolation} denotes that agents' internal states are protected
 from outside access. Messaging is the only way an agent can be interacted with.
-To ensure it, an agent is normally never interacted with directly, but
-communicated via \emph{agent reference} instead.
 The \emph{pro-activity} implies a capacity of acting asynchronously,
 with no ``external'' cause.
 
-Agents have \emph{roles}, that describe whom or what an agents represents
-in the negotiation.
+\medskip
 
-A negotiation has a \emph{classes pool}, distributed between the agents.
-A class $\left< d, g, p, r, \bar d, t, t \right>$ is known to agents,
-representing $g$, $p$ and $r$.
+An agent is defined by it's behaviour --- the combination of its
+\emph{proactive} and \emph{reactive} (message handling) functions.
 
-Negotiations are organized by special kind of agents --- \emph{controllers}.
+Therefore two agents with same behaviour functions should be considered two instances
+of the same agent. In must be noted, that all the diference in the behaviour of
+two instances is produced by the differences in the states
+(both agent's internal state and the environment's one).
+
+\medskip
+
+In order to generalize agents behaviour, agent \emph{roles} are introduced.
+A role describes whom or what an agents represents in the negotiation and
+defines \emph{behaviour archetype} --- the rules to build
+agent's \emph{behaviour functions}, given some \emph{role-specific} knowledge.
+
+\subsection{Agents Implementation}
+
+Agents are implemented using \emph{Software Transactional Memory} (STM)
+\cite{STMCode07} --- a promising concurrency paradigm.
+They are executed in two computational threads:
+one for message handling and another for proactive action.
+
+\medskip
+
+\noindent
+Agent's behavior is flexible and may be changed during agent's lifetime.
+As it was mentioned before, it is determined by \emph{message handling} and
+\emph{action} functions.
+Any complex behaviour would require the agent to have some \emph{mutable}
+internal \emph{states}, where it could store the related information,
+thus remembering it throughout behaviour executions.
+The only restriction is that states interface must be fixed for type safety
+(only the interface, not the underlying data).
 
 
-\subsection{Agents}
-
-In it's state an agent holds the \emph{run state} and special \emph{shared
+Each agent also has two system states: the \emph{run state} and special \emph{shared
   state}, called \emph{status}. The run state controls agent's execution
 (and termination), while the status is monitored by the respective controller.
 Agents have three \emph{run states}: ``Paused'', ``Running'' and ``Terminate''.
-The first two states control pro-action; setting the last one causes all
-agent's processes to stop. The \emph{status}es are further described in
-section \ref{agentControllers}.
+The first two states should control pro-action;
+setting the last one should cause all agent's processes to stop.
+The \emph{status}es are further described in section \ref{agentControllers}.
 
-\subsubsection{Behavior}
+\medskip
 
-Agent's behavior is flexible and may be changed during agent's lifetime.
-It is determined by \emph{message handling} and \emph{action} functions.
+To ensure agents isolation, the direct interactions are restricted;
+an agent only exposes its communication interface through \emph{agent reference}.
 
-An agent can simply \emph{send} a message, or it can \emph{ask} for some
-\emph{expected response}, corresponding to the message sent. Agents have
-separate handler functions for the two cases. All behavior functions
+Using this interface, one can simply \emph{send} a message to an agent,
+or one can \emph{ask} for some \emph{expected response}, corresponding to the message sent.
+Agents have separate handler functions for theese two cases.
+
+\medskip
+
+All behavior functions
 accept two arguments:
 \begin{enumerate}
 \item the agent's \emph{inner interface}, that provides
@@ -55,10 +81,23 @@ accept two arguments:
 \item agent's \emph{internal state}.
 \end{enumerate}
 
-Agents are executed in two computational threads: one for message handling
-and another for proactive action.
+\subsubsection{Negotiation}
+
+
+A negotiation has a \emph{classes pool}, distributed between the agents.
+A class $\left< d, g, p, r, \bar d, t, t \right>$ is known to agents,
+representing $g$, $p$ and $r$.
+
+Negotiations are organized by special kind of agents --- \emph{controllers}.
+
+\red{TODO}
+
 
 \subsubsection{Coherence-based}
+
+\red{ They are not the same as ``Coherence-driven Agents'' from \cite{UAB-Thesis}!
+      It should be properly described.
+ }
 
 A \emph{coherence-based agent} bases its decisions on existing \emph{candidates}
 and their \emph{coherence}. It must contain it's contexts within the state,
@@ -161,55 +200,3 @@ When the \emph{root controller} receives ``Lock'' notifications from
 all the controllers, it sends ``Collect'' order. On that order, the controllers
 extract the solution parts (guarded in the statuses) and propagate them up to
 the root.
-
-
-
-
-
-
-
-% An agent is executing repetitively it's \emph{lifetime} function, while it remains
-% capable of responding messages.
-
-% \begin{align*}
-%   \knownClasses &: \{\class_i\} \\
-%   \lifetime &:~ \knownClasses \mapsto * \\
-%   \lifetime &=  \execute \circ \decide \\
-%   \decide   &:~ \knownClasses \mapsto
-%               \mathrm{New\,candidate} ~|~
-%               \mathrm{Ask\,acceptance} ~|~
-%               \mathrm{Ask\,to\,yield}
-% \end{align*}
-
-% \subsection{New candidate}
-% When no satisfying \emph{candidate} was found, new \emph{candidate}
-% needs to be aggregated to the \emph{known classes}.
-% The candidate must be \emph{internally coherent}.
-
-% The newly created \emph{classes} (of which consists a candidate) are
-% sent to the corresponding professor, group and classroom (except self).
-% A confirmation, based on \emph{capabilities} must be received from all
-% the candidates. Otherwise, another candidate must be generated.
-
-% \textit{A cache might be used for the capabilities.}
-
-
-% \subsection{Ask acceptance}
-% When a candidate has no no contradiction at any context, an agent may decide to
-% select it as it's part of solution and wait for the rest to do the same.
-% It can be woken by a successful yield demand, forcing the waiting agent to
-% search for a new solution.
-
-
-% \subsection{Ask to yield}
-% It is a solution when small percent of counterparts responded with a bad
-% opinion (\emph{external} context) about a candidate. It asks them to yield
-% to the candidate, that would mean (??) deleting (??) the contradicting classes
-% in case of acceptance.  All asked agents must respond positively in order for
-% the deletion to take place. In case of any refusal, the initial agent must
-% (??) delete (??) the contradicting classes instead.
-
-% The decision whether to yield or not is made considering the best inner
-% coherence of any configuration, containing any contradicting class.
-
-%\end{document}
