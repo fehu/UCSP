@@ -5,7 +5,7 @@ Classes scheduling is a \emph{constraints satisfaction problem} (CSP).
 and all scheduling problems share a common constraint: schedule consistency ---
 one cannot participate in several events at the same time. For the classes case,
 the participants are:
-\begin{enumerate*}
+\begin{enumerate*}[1)]
   \item \emph{groups} of students,
   \item teachers or \emph{professors},
   \item \emph{classrooms}.
@@ -34,17 +34,17 @@ Problem \emph{constraints} can be divided into:
 
 The goal is finding a solution --- schedule, satisfying all the constraints.
 University schedule is composed of \emph{individual schedules} for every
-participant. An individual schedules may be seen as a day-time table with
+participant. An individual schedule may be seen as a day-time table with
 classes in the cells. Therefore the complete schedule can be represented as a
 3-dimentional table, as shown in figure \ref{fig:ScheduleSpace}.
 \bigskip
 
 \begin{figure}
-  \label{fig:ScheduleSpace}
   \input{Introduction/ScheduleSpace.tikz}
   \caption{University schedule is a 3-dimentional table. Horizontal rectangles
            represent invividual schedules for the corresponding participants.
           }
+  \label{fig:ScheduleSpace}
 \end{figure}
 
 
@@ -82,9 +82,25 @@ CSPs (DCSPs) \cite{DCSPagent1998, DCSP2013, CSPagent2014}.
 In this case the constrains are \emph{distributed} among the agents instead of
 being gathered in one place.
 
-\red{Such constraints distribution is useful for the \emph{classes scheduling} problem
-, because it permits to distribute not only the constraints, but also the solution. }
-Each agent would be expected to \emph{negotiate} a suitable solution for its
-``master'', without concerning itself with the schedules of the others.
-Tthe combined solution can be obtained as soon as all the participants agree on
-their timetables.
+\medskip
+
+Those methods do not seek for the optimal solutions, focusing instead on
+``rather good'' ones, that can be obtained within reasonable time using admissible
+computing resources.
+
+\medskip
+
+Treating the scheduling problem as a DCSP permits to
+distribute not only the constraints and the assosiated knowledge, but also the solution.
+This way, each agent would be able to \emph{negotiate} a suitable solution for its
+``master'', without concerning itself with the schedules of the others directly.
+As soon as every agent finds a suitable personal schedule, the
+combined schedule can be easily formed from the individual ones, as shows
+figure \ref{fig:ScheduleSpace}. Futhermore, the agents can be allocated on
+different machines, communicating over the network, thus distributing also
+computational tasks.
+
+\medskip
+Due to the reasons, presented in the previous paragraph, and \red{agents'
+intuitive disposition to represent people}, the \emph{agents negotiation} method
+was chosen to solve the scheduling problem.
