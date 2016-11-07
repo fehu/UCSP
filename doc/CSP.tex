@@ -1,0 +1,165 @@
+\def\domain{\mathrm{domain}}
+
+\section{Constraint Satisfaction Problems}
+
+There are many problems than require positioning or assigning something,
+respecting established \emph{restrictions}. \emph{Graph coloring} and
+\emph{n-queen} chess problem are classical constraint satisfaction problems (CSPs).
+
+The graph coloring problem comes from cartography, where it was needed to color
+countries on political maps, in such a way that no country had a land border with
+a country of the same color. It was found that \textbf{any} map can be colored
+with only four colors.
+
+The n-queen problem is known in chess as \emph{eight queen puzzle}.
+Queens in chess can move/attack to/at any square,
+that is in a the same row, column or diagonal with the queen.
+In the puzzle one needs to place eight (the size of a chess desk)
+queens on the desk, so that none of them is threatened by another.
+N-queens problems is a generalization of that puzzle, where $n$ queens need
+to be placed on a $n \times n$ desk.
+
+Constraint satisfaction problems are found in many areas:
+machine vision, natural language processing, theorem proving,
+planning and in our problem --- scheduling \cite{MAS}.
+
+\bigskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent
+Formally speaking, a CSP is defined by its \emph{variables} $V$ with the
+corresponding \emph{domains} and the \emph{constraints} $\{\xi\}$
+over values assignation \cite{MAS}.
+
+\begin{align*}
+  V                &= \{v_i\}_{i=1}^N
+& \{{\dot v}^i_j\} &= \domain(v_i)
+& \xi              &: \{{\dot v}^i_\ast\}_{i=1}^N \mapsto [0,1]
+\end{align*}
+
+
+A variable defines a ``slot'' that can hold a value from the corresponding domain.
+A solution to CSP is an assignation of the values ${\dot v}^i_\ast$
+to the variables $V$, such that all the restriction hold.
+\begin{equation}
+  {\dot V} = \{{\dot v}^i_\ast\}_{i=1}^N \text{is a solution}
+   \iff \forall \xi \in \{\xi\} \Rightarrow \xi({\dot V}) = 1
+\end{equation}
+
+The constraints above are defined in the most generalized form,
+over the entire solution. There is a particular case, that is found in many problems
+--- \emph{binary constraints}, imposed on \emph{pairs} of values:
+$$\xi_2 : \left< {\dot v}^i_\ast, {\dot v}^j_\ast \right> \mapsto [0,1]$$
+
+If all constrains are binary, than the satisfaction condition is
+$$\forall \xi_2     \in \{\xi\},~
+  \forall v_i, v_j  \in V | v_i \not= v_j
+~ \Rightarrow ~ \xi_2(v_i, v_j) = 1
+$$
+
+\medskip
+
+In the graph coloring problem, the variables are the \emph{colors to be assigned}
+for each graph node $\{n_i\}_{i=1}^N$. In this case, all the variables have
+the same domain values: four colors, for example \textit{Red}, \textit{Green},
+\textit{Blue} and \textit{Yellow}. The constraint is binary and depends on graph
+structure:
+$$ \xi_2(x,y)= \begin{cases}
+  0 & \mbox{if } \exists \text{~edge~} x \leftrightarrow y
+                ~\mathit{AND} \text{~color~} x = \text{color~} y \\
+  1 & \text{otherwise}
+\end{cases}
+$$
+
+% For the n-queens problem, there are two ways of representing the variables.One
+% can see queens' positions as a single variable --- pairs $\left< x,y \right>$.
+% But it's better to handle them separately, as it would be shown in \ref{TODO}.
+% In this case each queen would have two variables:
+% horizontal and vertical positions $x$ and $y$.
+
+For the n-queens problem, the variables are queens' positions ---
+pairs $\left< x,y \right>$, where $x$ is queen's horizontal position and
+$y$ is the vertical one. The restrictions can be gathered within a single
+constraint function:
+$$\xi_2(\left<x_1,y_1\right>, \left<x_2,y_2\right>) =
+    \begin{cases}
+      0 & \mbox{if } \begin{cases}
+                        &      x_1 = x_2  \lor y_1 = y_2 \\
+                        \lor~& x_1 = y_2 \land x_2 = y_1 \\
+                        \lor~& |x_1-y_1| = |x_2-y_2|
+                     \end{cases} \\
+     1 & \text{otherwise}
+    \end{cases}
+$$
+
+\todo\red{: needs to be rewritten after the introduction is done}
+
+In our \emph{university classes scheduling} problem (UCSP) the variables
+are personal schedules, called \emph{timetables} in this thesis,
+for each professor, group/student and classroom. A timetable consists
+of the day-time slots, where \emph{classes} can be put.
+Problem \emph{constraints} can be divided into:
+\begin{enumerate}
+  \item \underline{Class constraints}: a class should be a productive event, so
+    a professor should be able to \emph{teach} the class, the classroom should
+    have the \emph{capacity} to hold all the students and be properly \emph{equipped},
+    and the group should be \emph{inscribed} to class subject
+    (further called \emph{discipline}).
+  \item \underline{Time constraints}: no participant can have two classes
+    at the same time (or intersecting in time), as mentioned before.
+  \item \underline{Strong restrictions}: the restrictions, put on a participant, that
+    \emph{must} be respected. May include working hours, fixed lunch recess time,
+    and any other institution or person specific \emph{obligations}.
+  \item \red{\underline{Weak restrictions} (MOVE)}: the restrictions, that \emph{should} be respected,
+    but are not critical to the solution. Compliance with theese restrictions
+    raises \emph{solution quality}, but it is assumed that the all of them
+    cannot be fully met for all the participants --- they are intended to
+    represent personal \emph{preferences}.
+\end{enumerate}
+
+\bigskip
+Until now we were speaking only about restrictions, but the problem can
+be extended to an \emph{optimization} one. For example, in case of our UCSP,
+one can add \emph{personal preferences} or some institution criteria as
+optimization parameters. \todo\red{: here come Weak restrictions}
+
+
+
+
+\bigskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent
+Solving these problems usually presents difficulties due to the amount of
+possible combinations to consider for a solution.
+
+\todo
+
+\bigskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent
+
+The researchers have been looking for means of solving such
+problems within reasonable time.
+During the last years different algorithms and techniques where developed,
+such as
+\emph{dynamic constraint satisfaction based on extension particle swarm
+      optimization algorithm} \cite{CSPswarm},
+\emph{dynamic state bounding} \cite{CSPdynStateBound},
+\emph{conflict-vector detection} \cite{CSPtimetable},
+\emph{neural networks} \cite{CSPneuro},
+\emph{ant colony optimization} \cite{CSPcunningACO, CSPlimmemACO},
+\emph{selective hyper-heuristics} \cite{CSPhypHeur}
+and \emph{agents} \cite{CSPagent2013, CSPagent2014, DCSPagent1998}.
+
+
+The \emph{agent negotiation} approach is usually used for solving distributed
+CSPs (DCSPs) \cite{DCSPagent1998, DCSP2013, CSPagent2014}.
+In this case the constraints are \emph{distributed} among the agents instead of
+being gathered in one place.
+
+\todo \red{: write something about each technique?}
+
+\medskip
+
+Those methods do not seek for the optimal solutions, focusing instead on
+``rather good'' ones, that can be obtained within reasonable time using admissible
+computing resources.
