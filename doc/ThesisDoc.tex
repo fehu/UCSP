@@ -1,14 +1,40 @@
 \documentclass{article}
 
 \usepackage[english]{babel}
-\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+
+\usepackage[inline,shortlabels]{enumitem}
+\usepackage{amsmath, amssymb}
 \usepackage{xcolor, ifthen}
+\usepackage{siunitx} % represent numbers with separators
+\usepackage{csquotes}
+\usepackage{graphicx, multirow}
+\usepackage{subcaption}
+\usepackage{accents} % provides \accentset, used in Problem Formalization.
+
+
+\usepackage{tikz, pgfplots}
+%\usetikzlibrary{ fit, calc, arrows, shapes }
+
+% from http://tex.stackexchange.com/questions/157389/how-to-center-column-values-in-a-table
+\usepackage{array}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
 
 \newcommand{\red}[1]{{\color{red} #1}}
 \newcommand{\green}[1]{{\color{green} #1}}
 \newcommand{\yellow}[1]{{\color{yellow} #1}}
 
 \def\todo{\red{TODO}}
+
+
+
+\newcommand{\multibinom}[2]{
+  \left(\!\middle(\genfrac{}{}{0pt}{}{#1}{#2}\middle)\!\right)
+}
+
+% \newcommand{\crule}[2][1][1px]{
+%   \begin{center} \rule{#1\textwidth}{#2} \end{center}
+% }
 
 \begin{document}
 
@@ -22,11 +48,15 @@
 
 \input{Introduction}
 \input{CSP}
+\input{Agents}
+\input{Coherence}
+\input{FormalProblem}
+\input{ProposedSolution}
+\input{Conclusions}
 
 
-
-% \newpage
-% \bibliographystyle{plain}
-% \bibliography{references}
+\newpage
+\bibliographystyle{plain}
+\bibliography{references}
 
 \end{document}

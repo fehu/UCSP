@@ -1,10 +1,18 @@
 \def\domain{\mathrm{domain}}
 
+\green{Explicar que son los CSP}
 \section{Constraint Satisfaction Problems}
 
-There are many problems than require positioning or assigning something,
+\green{Poner una definición no formal}
+\medskip
+
+There are many problems that require positioning or assigning something,
 respecting established \emph{restrictions}. \emph{Graph coloring} and
 \emph{n-queen} chess problem are classical constraint satisfaction problems (CSPs).
+
+\medskip
+\green{Poner algunos ejemplos}
+\medskip
 
 The graph coloring problem comes from cartography, where it was needed to color
 countries on political maps, in such a way that no country had a land border with
@@ -23,7 +31,8 @@ Constraint satisfaction problems are found in many areas:
 machine vision, natural language processing, theorem proving,
 planning and in our problem --- scheduling \cite{MAS}.
 
-\bigskip
+
+\subsection{Formal definition}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \noindent
 Formally speaking, a CSP is defined by its \emph{variables} $V$ with the
@@ -48,7 +57,7 @@ to the variables $V$, such that all the restriction hold.
 The constraints above are defined in the most generalized form,
 over the entire solution. There is a particular case, that is found in many problems
 --- \emph{binary constraints}, imposed on \emph{pairs} of values:
-$$\xi_2 : \left< {\dot v}^i_\ast, {\dot v}^j_\ast \right> \mapsto [0,1]$$
+$$\xi_2 : \left< {\dot v}^i_\ast, {\dot v}^j_\ast \right> \mapsto \{0,1\}$$
 
 If all constrains are binary, than the satisfaction condition is
 $$\forall \xi_2     \in \{\xi\},~
@@ -65,7 +74,7 @@ the same domain values: four colors, for example \textit{Red}, \textit{Green},
 structure:
 $$ \xi_2(x,y)= \begin{cases}
   0 & \mbox{if } \exists \text{~edge~} x \leftrightarrow y
-                ~\mathit{AND} \text{~color~} x = \text{color~} y \\
+                ~\land \text{~color~} x = \text{color~} y \\
   1 & \text{otherwise}
 \end{cases}
 $$
@@ -93,11 +102,14 @@ $$
 
 \todo\red{: needs to be rewritten after the introduction is done}
 
-In our \emph{university classes scheduling} problem (UCSP) the variables
+  In our \emph{university classes scheduling} problem (UCSP) the variables
 are personal schedules, called \emph{timetables} in this thesis,
-for each professor, group/student and classroom. A timetable consists
-of the day-time slots, where \emph{classes} can be put.
-Problem \emph{constraints} can be divided into:
+for each \emph{participant}: professor, group/student and classroom.
+  A timetable consists of the day-time slots, where classes can be put.
+  A \emph{class} is formed for teaching a group a specific \emph{subject},
+connecting the three participants (of each kind) and establishing
+the beginning and end \emph{time}.
+  Problem \emph{constraints} can be divided into:
 \begin{enumerate}
   \item \underline{Class constraints}: a class should be a productive event, so
     a professor should be able to \emph{teach} the class, the classroom should
@@ -109,37 +121,61 @@ Problem \emph{constraints} can be divided into:
   \item \underline{Strong restrictions}: the restrictions, put on a participant, that
     \emph{must} be respected. May include working hours, fixed lunch recess time,
     and any other institution or person specific \emph{obligations}.
-  \item \red{\underline{Weak restrictions} (MOVE)}: the restrictions, that \emph{should} be respected,
-    but are not critical to the solution. Compliance with theese restrictions
-    raises \emph{solution quality}, but it is assumed that the all of them
-    cannot be fully met for all the participants --- they are intended to
-    represent personal \emph{preferences}.
+  % \item \red{\underline{Weak restrictions} (MOVE)}: the restrictions, that \emph{should} be respected,
+  %   but are not critical to the solution. Compliance with these restrictions
+  %   raises \emph{solution quality}, but it is assumed that the all of them
+  %   cannot be fully met for all the participants --- they are intended to
+  %   represent personal \emph{preferences}.
 \end{enumerate}
 
 \bigskip
-Until now we were speaking only about restrictions, but the problem can
-be extended to an \emph{optimization} one. For example, in case of our UCSP,
-one can add \emph{personal preferences} or some institution criteria as
-optimization parameters. \todo\red{: here come Weak restrictions}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  Until now we were speaking about restrictions satisfactions, but the problem can
+be extended to an \emph{optimization} one by defining an
+\emph{objective function} over the values configurations.
 
+  Unlike the restrictions (that yield a boolean result), the objective functions
+should have a bigger codomain:
+$$\tilde\xi : \{{\dot v}^i_\ast\}_{i=1}^N \mapsto \Re$$
+  In order to facilitate the calculations and erase the internal differences of
+the objectives, it's often required that the functions must be normalized,
+with the codomains restricted to $[-1,1]$ or $[0,1]$ intervals.
 
+  For example, in case of our UCSP,
+one can add \underline{personal preferences} or some institution criteria as
+optimization parameters.
+  Compliance with the preferences raises \emph{solution quality},
+but it is assumed that the all of them cannot be fully met for all the
+participants, because \emph{personal} preferences are often
+contradictory for different persons.
+
+\subsection{Solution Methods}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\green{Explicar por qué son importantes computacionalmente}\\
+\medskip
+
+\noindent
+  Solving these problems usually presents difficulties due to the amount of
+possible combinations to consider for a solution. Let's have a look at
+some university schedule.
+  For example, six working days in a week and twelve time slots every day
+(every hour from 8:00 to 20:00), would yield $6 \times 12 = 72$ options
+to place each class.
+  Given that each group needs, for example, five different disciplines to be assigned,
+there would be  $\multibinom{72}{5} = \num[group-separator={,}]{18474840}$
+possible classes assignment for each group,
+even without considering professors and classrooms.
 
 \bigskip
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\noindent
-Solving these problems usually presents difficulties due to the amount of
-possible combinations to consider for a solution.
-
-\todo
-
-\bigskip
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\green{Explicar formas de resolver los CSP} \todo
+\medskip
 \noindent
 
-The researchers have been looking for means of solving such
+  The researchers have been looking for means of solving such
 problems within reasonable time.
-During the last years different algorithms and techniques where developed,
+  During the last years different algorithms and techniques where developed,
 such as
 \emph{dynamic constraint satisfaction based on extension particle swarm
       optimization algorithm} \cite{CSPswarm},
@@ -150,16 +186,66 @@ such as
 \emph{selective hyper-heuristics} \cite{CSPhypHeur}
 and \emph{agents} \cite{CSPagent2013, CSPagent2014, DCSPagent1998}.
 
-
-The \emph{agent negotiation} approach is usually used for solving distributed
-CSPs (DCSPs) \cite{DCSPagent1998, DCSP2013, CSPagent2014}.
-In this case the constraints are \emph{distributed} among the agents instead of
-being gathered in one place.
-
-\todo \red{: write something about each technique?}
-
 \medskip
 
 Those methods do not seek for the optimal solutions, focusing instead on
 ``rather good'' ones, that can be obtained within reasonable time using admissible
 computing resources.
+
+\bigskip
+
+\todo \red{: write something about one of the techniques}
+
+
+
+\subsection{Distributed problems}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Agents approach allows solving CSPs in a distributed manner, also distributing
+the problem knowledge and constraints
+\cite{DCSPagent1998, DCSP2013, CSPagent2014, MAS, MAS-Survey}.
+
+\begin{displayquote}[\cite{MAS-Survey}] % \cite[p.~2]{MAS-Survey}
+  For example, a constraint satisfaction problem can often be
+  decomposed into several not entirely independent
+  subproblems that can be solved on different processors. $\dots$
+  MAS (Multiagent System) allows the subproblems of a constraint satisfaction
+  problem to be subcontracted to different problem solving agents with their own
+  interests and goals.
+\end{displayquote}
+
+\noindent
+Such problems are \emph{Distributed Constraints Satisfaction Problems} (DCSPs).
+\begin{displayquote}[\cite{MAS}] % \cite[p.~4]{MAS}
+  In a distributed CSP, each variable is owned by a different agent. The goal is
+  still to find a global variable assignment that meets the constraints, but each agent
+  decides on the value of his own variable with relative autonomy. While he does
+  not have a global view, each agent can communicate with his neighbors in the
+  constraint graph.
+\end{displayquote}
+
+  The constrains are distributed alongside the variables: an agent knows only the
+constrains over the variable it owns. A DCSP can also have objective functions for
+optimization.
+
+  The UCSP fits perfectly into a the DCSP class: timetable variables,
+strong restrictions and personal preferences are determined by agent's creator
+and his interests. The class and time constraints apply to all the agents and
+represent common behavior base.
+
+  The original UCSP is decomposed in a set of subproblems, one for each participant.
+A subproblem consist in resolving constraints over a \emph{timetable} variable.
+Some subproblems are interdependent through \emph{classes connections}. In this
+case, the timetable configurations of the connected agents must be negotiated
+until consensus is reached. If some agents cannot reach it, they could change the
+class, searching for another participant.
+  The solution to the original problem is a list of participants with the corresponding
+timetables. The last ones are simply gathered, when all the subproblems have been
+resolved. At the figure \ref{fig:ScheduleSpace} the university schedule is
+shown as a 3-dimentional table; horizontal rectangles represent individual
+schedules for the corresponding participants.
+
+\begin{figure}
+  \input{Introduction/ScheduleSpace.tikz}
+  \caption{Distributed university schedule.}
+  \label{fig:ScheduleSpace}
+\end{figure}

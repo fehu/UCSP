@@ -1,0 +1,61 @@
+\section{Problem Formalization}
+\label{sec:ProblemFormal}
+\green{Definir el problema del "scheduling" como CSP}
+
+\def\coh{\mathrm{coh}}
+
+\def\restrC{\accentset{C}{\xi}^p_i}
+\def\restrT{\accentset{T}{\xi}}
+\def\restrS{\accentset{S}{\xi}^p_i}
+\def\restrW{\accentset{W}{\xi}^p_i}
+
+
+
+Let \begin{itemize}
+\item $D=\{d_i\}$ be the set of \emph{disciplines}.
+  A discipline may be seen as class descriptor, it contains
+  academic program name and information about special requirements,
+  such as laboratories.
+\item $G=\{g_i\}$ be the set of \emph{groups}.
+  A group unites some students. In this thesis it is assumed that
+  \textbf{each student belongs strictly to one group}.
+  A group has a set of disciplines, that it is obliged to take by an
+  academical program.
+\item $P=\{p_i\}$ be the set of \emph{professors}.
+  Each professor can teach a set of disciplines, that is determined
+  by the institution. There are two kinds of professors:
+  \emph{full-time} and \emph{part-time}. The difference is that the
+  latter have more flexible obligations, while the former have preference
+  in classes assignment.
+\item $R=\{r_i\}$ be the set of \emph{classrooms}.
+  A classroom has two properties: capacity and special equipment installed.
+\item $D=\{\bar d_i\}$ be the set of working \emph{days}.
+\item $T=\{t_i\}$ be \emph{discrete time} (limited by working hours).
+\item $ c \sim \left< d, g, p, r, \bar d, t_b, t_e \right> $ be a \emph{class}
+  of discipline $d$ for group $g$, taught by professor $p$, that takes place
+  at classroom $r$ every day $d$ in time interval $t_b$--$t_e$.
+\item $\{\restrC\}$ be the restrictions over classes of participant $p$.
+      $\restrC : c \mapsto \mathrm{Bool}$
+\item $\restrT$ be the \emph{time-consistency} restriction, that ensures
+  classes non-intersection for each participant.
+      $\restrT : c \mapsto c \mapsto \mathrm{Bool}$
+\item $\{\restrS\}$ be the rest of strong restrictions, or \emph{obligations},
+      of participant $p$.
+      $\restrS : \{c\} \mapsto \mathrm{Bool}$
+\item $\{\restrW\}$ be the weak restrictions, or \emph{preferences}, of participant $p$.
+      In order to avoid overrestrictions, the preferences should weaken with time.
+      $\restrW : \tau \mapsto \{c\} \mapsto (0,1]$
+% \item $\xi^p$ be the combined restrictions of agent $p$.
+\item $\tau$ be \emph{negotiation time}. $\tau \in \mathbb{N}$
+\end{itemize}
+\medskip
+
+A \emph{candidate} to solution $\tilde{c}$ is a configuration (set) of classes
+$\{c\}$, that form participant's individual schedule. An \emph{acceptable candidate}
+respects all the restrictions $\{\xi^p_i\}$ (of the participant $p$),
+thus can be selected as the solution (individual).
+
+\bigskip
+
+\noindent
+A solution to the scheduling problem is the set of \emph{all} the individual solutions.

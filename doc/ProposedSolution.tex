@@ -1,0 +1,258 @@
+\section{Proposed Solution}
+\green{Explicar la solución de manera informal, y después ...}
+\medskip
+
+
+\def\ctx{\mathit{ctx}}
+\def\codom{\mathrm{codomain}}
+\def\maybe{\mathrm{Maybe~}}
+
+
+\noindent
+The solution to \emph{university classes scheduling problem} (UCSP), proposed
+in this thesis, is based on a \emph{negotiation} within a \emph{Multiagent System},
+properly discussed in section \ref{sec:NegotiatingAgents}.
+Decision processes of the negotiating agents are \emph{coherence-based}
+that are discussed in section \ref{sec:coherence}.
+Here follows a short summary:
+\begin{itemize}
+  \item Each agent represents a \emph{professor}, a \emph{group} or a \emph{classroom},
+    that are to be put schedule together.
+  \item Each agent has internal states, accessible only to it, that hold
+    agent's contexts. The contexts contain agent-specific information and constraints.
+    Some context variables may/must change during a negotiation.
+  \item Agents can interact only using communication: by sending and receiving messages.
+  \item Agents can process messages and execute another action at the same time.
+  \item Agent's goal is to find a configuration of classes, that complies with
+    all the restrictions, contained in the contexts.
+  \item Agent's decision process is based on the coherence between the existing
+      \emph{classes proposals}, called \emph{classes pool}, and its contexts.
+      The classes proposals and one of the contexts, specifically its constraints,
+      are used to form valid configurations of classes, called \emph{solution candidates}.
+      The candidates are then propagated through the rest of the contexts in the
+      defined order. At each context the candidate's coherence is assessed using
+      context-specific constraints and the established value is compared against
+      a context-specific threshold in order to be propagated further.
+
+      The final decision is based on a set of \emph{acceptable candidates}, that
+      have complied successfully with all the contexts' restrictions. It should
+      choose whether to:
+      \begin{itemize}
+        \item add new classes proposals (and remove some old), in case no
+          acceptable candidate was found;
+        \item select the candidate with maximum coherence as the solution and
+          request acceptance confirmation from the ``neighboring'' agents.
+      \end{itemize}
+
+  \item The contexts are divided into
+    \begin{itemize}[leftmargin=2cm]
+      \item[Internal:] define different aspects of agent-specific \emph{internal coherence}
+      with solution candidates:
+        \begin{enumerate*}[1)]
+          \item capabilities,
+          \item time consistency,
+          \item obligations,
+          \item preferences.
+        \end{enumerate*}
+      \item[External:] communicates with the ``neighboring'' agents and fetches
+        their opinions about the candidates, thus cooperating towards the
+        \emph{common goal}.
+    \end{itemize}
+ \end{itemize}
+
+External context combines the \emph{internal coherences} of a candidate,
+assessed by the agents, involved in the candidate's underlying classes.
+The combination is done, giving no priority to any of the agents,
+thus creating an important property:
+\begin{displayquote}
+  Given a candidate $\tilde{c}$, each agent $g_i, p_i, r_i$, mentioned by
+  candidate's underlying classes $\{c_k\}$,
+  yields the same coherence assessment for the candidate.
+\end{displayquote}
+
+\begin{align}
+  \label{eq:coh-fun-independ}
+  \begin{aligned}
+    &\forall \tilde{c} \sim \{c_k\} \\
+    &\forall c_i \sim \left< \dots, g_i, p_i, r_i, \dots \right> \\
+    &\forall c_j \sim \left< \dots, g_j, p_j, r_j, \dots \right>
+  \end{aligned}
+& \implies
+  \begin{aligned}
+   \coh[g_i](\tilde c) &= \coh[g_j](\tilde c) = \\
+   = \coh[p_i](\tilde c) &= \coh[p_j](\tilde c) = \\
+   = \coh[r_i](\tilde c) &= \coh[r_j](\tilde c)
+  \end{aligned}
+\end{align}
+
+
+\subsection{Solution Formalization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\green{... y después de manera formal}
+
+University class scheduling problem (UCSP) formalization and definition as a
+constraint satisfaction problem (CSP) are presented in section \ref{sec:ProblemFormal}.
+In this section would be formally defined:
+\begin{itemize}
+  \item[$\pm$] problem representation as a \emph{distributed} CSP,
+  \item[+] structures of the agents and their contexts,
+  \item[$\pm$] candidates assessment,
+  \item[-] common goal,
+  \item[-] decision process, based on the acceptable candidates,
+  \item[-] agents behavior,
+  \item[-] agents implementation,
+  \item[-] negotiation creation and supervision.
+\end{itemize}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The problem definition in section \ref{sec:ProblemFormal} is already one step
+close to a distributed one; it just lacks explicitly connecting the constraints
+within an agent.
+
+Each participant $p$ (professor, group or classroom) is represented in the negotiation
+by a single agent, that holds person-specific restrictions and optimization criteria
+in its contexts: $ \{\xi^a_i\} \in a$. The internal contexts correspond to
+the restrictions, defined in section \ref{sec:ProblemFormal}:
+\begin{align*}
+   \text{Capabilities}      &\hbox{ --- } \restrC
+&  \text{Time consistency}  &\hbox{ --- } \restrT
+\\ \text{Obligations}       &\hbox{ --- } \restrS
+&  \text{Preferences}       &\hbox{ --- } \restrW
+\end{align*}
+
+The \emph{external} context is not person-specific, but is implemented in the
+same way for all the negotiating agents. As mentioned before, it is a mean for the
+agents to pursue a common goal (section \ref{sec:CommonGoal}) and ensure
+\emph{eq:coh-fun-independ} property.
+
+
+
+\subsubsection{Contexts Formalization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The constraints are defined in the contexts in a more generic way than in problem
+formalization. They handle \emph{pieces of information},
+that are candidates' underlying classes and \emph{context-specific knowledge},
+joined together.
+A constraint in context $\ctx$ of agent $a$ can have two forms:
+\begin{itemize}[leftmargin=2cm]
+  \item[binary] $ \xi_{i_2}^{\ctx^a} : \left< x,y \right> \mapsto \maybe \codom_\ctx $
+  \item[whole]  $ \xi_{i_w}^{\ctx^a} : \{i_*\} \mapsto \codom_\ctx $
+  \item[] where $x, y$ and $i_*$ are \emph{pieces of information};
+    the $\codom$ of the constraint functions depends on the context $\ctx$.
+    $\maybe v$ can have two underlying values: Just $v$ and Nothing.
+    Nothing is used to denote that the binary relation doesn't handle pieces of information
+    of given types.
+\end{itemize}
+
+As described in section \ref{sec:coherence}, the contexts require their
+constraint functions to have following codomains:
+\begin{align*}
+   \text{Capabilities}      &\hbox{ --- } \{0, 1\}
+&  \text{Time consistency}  &\hbox{ --- } \{-1, 0, 1\}
+\\ \text{Obligations}       &\hbox{ --- } \{0, 1\}
+&  \text{Preferences}       &\hbox{ --- } [0, 1]
+\\ \text{External}          &\hbox{ --- } [0, 1] &
+\end{align*}
+
+
+Each context must define \emph{combination functions} $\eta$, that constructs a
+single coherence value out of the values, yielded by the constraints.
+
+Then coherence of candidate $\tilde c$ at context $\ctx^a$
+is calculated as \\ $\coh^{\ctx^a}(\tilde c) = \eta(\{b^k\}, \{w^k\})$, where
+\begin{align*}
+  \{b^k\}  &= \{b_{ij}^k | \forall \text{pieces of information } i, j | x \not= y \} \\
+  b_{ij}^k &= \xi_{k_2}^{\ctx^a}(i,j) \\
+  &\\
+  w^k      &= \xi_{k_w}^{\ctx^a}(\{\text{pieces of information}\})
+\end{align*}
+
+\todo\red{: propose function $\eta$.}
+
+\medskip
+
+\noindent
+In order for a candidate $\tilde c$ to be accepted at the context $\ctx$
+of agent $a$, it's coherence must not be less than context-specific threshold,
+that can depend on negotiation duration:
+$$ \coh^{\ctx^a}(\tilde c) \geq \rho^{\ctx^a}(\tau) $$
+
+\bigskip
+
+\noindent
+A context $\ctx$ of agent $a$ is defined as tuple, containing its
+context-specific knowledge, relations, combination function and threshold.
+
+$$ \ctx^a \sim \left< \mathit{knowledge^{\ctx^a}},
+                      \{\xi_{i_2}^{\ctx^a}\},
+                      \{\xi_{i_w}^{\ctx^a}\},
+                      \eta_\ctx,
+                      \rho^{\ctx^a}(\tau)
+               \right> $$
+
+
+
+
+
+\subsubsection{Agent Formalization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\noindent
+An agent $a$ is a triple $\left< \behaviour_\act^a,
+                                 \behaviour_\react^a,
+                                 \mathit{contexts}_a
+                          \right>$, where
+\begin{align*}
+  &\behaviour_\act^a   : \state \mapsto \action \\
+  &\behaviour_\react^a : \state \times \msg \mapsto \action \\
+  &\mathit{contexts}_a = \left< \mathit{capabilities_a},
+                                \mathit{tconsistency_a},
+                                \mathit{obligations_a},
+                                \mathit{preferences_a},
+                                \mathit{external_a}
+                           \right>\\
+  &\mathit{contexts}_a \in \state
+\end{align*}
+
+Behavior functions were introduced in section \ref{sec:NegotiatingAgents};
+their implementation is discussed in section \ref{sec:AgentBehavior}.
+
+
+
+% Each context defines it's context-specific knowledge, constraints of two kinds
+% and a threshold. Constraints codomains depend on the context and are already
+% described in section \ref{sec:ProblemFormal}.
+% The constraints can have two forms (but both can be represented in the second one):
+% \begin{itemize}
+%   \item[binary] $\left< x, y \right> \mapsto \mathrm{codomain}$
+%   \item[]
+% \end{itemize}
+
+
+% Let a \emph{negotiating coherence-based} agent $a$ be an entity that defines
+% the following operations over it:
+% \begin{itemize}
+%   \item[\textit{contexts}]
+% \end{itemize}
+
+
+% For each participant professor, group, and classroom an agent of the corresponding
+% role is defined
+
+% As defined in section \ref{sec:ProblemFormal}, there are
+
+
+% The restrictions from problem definition in section \ref{sec:ProblemFormal}
+% are already defined, taking into account the agent.
+
+\todo
+
+
+
+
+
+
+
+%
