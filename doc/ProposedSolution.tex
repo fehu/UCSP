@@ -106,13 +106,13 @@ In this section would be formally defined:
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The problem definition in section \ref{sec:ProblemFormal} is already one step
-close to a distributed one; it just lacks explicitly connecting the constraints
-within an agent.
+% The problem definition in section \ref{sec:ProblemFormal} is already one step
+% close to a distributed one; it just lacks explicitly connecting the constraints
+% within an agent.
 
 Each participant $p$ (professor, group or classroom) is represented in the negotiation
-by a single agent, that holds person-specific restrictions and optimization criteria
-in its contexts: $ \{\xi^a_i\} \in a$. The internal contexts correspond to
+by a single agent $a_p$, that holds person-specific restrictions and optimization criteria
+in its contexts: $ \{\xi^a_i\} \in a_p$. The internal contexts contain to
 the restrictions, defined in section \ref{sec:ProblemFormal}:
 \begin{align*}
    \text{Capabilities}      &\hbox{ --- } \restrC
@@ -163,7 +163,7 @@ single coherence value out of the values, yielded by the constraints.
 Then coherence of candidate $\tilde c$ at context $\ctx^a$
 is calculated as \\ $\coh^{\ctx^a}(\tilde c) = \eta(\{b^k\}, \{w^k\})$, where
 \begin{align*}
-  \{b^k\}  &= \{b_{ij}^k | \forall \text{pieces of information } i, j | x \not= y \} \\
+  \{b^k\}  &= \{b_{ij}^k | \forall \text{pieces of information } i, j | i \not= j \} \\
   b_{ij}^k &= \xi_{k_2}^{\ctx^a}(i,j) \\
   &\\
   w^k      &= \xi_{k_w}^{\ctx^a}(\{\text{pieces of information}\})
@@ -219,7 +219,7 @@ An agent $a$ is a triple $\left< \behaviour_\act^a,
 Behavior functions were introduced in section \ref{sec:NegotiatingAgents};
 their implementation is discussed in section \ref{sec:AgentBehavior}.
 
-
+\todo\red{: define internal and combined coherences (?? common goal ??)}
 
 % Each context defines it's context-specific knowledge, constraints of two kinds
 % and a threshold. Constraints codomains depend on the context and are already
