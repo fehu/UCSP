@@ -27,7 +27,7 @@ module AUCSP.NegotiationStates (
 
 ) where
 
-import Agent.Controller (AgentStatus, AgentStatus')
+import Agent.AgentSystem (AgentStatus(Initialized), AgentStatus')
 
 import AUCSP.Contexts
 import AUCSP.Classes
@@ -89,13 +89,12 @@ instance (Num a) => AgentStates (States r a) a where
 
 rCounterparts l s c = mapM ($ (getKnownAgents s, c)) l
 
-mkStates roledef initialStatus ctx decider = do
-    status  <- newTVarIO initialStatus
+mkStates roledef ctx decider = do
+    status  <- newTVarIO Initialized
     return  $ States status decider roledef ctx
 
 groupStates  :: (Num a, Typeable a) =>
-                AgentStatus SomeCandidate
-             -> ContextsHolder Role.Group a
+                ContextsHolder Role.Group a
              -> DeciderUCSP a
              -> IO (States Role.Group a)
 groupStates =  mkStates $ RoleDef Role.Group $
@@ -103,8 +102,7 @@ groupStates =  mkStates $ RoleDef Role.Group $
                              , fmap SomeKnownAgent . uncurry getKnownClassroom ]
 
 professorStates  :: (Num a, Typeable a) =>
-                    AgentStatus SomeCandidate
-                 -> ContextsHolder Role.Professor a
+                    ContextsHolder Role.Professor a
                  -> DeciderUCSP a
                  -> IO (States Role.Professor a)
 professorStates =  mkStates $ RoleDef Role.FullTimeProfessor $
@@ -112,8 +110,7 @@ professorStates =  mkStates $ RoleDef Role.FullTimeProfessor $
                                  , fmap SomeKnownAgent . uncurry getKnownClassroom ]
 
 classroomStates  :: (Num a, Typeable a) =>
-                    AgentStatus SomeCandidate
-                 -> ContextsHolder Role.Classroom a
+                    ContextsHolder Role.Classroom a
                  -> DeciderUCSP a
                  -> IO (States Role.Classroom a)
 classroomStates =  mkStates $ RoleDef Role.Classroom $

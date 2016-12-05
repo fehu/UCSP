@@ -27,6 +27,7 @@ module AUCSP.NegotiatingAgent (
 
 import Agent.Abstract
 import Agent.Ask
+import Agent.AgentSystem.Default (ConnectWith(..))
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Contexts
@@ -205,10 +206,7 @@ type instance ExpectedResponse WhoAreYou = MyCapabilities
 \end{code}
 
 
-The only way the agents may learn others' references is by the following message.
-\begin{code}
-data ConnectWith = ConnectWith [AgentRef] deriving (Typeable, Show)
-\end{code}
+The only way the agents may learn others' references by receiving \verb|ConnectWith| message.
 
 The agent should then ask the new connections for identity and guard it.
 \begin{code}

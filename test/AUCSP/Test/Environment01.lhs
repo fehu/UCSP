@@ -20,6 +20,7 @@ module Main where
 
 import AUCSP.NegotiationEnvironment
 import AUCSP.Test.TestData01
+import AUCSP.Test.Run
 
 -- import Data.Typeable (Typeable)
 
@@ -69,9 +70,36 @@ describeClassrooms  = describeRole  Classroom classroomDecider
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+Negotiation:
 
 \begin{code}
-main = undefined
+
+describeNegotiation = do
+
+  roles <- sequence [ describeGroups, describeProfessors, describeClassrooms ]
+
+  return DescribeNegotiation{
+    negDebug         = True,
+    negAgentWaitTime = Just 100, -- millis
+    negCtrlWaitTime  = Just 100, -- millis
+    negNumericZero   = 0 :: Double,
+    negRoles         = roles
+    }
+
+
+\end{code}
+
+
+
+
+\begin{code}
+main = do
+    descr <- describeNegotiation
+    putStrLn "execNegotiation"
+    print . snd =<< execNegotiation descr
+
 \end{code}
 
 %if standalone
