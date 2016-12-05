@@ -21,9 +21,16 @@ library
         Agent.Abstract
         Agent.Extra
         Agent.Ask
-        Agent.Manager
-        Agent.Manager.CreateAgent
-        Agent.Controller
+        -- Agent.Manager
+        -- Agent.Manager.CreateAgent
+
+        -- Agent.AgentSystem
+        Agent.AgentSystem.Controller
+        Agent.AgentSystem.Controller.AgentStatus
+        Agent.AgentSystem.Controller.Interface
+        Agent.AgentSystem.Controller.Leaf
+        Agent.AgentSystem.Controller.Node
+        -- Agent.AgentSystem.Default
 
         AUCSP.Classes
         AUCSP.NegotiationRoles
@@ -39,22 +46,22 @@ library
         AUCSP.Context.Preferences
         AUCSP.Context.External
         AUCSP.Contexts
-        AUCSP.NegotiatingAgent
-        AUCSP.NegotiationEnvironment
-        AUCSP.NegotiationStates
-
-        AUCSP.Test.TestData01
+        -- AUCSP.NegotiatingAgent
+        -- AUCSP.NegotiationEnvironment
+        -- AUCSP.NegotiationStates
 
     build-depends:
         base >=4.8 && <4.9,
         containers >=0.5,
-        stm ==2.4.4.*
+        stm ==2.4.4.*,
+        time ==1.7
 
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FunctionalDependencies
                         ExistentialQuantification TypeFamilies DataKinds FlexibleContexts
                         FlexibleInstances UndecidableInstances RankNTypes ConstraintKinds
                         TypeOperators PolyKinds ScopedTypeVariables NamedFieldPuns
+                        GeneralizedNewtypeDeriving TupleSections
     hs-source-dirs: src
 --    other-modules:
 
@@ -65,10 +72,13 @@ executable test-env-01
     build-depends:
         Thesis-UCSP -any,
         base >=4.8 && <4.9,
-        containers >=0.5
+        containers >=0.5,
+        time == 1.7
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FlexibleInstances TypeFamilies FlexibleContexts
---    other-modules: Agent.Test.Environment01.
+    other-modules: AUCSP.Test.TestData01
+                   AUCSP.Test.Run
+--    Agent.Test.Environment01.
 
 
 executable run-ping-pong
@@ -79,6 +89,17 @@ executable run-ping-pong
         base >=4.8 && <4.9,
         hspec -any
     default-language: Haskell2010
+
+executable run-ping-pong-sys
+    hs-source-dirs: test
+    main-is: Agent/Test/RunPingPongSys.hs
+    build-depends:
+        Thesis-UCSP -any,
+        base >=4.8 && <4.9,
+        hspec -any
+    default-language: Haskell2010
+    other-modules: Agent.Test.PingPongSystemSend
+
 
 test-suite test-generic-agent
     type: exitcode-stdio-1.0
@@ -94,3 +115,5 @@ test-suite test-generic-agent
         Agent.Test.PingPongAgentsSend
         Agent.Test.PingPongAgentsAsk
         Agent.Test.PingPongAgentsAsk2
+
+        Agent.Test.PingPongSystemSend

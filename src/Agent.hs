@@ -24,6 +24,8 @@ module Agent (
 
 , module A
 
+, _waitUpdate
+
 ) where
 
 import Agent.Abstract as A
@@ -36,6 +38,12 @@ import Control.Concurrent
 import Control.Concurrent.STM
 import Control.Applicative
 import Control.Monad
+
+
+
+_local_DEBUG = True
+localDebug scope = when _local_DEBUG . putStrLn . (("[DEBUG] " ++ scope ++ ": ") ++)
+
 
 -- -----------------------------------------------
 
@@ -154,11 +162,33 @@ _updateStates ag = do  mbAct  <- tryTakeTMVar $ _actUpdateCtrl ag
 -- | Waits update of the state or `upd` variable.
 --   Applies the update to agent's variables before returning
 --   `Left var update` or `Right run state update`.
-_waitUpdate ag upd var =    (lf =<< takeTMVar (upd ag))
-                       <|>  (rf =<< takeTMVar (_runStateUpdate ag))
+
+_waitUpdate ag upd var =        (lf =<< takeTMVar (upd ag))
+                       `orElse` (rf =<< takeTMVar (_runStateUpdate ag))
     where  lf = fmap Left  . sideEffect (var ag `writeTVar`)
            rf = fmap Right . sideEffect (_runState ag `writeTVar`)
            sideEffect f x = f x >> return x
+--           sideEffect f x = f x >> return x
+
+--_waitUpdate ag upd var =    (lf =<< tryTakeTMVar (upd ag))
+--                       <|>  (rf =<< tryTakeTMVar (_runStateUpdate ag))
+--    where  lf = fmap Left  . sideEffect (var ag `writeTVar`)
+--           rf = fmap Right . sideEffect (_runState ag `writeTVar`)
+--           sideEffect f x = f x >> return x
+
+
+--_waitUpdate ag upd var = do
+--    let lf = fmap Left  . sideEffect (var ag `writeTVar`)
+--        rf = fmap Right . sideEffect (_runState ag `writeTVar`)
+--        sideEffect f x = f x >> return x
+--    a <- atomically $ lf =<< takeTMVar (upd ag)
+--    b <- atomically $ rf =<< takeTMVar (_runStateUpdate ag)
+--
+--    putStrLn $ show a
+--
+--    let xx = a <|> b
+--
+--    return xx
 
 -- | Handles messages as defiend in _msgCtrl.
 --   Default handlers for 'StartMessage' and 'StopMessage'
@@ -210,7 +240,7 @@ _runAgent ag'@(AgentRunOfRole ag) = do
     actAndState <- atomically $ (,)  <$> getRunState ag
                                      <*> readTVar (_actCtrl ag)
     let waitActUpd = do  debugMsg ag "act: wait update"
-                         upd <- atomically (_waitUpdate ag _actUpdateCtrl _actCtrl)
+                         upd <- atomically $ _waitUpdate ag _actUpdateCtrl _actCtrl
                          debugMsg ag $  "act: updated: " ++ show upd ++
                                         "; executing runAgent again"
                          _runAgent ag'
@@ -251,7 +281,7 @@ instance (Typeable r, Typeable states) => AgentCreate  (AgentDescriptor states r
                                  ,  newAgentStates=newStates
                                  ,  nextAgentId=nextId
                                  ,  debugAgent=debug } =
-        do  id        <- nextId undefined
+        do  id        <- nextId
             states    <- newStates
 
             run <- atomically $
@@ -280,11 +310,16 @@ instance (Typeable r, Typeable states) => AgentCreate  (AgentDescriptor states r
             msgThreadStopped <- newEmptyMVar
             actThreadStopped <- newEmptyMVar
 
+            localDebug "createAgent" "msgThreadId  <- forkFinally"
+
             -- Start threads
             msgThreadId  <- forkFinally  (forever $ _runAgentMessages run')
                                          (\_ -> do msgThreadStopped `putMVar` undefined
                                                    debugMsg run  "Message Thread Terminated"
                                                 )
+
+            localDebug "createAgent" "actThreadId  <- forkFinally"
+
             actThreadId  <- forkFinally  (forever $ _runAgent run')
                                          (\_ -> do actThreadStopped `putMVar` undefined
                                                    debugMsg run "Act Thread Terminated"
@@ -301,10 +336,3 @@ instance (Typeable r, Typeable states) => AgentCreate  (AgentDescriptor states r
                 threads = AgentThreads actThread msgThread
 
             return (run', AgentFullRef run' threads)
-
-
-
-
-
-
-

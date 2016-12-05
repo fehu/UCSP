@@ -41,7 +41,7 @@ module Agent.Abstract(
 , selectMessageHandler, mbHandle
 , selectResponse, mbResp
 
-, AgentCreate(..), AgentDescriptor(..)
+, AgentCreate(..), AgentDescriptor(..), newAgentDescriptor
 
 ) where
 
@@ -71,7 +71,7 @@ and messages handling. Both are defined flexibly and can be changed during the e
 
 type AgentAct states = forall i . (AgentExecControl i states) => i -> states -> IO ()
 
-type Millis = Int -- Milliseconds
+type Millis = Int
 
 class AgentExecControl i states | i -> states where
     agentRef        :: i -> AgentRef
@@ -270,7 +270,7 @@ that must contain a \emph{\textbf{unique}} string, for example an UUID.
 
 \begin{code}
 
-data AgentId = AgentId String deriving (Eq, Ord)
+newtype AgentId = AgentId String deriving (Eq, Ord)
 
 instance Show AgentId  where show (AgentId s) = s
 
@@ -455,10 +455,21 @@ A simple \emph{agent descriptor} that can be used for agent creation.
 data AgentDescriptor states result = AgentDescriptor{
   agentDefaultBehaviour  :: AgentBehavior states,
   newAgentStates         :: IO states,
-  nextAgentId            :: states -> IO AgentId,
+  nextAgentId            :: IO AgentId,
   noResult               :: result,
   debugAgent             :: Bool
   }
+
+newAgentDescriptor :: String -> AgentBehavior states -> IO states -> result -> Bool
+                   -> IO (AgentDescriptor states result)
+
+newAgentDescriptor name beh newS noRes debug = do
+    c <- atomically $ newTVar (0 :: Int)
+    let nextId = do  i <- atomically $ do  i <- readTVar c
+                                           modifyTVar c (1+)
+                                           return i
+                     return . AgentId $ name ++ show i
+    return $ AgentDescriptor beh newS nextId noRes debug
 
 instance Show (AgentDescriptor states res) where
     show _ = "*AgentDescriptor*"
@@ -484,4 +495,3 @@ instance Show (AgentActControl states) where
 %%% eval: (haskell-indentation-mode)
 %%% eval: (interactive-haskell-mode)
 %%% End:
-
