@@ -216,9 +216,14 @@ _runAgentMessages (AgentRunOfRole ag) = do
                              mbStop   = (\StopMessage   -> do dprint "Stop message received"
                                                               ag `_stop` states
                                         )  <$> cast msg
-                        in fromMaybe (handleMessage h ag states msg) $ mbStart <|> mbStop
+                        in fromMaybe (return ())
+                             $   mbStart
+                            <|>  mbStop
+                            <|>  handleMessage h ag states msg
                  Right (MessageWithResponse msg respond) ->
-                        respond =<< respondMessage h ag states msg
+                        respond =<< fromMaybe
+                          (error $ "No response function for " ++ show msg)
+                          (respondMessage h ag states msg)
 
 _run  :: (Typeable states, Typeable r) => (RunState -> Bool)
       -> (AgentRun r states -> states -> IO ())

@@ -28,7 +28,6 @@ module Agent.AgentSystem.Controller (module Export ) where
   import Agent                                    as Export
   import Agent.AgentSystem.Controller.Interface   as Export
   import Agent.AgentSystem.Controller.AgentStatus as Export
-  -- import Agent.AgentSystem.Controller.CreateAgent as Export
   import Agent.AgentSystem.Controller.Leaf        as Export
   import Agent.AgentSystem.Controller.Node        as Export
 
@@ -43,12 +42,9 @@ The negotiation is created and monitored by the \emph{controller(s)}, that
 may be composed into hierarchical structure.
 
 %include Agent/AgentSystem/Controller/Interface.lhs
-
-% include Controller/Leaf.lhs
-% include Controller/Node.lhs
-% include Controller/AgentStatus.lhs
-% include Controller/CreateAgent.lhs
-
+%include Agent/AgentSystem/Controller/AgentStatus.lhs
+%include Agent/AgentSystem/Controller/Leaf.lhs
+%include Agent/AgentSystem/Controller/Node.lhs
 
 
 

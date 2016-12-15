@@ -27,7 +27,9 @@ module AUCSP.NegotiatingAgent (
 
 import Agent.Abstract
 import Agent.Ask
-import Agent.AgentSystem.Default (ConnectWith(..))
+
+-- import Agent.AgentSystem.Default (ConnectWith(..))
+
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Contexts
@@ -176,7 +178,11 @@ Messages declarations.
 
 data NewClassAdded = NewClassAdded Class deriving (Typeable, Show)
 
--- -----------------------------------------------
+-------------------------------------------------
+
+data ConnectWith = ConnectWith [AgentRef] deriving (Typeable, Show)
+
+-------------------------------------------------
 
 data AcceptCandidateReq =  forall a. (Typeable a, Show a, Num a, Ord a) =>
                            AcceptCandidateReq (Candidate a) deriving Typeable
@@ -190,7 +196,7 @@ data AcceptCandidateResp = WillAccept
 type instance ExpectedResponse AcceptCandidateReq  = AwaitingResponse AcceptCandidateResp
 type instance ExpectedResponse AcceptCandidateResp = ConfirmOrCancel
 
--- -----------------------------------------------
+-------------------------------------------------
 
 data WhoAreYou = WhoAreYou deriving (Typeable, Show)
 
@@ -339,32 +345,40 @@ newIDGenerators = do  g <- newIDGenerator "Group-"
                       r <- newIDGenerator "Classroom-"
                       return $ IDGenerators g p r
 
-class (Contexts c a, ContextsRole c ~ r) => NextId c r a where
-    nextId :: IDGenerators -> c -> IO String
 
-instance (Contexts c a, ContextsRole c ~ Role.Group) => NextId c Role.Group a where
-    nextId = const . nextId_ . groupIdGen
-instance (Contexts c a, ContextsRole c ~ Role.Professor) => NextId c Role.Professor a where
-    nextId = const . nextId_ . profIdGen
-instance (Contexts c a, ContextsRole c ~ Role.Classroom) => NextId c Role.Classroom a where
-    nextId = const . nextId_ . roomIdGen
+class NextId r where nextId :: r -> IDGenerators -> IO String
+
+instance NextId Role.Group      where nextId _ = nextId_ . groupIdGen
+instance NextId Role.Professor  where nextId _ = nextId_ . profIdGen
+instance NextId Role.Classroom  where nextId _ = nextId_ . roomIdGen
+
+-- class (Contexts c a, ContextsRole c ~ r) => NextId c r a | c -> r where
+--     nextId :: IDGenerators -> c -> IO String
+-- instance (Contexts c a, ContextsRole c ~ Role.Group) => NextId c Role.Group a where
+--     nextId = const . nextId_ . groupIdGen
+-- instance (Contexts c a, ContextsRole c ~ Role.Professor) => NextId c Role.Professor a where
+--     nextId = const . nextId_ . profIdGen
+-- instance (Contexts c a, ContextsRole c ~ Role.Classroom) => NextId c Role.Classroom a where
+--     nextId = const . nextId_ . roomIdGen
 
 
-negotiatingAgentDescriptor  :: (ContextConstraints s a, NextId s (ContextsRole s) a)
+negotiatingAgentDescriptor  :: ( ContextConstraints s a
+                               , NextId (ContextsRole s)
+                               , ContextsRole s ~ r)
                             => IDGenerators
+                            -> r
                             -> DeciderUCSP a
                             -> Maybe Millis
                             -> (DeciderUCSP a -> IO s)
                             -> Bool
                             -> AgentDescriptor s SomeCandidate
-negotiatingAgentDescriptor gens decider wait newStates debug = AgentDescriptor{
+negotiatingAgentDescriptor gens r decider wait newStates debug = AgentDescriptor{
     agentDefaultBehaviour  = negotiatingAgentBehavior decider wait,
     newAgentStates         = newStates decider,
-    nextAgentId            = fmap AgentId . nextId gens,
+    nextAgentId            = AgentId <$> nextId r gens,
     noResult               = NoCandidate,
     debugAgent             = debug
     }
 
 
 \end{code}
-

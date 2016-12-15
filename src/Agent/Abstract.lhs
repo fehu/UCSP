@@ -38,8 +38,8 @@ module Agent.Abstract(
 , AgentFullRef(..), fullRef2Ref
 , AgentThread(..), AgentThreads(..)
 
-, selectMessageHandler, mbHandle
-, selectResponse, mbResp
+, selectMessageHandler,  mbHandle, selectMessageHandler',  mbHandle'
+, selectResponse, mbResp, selectResponse', mbResp'
 
 , AgentCreate(..), AgentDescriptor(..), newAgentDescriptor
 
@@ -156,14 +156,14 @@ data AgentHandleMessages states = AgentHandleMessages {
 
 > handleMessage :: forall msg i .  ( Message msg
 >                                  , AgentInnerInterface i states) =>
->                  i -> states -> msg -> IO (),
+>                  i -> states -> msg -> Maybe (IO ()),
 
   \item respond un-typed messages (responding to \verb|ask|):
 
 > respondMessage :: forall msg resp i .  ( Message msg, Message resp
 >                                        , ExpectedResponse msg ~ resp
 >                                        , AgentInnerInterface i states) =>
->                   i -> states -> msg -> IO resp
+>                   i -> states -> msg -> Maybe (IO resp)
 > }
 
 \end{itemize}
@@ -177,6 +177,15 @@ type family ExpectedResponse (msg :: *) :: *
 
 \end{code}
 
+\verb |AgentHandleMessages| can be summed:
+
+\begin{code}
+
+-- instance Monoid (AgentHandleMessages s) where
+  -- mempty = AgentHandleMessages {}
+
+\end{code}
+
 Helper functions for handling messages.
 
 \begin{code}
@@ -185,10 +194,18 @@ mbHandle  :: (Message msg0, Message msg)
           => (msg -> IO ()) -> msg0 -> Maybe (IO ())
 mbHandle f msg = f <$> cast msg
 
-selectMessageHandler :: Message msg => [msg -> Maybe (IO ())] -> msg -> IO ()
-selectMessageHandler rfs msg = fromMaybe failed  $ foldr (<|>) Nothing
-                                                 $ ($ msg) <$> rfs
-    where failed = fail $ "Couldn't match received message: " ++ show msg
+mbHandle'  :: (Message msg0, Message msg)
+           => (state -> msg -> IO ())
+           -> state -> msg0 -> Maybe (IO ())
+mbHandle' f s = mbHandle $ f s
+
+selectMessageHandler :: Message msg => [msg -> Maybe (IO ())] -> msg -> Maybe (IO ())
+selectMessageHandler rfs msg  = foldr (<|>) Nothing
+                              $ ($ msg) <$> rfs
+
+selectMessageHandler' :: Message msg  => [state -> msg -> Maybe (IO ())]
+                                      -> state -> msg -> Maybe (IO ())
+selectMessageHandler' rfs s = selectMessageHandler $ map ($ s) rfs
 
 \end{code}
 
@@ -203,11 +220,23 @@ mbResp  :: ( ExpectedResponse msg0 ~ resp0 , Message msg0, Message resp0
         => (msg -> IO resp) -> msg0 -> Maybe (IO resp0)
 mbResp f msg = cast =<< f <$> cast msg
 
+mbResp'  :: ( ExpectedResponse msg0 ~ resp0 , Message msg0, Message resp0
+            , ExpectedResponse msg ~ resp , Message msg, Message resp
+            )
+         => (state -> msg -> IO resp)
+         -> state -> msg0 -> Maybe (IO resp0)
+
+mbResp' f s = mbResp $ f s
+
 selectResponse  :: (resp ~ ExpectedResponse msg, Message msg)
-                => [msg -> Maybe (IO resp)] -> msg -> IO resp
-selectResponse rfs msg = fromMaybe failed  $ foldr (<|>) Nothing
-                                           $ ($ msg) <$> rfs
-    where failed = fail $ "Couldn't match received message: " ++ show msg
+                => [msg -> Maybe (IO resp)] -> msg -> Maybe (IO resp)
+selectResponse rfs msg  = foldr (<|>) Nothing
+                        $ ($ msg) <$> rfs
+
+selectResponse'  :: (resp ~ ExpectedResponse msg, Message msg)
+                 => [state -> msg -> Maybe (IO resp)]
+                 -> state -> msg -> Maybe (IO resp)
+selectResponse' rfs s = selectResponse $ map ($ s) rfs
 
 \end{code}
 

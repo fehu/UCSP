@@ -92,22 +92,31 @@ A \verb|ControllerLeaf| creates new agents and monitors their lifetime.
 
 > class (Controller c res) => ControllerLeaf c res | c -> res
 >   where
->     newAgentsL :: c  -> [CreateAgent res]
->                      -> IO (AgentsStatuses res)
+>     newAgentsL :: (Typeable ag)  => c
+>                                  -> [CreateAgent ag res]
+>                                  -> IO (AgentsStatuses res)
 
 \verb|CreateAgent| extends \verb|AgentDescriptor|, adding a function to
 extract \verb|AgentStatus'|.
 
-> data CreateAgent res = forall states ag . ( AgentCreate (AgentDescriptor states res) ag
->                                           , Typeable ag, Typeable states )  =>
+% > data CreateAgent res = forall states ag . ( AgentCreate (AgentDescriptor states res) ag
+% >                                           , Typeable ag, Typeable states )  =>
+% >   CreateAgent {
+% >     crAgDescriptor  :: (Typeable states) => AgentDescriptor states res,
+% >     crAgExtState    :: ag -> AgentStatus' res
+% >     }
+
+> data CreateAgent ag res = forall states . ( AgentCreate (AgentDescriptor states res) ag
+>                                           , Typeable states )  =>
 >   CreateAgent {
 >     crAgDescriptor  :: (Typeable states) => AgentDescriptor states res,
 >     crAgExtState    :: ag -> AgentStatus' res
 >     }
 
-> data CreateAgent' = forall res . Typeable res => CreateAgent' (CreateAgent res)
+> data CreateAgent' = forall ag res . (Typeable res, Typeable ag) =>
+>      CreateAgent' (CreateAgent ag res)
 
-> instance Show (CreateAgent res) where
+> instance Show (CreateAgent ag res) where
 >   show CreateAgent{crAgDescriptor=d} = show d
 > instance Show CreateAgent' where show (CreateAgent' c) = show c
 
@@ -119,14 +128,14 @@ identifier is needed.
 
 > class (Controller c res) => ControllerNode c res | c -> res
 >   where
->     listControllers :: c -> IO [SomeController res]
->
 >     type AgentPosition c :: *
->     controllerPosition :: c -> AgentPosition c
+>     listControllers :: c -> IO (Map (AgentPosition c) (SomeController res))
+> --    controllerPosition :: c -> AgentPosition c
 >
->     newAgentsN :: c -> AgentPosition c
->                     -> [CreateAgent res]
->                     -> IO [AgentWithStatus res]
+>     newAgentsN :: (Typeable ag)  => c
+>                                  -> AgentPosition c
+>                                  -> [CreateAgent ag res]
+>                                  -> IO [AgentWithStatus res]
 
 
 \begin{figure}
@@ -190,7 +199,11 @@ identifier is needed.
 \verb|SomeController| container may wrap any type of class \verb|Controller|.
 \verb|SomeController| has itself an instance of \verb|Controller|.
 
-> data SomeController res = forall c . Controller c res => SomeController c
+> data SomeController res = forall c . ( Controller c res
+>                                  --    , Show (AgentPosition c)
+>                                  --    , Typeable (AgentPosition c)
+>                                      ) =>
+>      SomeController c
 >   deriving Typeable
 
 > someControllerId (SomeController c) = agentId c
@@ -229,7 +242,6 @@ Notifications and other messages:
   data ControllerNotification  = TerminatedByRequest
                                | HaveAllResults
                                | AgentsFailed (Map AgentFullRef SomeException)
-                              -- |
     deriving (Show, Typeable)
 
  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --

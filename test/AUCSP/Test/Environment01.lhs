@@ -18,7 +18,7 @@
 \begin{code}
 module Main where
 
-import AUCSP.NegotiationEnvironment
+-- import AUCSP.NegotiationEnvironment
 import AUCSP.Test.TestData01
 import AUCSP.Test.Run
 

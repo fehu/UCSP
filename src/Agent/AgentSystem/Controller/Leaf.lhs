@@ -57,10 +57,10 @@ Leaf controller:
     managerPause :: Maybe Millis,
     managerMonitorStatus :: AgentStatusMap res -> IO (Maybe ControllerNotification),
     -- managerProcessNotification  :: ManagerState res -> ControllerNotification -> IO (),
-    managerProcessMessage       :: forall msg . Message msg => ManagerState res -> msg -> IO (),
+    managerProcessMessage       :: forall msg . Message msg => ManagerState res -> msg -> Maybe (IO ()),
     managerRespondMessage       :: forall msg . ( Message msg
                                                 , Message (ExpectedResponse msg)) =>
-                                ManagerState res -> msg -> IO (ExpectedResponse msg)
+                                ManagerState res -> msg -> Maybe (IO (ExpectedResponse msg))
   }
 
   data ManagerState res = ManagerState{
@@ -77,8 +77,8 @@ Leaf controller:
                         -> Bool
                         -> AgentsManagerBuilder res
   agentsManagerBuilder d debug mbParent =
-      newAgentDescriptor  (managerName d)  behavior
-                          (newStates mbParent)  ()  debug
+      newAgentDescriptor  (managerName d) behavior
+                          (newStates mbParent) () debug
 
     where behavior = AgentBehavior{
                        agentAct = AgentActRepeat (const monitorAgents) (managerPause d),
@@ -190,25 +190,27 @@ Default \verb|ManagerDescriptor|:
                              else AgentsFailed $ Map.map (\(Left ex) -> ex) errs'
             else Nothing
     ,  managerProcessMessage = \state -> selectMessageHandler []
-    ,  managerRespondMessage = \state -> selectResponse
-            [  mbResp $ \ListAgents  -> AgentsList . Map.map readTVar
-                                     <$> readIORef (managerAgents state)
-            ,  mbResp $ handleAgentsCreation state []
+    ,  managerRespondMessage = selectResponse'
+            [  mbResp' handleAgentsList
+            ,  mbResp' $ handleAgentsCreation []
             ]
     }
 
-  handleAgentsCreation :: (Typeable res)  => ManagerState res
-                                          -> [AgentWithStatus res]
-                                          -> [CreateAgent']
-                                          -> IO AgentsList
-  handleAgentsCreation _ acc [] = return . AgentsList $ Map.fromList acc
+  handleAgentsList state ListAgents  = do
+    ags'  <- readIORef (managerAgents state)
+    ags   <- sequence $ do  (ref, s') <- Map.assocs ags'
+                            return $ (ref,) <$> readTVarIO s'
+    return . AgentsList $ Map.fromList ags
 
-  handleAgentsCreation ms acc
+
+  handleAgentsCreation acc _ [] = return . AgentsList $ Map.fromList acc
+  handleAgentsCreation acc ms
     (CreateAgent' (CreateAgent descr extractStatus) : cs)
     =  do  (agent, ref) <- createAgent descr
            let  status' = extractStatus agent
                 status = fromJust $ cast status'
            modifyIORef (managerAgents ms) (Map.insert ref status)
-           handleAgentsCreation ms ((ref, readTVar status) : acc) cs
+           s <- readTVarIO status
+           handleAgentsCreation ((ref, s) : acc) ms cs
 
 \end{code}

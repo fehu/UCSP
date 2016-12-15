@@ -46,9 +46,9 @@ library
         AUCSP.Context.Preferences
         AUCSP.Context.External
         AUCSP.Contexts
-        -- AUCSP.NegotiatingAgent
-        -- AUCSP.NegotiationEnvironment
-        -- AUCSP.NegotiationStates
+--        AUCSP.NegotiatingAgent
+--        AUCSP.NegotiationEnvironment
+        AUCSP.NegotiationStates
 
     build-depends:
         base >=4.8 && <4.9,

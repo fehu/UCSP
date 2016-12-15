@@ -3,7 +3,9 @@
 
 module Agent.AgentSystem.Controller.Node (
 
-  -- ControllerRoot
+  AgentsOverseer(..), OverseerDescriptor(..), OverseerRole(..)
+, createOverseer, CreateAgentsOverseer
+, defaultOverseerAgentDescriptor                                      -- TODO
 
 ) where
 
@@ -15,7 +17,7 @@ module Agent.AgentSystem.Controller.Node (
   import Data.Function (on)
   import Data.Maybe (fromJust)
 
-  import Agent.Abstract
+  import Agent
   -- import Agent.AgentSystem.Controller.AgentStatus
   import Agent.AgentSystem.Controller.Interface
   -- import Agent.AgentSystem.Controller.Leaf
@@ -30,12 +32,12 @@ module Agent.AgentSystem.Controller.Node (
 
 \begin{code}
 
-  data AgentsOverseer hp res = AgentsOverseer  ( AgentFullRef
-                                               , hp
-                                               , Maybe (SomeController res))
+  data AgentsOverseer hp res = AgentsOverseer  AgentFullRef
+                                               hp
+                                               (Maybe (SomeController res))
     deriving Typeable
 
-  overseerRef (AgentsOverseer (ref,_, _)) = ref
+  overseerRef (AgentsOverseer ref _ _) = ref
 
   instance Eq  (AgentsOverseer hp res) where (==) = (==) `on` overseerRef
   instance Ord (AgentsOverseer hp res) where compare = compare `on` overseerRef
@@ -53,25 +55,26 @@ module Agent.AgentSystem.Controller.Node (
 
   instance (Typeable res, Typeable hp) =>
     Controller (AgentsOverseer hp res) res where
-      controlledAgents c = do  AgentsList ags <- c `ask` ListAgents
-                               return . fromJust $ cast ags
-      tryGetResults  = fetchResults GetResults
-      waitResults    = fetchResults WaitResults
+      controlledAgents  = fetchAgents ListAgents
+      tryGetResults     = fetchResults GetResults
+      waitResults       = fetchResults WaitResults
       stopControlledAgent c = send c . StopAgent
       stopController = flip sendPriority StopMessage
-      parentController (AgentsOverseer (_,_, p)) = p
+      parentController (AgentsOverseer _ _  p) = p
 
-  instance (Typeable res, Typeable hp) =>
+  instance (Typeable res, Typeable hp, Show hp) =>
     ControllerNode (AgentsOverseer hp res) res where
       type AgentPosition (AgentsOverseer hp res) = hp
-      controllerPosition (AgentsOverseer (_,hp,_)) = hp
+      controllerPosition (AgentsOverseer _ hp _) = hp
 
       listControllers c = do  AnyControllers cs <- c `ask` ListControllers
                               return . fromJust $ cast cs
+      newAgentsN c hp cs = fetchAgents (hp, map CreateAgent' cs) c
 
 
 
-
+  fetchAgents msg c = do  AgentsList ags <- c `ask` msg
+                          return . fromJust $ cast ags
   fetchResults msg c = do  Results ags <- c `ask` msg
                            return . fromJust $ cast ags
 
@@ -102,7 +105,7 @@ Messages:
 
   data StopAgent = StopAgent AgentFullRef  deriving (Eq, Show, Typeable)
 
---  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+ --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
 
   data ListControllers  = ListControllers deriving (Eq, Show, Typeable)
   data AnyControllers   = forall res .  Message res => AnyControllers [SomeController res]
@@ -115,6 +118,54 @@ Messages:
     show (AnyControllers cs) = show $ map agentId cs
 
   type instance ExpectedResponse ListControllers = AnyControllers
+
+ --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --  --
+
+  type instance ExpectedResponse (hp, [CreateAgent']) = AgentsList
+
+\end{code}
+
+
+The \emph{node} is created from an \verb|OverseerDescriptor|:
+
+\begin{code}
+
+  data OverseerDescriptor hp s res = OverseerDescriptor{
+    overseerName :: String,
+    overseerPosition :: hp,
+    overseerDescriptor :: AgentDescriptor s (),
+    overseerNoResult :: res
+    }
+
+  data OverseerRole = OverseerRole deriving (Typeable, Show)
+
+  type CreateAgentsOverseer hp res  = Maybe (SomeController res)
+                                    -> IO (AgentsOverseer hp res)
+
+  createOverseer :: (Typeable s) =>
+    OverseerDescriptor hp s res -> CreateAgentsOverseer hp res
+
+  createOverseer d parent =
+    do  (_ :: AgentRunOfRole OverseerRole, ref)
+           <- createAgent $ overseerDescriptor d
+        return $ AgentsOverseer ref (overseerPosition d) parent
+
+\end{code}
+
+Default overseer descriptor \red{TODO}:
+
+\begin{code}
+
+  defaultOverseerAgentDescriptor :: String -> Bool -> IO (AgentDescriptor () ())
+  defaultOverseerAgentDescriptor name =
+    newAgentDescriptor name behavior (return ()) ()
+      where  behavior = AgentBehavior
+                          AgentNoAct
+                        $ AgentHandleMessages
+                            handleMessage'
+                            respondMessage'
+             handleMessage' = undefined
+             respondMessage' = undefined
 
 
 \end{code}
