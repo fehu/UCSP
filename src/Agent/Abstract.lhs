@@ -21,11 +21,7 @@ module Agent.Abstract(
 , AgentHandleMessages(..)
 
 , AgentComm(..), ExpectedResponse
-, AgentRef(..), AgentRef'(..), simpleRef
-
-, AgentCommRole(..), ExpectedResponseForRole
-, RoleIx(..), AnyRole(..), roleIx'
-, System(System), Generic(Generic)
+, AgentRef(..)
 
 , Message
 , StartMessage(StartMessage), StopMessage(StopMessage)
@@ -177,15 +173,6 @@ type family ExpectedResponse (msg :: *) :: *
 
 \end{code}
 
-\verb |AgentHandleMessages| can be summed:
-
-\begin{code}
-
--- instance Monoid (AgentHandleMessages s) where
-  -- mempty = AgentHandleMessages {}
-
-\end{code}
-
 Helper functions for handling messages.
 
 \begin{code}
@@ -253,45 +240,6 @@ data StopMessage   = StopMessage   deriving (Typeable, Show)
 \end{code}
 
 
-\subsubsection{Role-depending behavior}
-
-\begin{code}
-
-class RoleIx r where roleIx :: r -> Int
-
-
-data AnyRole = forall r . (RoleIx r, Show r, Typeable r) => AnyRole r
-
-roleIx' (AnyRole r) = roleIx r
-
-instance Show  AnyRole where show (AnyRole r) = show r
-instance Eq    AnyRole where (==) = (==) `on` roleIx'
-instance Ord   AnyRole where compare = compare `on` roleIx'
-
-
-\end{code}
-
-
-The expected response may depend on agent's \emph{role}.
-
-\begin{code}
-
-class (AgentComm (ref agRole), RoleIx agRole) => AgentCommRole agRole ref where
-  askR  :: (Message msg)     => ref agRole
-                             -> msg
-                             -> IO (ExpectedResponseForRole agRole msg)
-
-type family ExpectedResponseForRole r (msg :: *) :: *
-
-
--- System role.
-data System = System
-
--- Generic role.
-data Generic = Generic
-
-\end{code}
-
 \subsubsection{Referencing agents}
 
 Agents are identified (also compared and searched) by its \verb|AgentId|,
@@ -315,17 +263,6 @@ instance Show AgentRef where show (AgentRef ref) = show $ agentId ref
 
 \end{code}
 
-There is also a role-dependent reference, that contains some instance of \verb|AgentCommRole|.
-
-\begin{code}
-
-data AgentRef' r = forall ref . (AgentCommRole r ref) => AgentRef' (ref r)
-
-simpleRef (AgentRef' ref) = AgentRef ref
-
-\end{code}
-
-
 A reference itself provides \verb|AgentComm| interface for the underlying agent.
 
 \begin{code}
@@ -334,20 +271,6 @@ instance AgentComm AgentRef where
   agentId  (AgentRef ref)  = agentId ref
   send     (AgentRef ref)  = send ref
   ask      (AgentRef ref)  = ask ref
-
-instance (Typeable r) => AgentComm (AgentRef' r) where
-  agentId  (AgentRef' ref)  = agentId ref
-  send     (AgentRef' ref)  = send ref
-  ask      (AgentRef' ref)  = ask ref
-
-\end{code}
-
-The role-dependent reference is also an instance of \verb|AgentCommRole|.
-
-\begin{code}
-
-instance (Typeable r, RoleIx r) => AgentCommRole r AgentRef' where
-  askR   (AgentRef' ref)  = askR ref
 
 \end{code}
 
@@ -358,9 +281,6 @@ relations over it.
 
 instance Eq AgentRef  where AgentRef a == AgentRef b        = agentId a == agentId b
 instance Ord AgentRef where AgentRef a `compare` AgentRef b = agentId a `compare` agentId b
-
-instance Eq (AgentRef' r)  where AgentRef' a == AgentRef' b        = agentId a == agentId b
-instance Ord (AgentRef' r) where AgentRef' a `compare` AgentRef' b = agentId a `compare` agentId b
 
 \end{code}
 
