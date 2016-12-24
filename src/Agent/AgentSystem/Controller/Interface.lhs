@@ -50,7 +50,7 @@ The following functions denote this kind of behavior:
 
   \item Gathers the \emph{results} or \emph{errors} of agents executions (if any).
 
->   tryGetResults :: c -> IO (AgentsExecutionResult res)
+>   tryGetResults :: c -> IO (Maybe (AgentsExecutionResult res))
 
 \item Waits for \emph{all} agents to report the result or throw an exception.
 

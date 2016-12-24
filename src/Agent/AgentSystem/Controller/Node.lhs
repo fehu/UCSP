@@ -65,7 +65,6 @@ module Agent.AgentSystem.Controller.Node (
   instance (Typeable res, Typeable hp, Show hp) =>
     ControllerNode (AgentsOverseer hp res) res where
       type AgentPosition (AgentsOverseer hp res) = hp
-      controllerPosition (AgentsOverseer _ hp _) = hp
 
       listControllers c = do  AnyControllers cs <- c `ask` ListControllers
                               return . fromJust $ cast cs
@@ -131,11 +130,17 @@ The \emph{node} is created from an \verb|OverseerDescriptor|:
 \begin{code}
 
   data OverseerDescriptor hp s res = OverseerDescriptor{
-    overseerName :: String,
     overseerPosition :: hp,
-    overseerDescriptor :: AgentDescriptor s (),
-    overseerNoResult :: res
+    overseerDescriptor :: AgentDescriptor s res
     }
+
+
+  -- data OverseerDescriptor hp s res = OverseerDescriptor{
+    -- overseerName :: String,
+    -- overseerPosition :: hp,
+    -- overseerDescriptor :: AgentDescriptor s ()
+    -- overseerNoResult :: res
+    -- }
 
   data OverseerRole = OverseerRole deriving (Typeable, Show)
 

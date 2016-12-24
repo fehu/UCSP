@@ -116,7 +116,10 @@ Leaf controller:
     controlledAgents (AgentsManager (ref, _)) =
       unwrapAgentsList <$> ref `ask` ListAgents
 
-    tryGetResults c = Map.map fromJust . Map.filter isJust <$> optResults c
+    tryGetResults c = do  res' <- optResults c
+                          return $  if all isJust $ Map.elems res'
+                                    then Just $ Map.map fromJust res'
+                                    else Nothing
 
     waitResults c = atomically . flip waitResults' [] =<< Map.assocs <$> controlledAgents c
 
@@ -181,7 +184,7 @@ Default \verb|ManagerDescriptor|:
     {  managerName = name
     ,  managerPause = pause
     ,  managerMonitorStatus = \sm -> do
-         optRes    <- optResults' sm
+         optRes <- optResults' sm
          return $
             if all isJust $ Map.elems optRes
             then  let (errs', res') = Map.partition isLeft $ Map.map fromJust optRes

@@ -18,8 +18,16 @@
 
 module Agent.AgentSystem (
 
+  AgentSystem(..)
+, AgentRoleDescriptor(..)
+, SomeRole(..)
+, RootRole(..), RootController
 
-  module Export
+, AgentsSysCtrl, NoResult(..)
+
+, SystemExecutionSuccess, SystemExecutionFailure, SystemExecutionResult
+
+,  module Export
 
 ) where
 
@@ -54,26 +62,33 @@ structure and behavior traits.
 
 
 > class AgentSystem sys res | sys -> res where
->   createAgentSystem :: IO sys
+>   createAgentSystem :: Bool -> IO sys
 
 >   newAgents :: (AgentRoleDescriptor r res)  => sys
 >                                             -> r
 >                                             -> [RoleInput r]
 >                                             -> IO [AgentFullRef]
 >   listAgents       :: sys -> IO (Map AnyRole [AgentFullRef])
->   listAgentStates' :: sys -> IO (Map AnyRole (AgentStatusMap res))
+>   listAgentStates  :: sys -> IO (Map AnyRole (AgentStatusMap res))
 
 >   startAgents :: sys -> IO ()
 >   stopAgents  :: sys -> IO ()
 
->   terminateAgents       :: sys -> IO ()
->   terminateAgentsForce  :: sys -> IO ()
+% >   terminateAgents       :: sys -> IO ()
+% >   terminateAgentsForce  :: sys -> IO ()
 
->   agentsStarted :: sys -> IO (Maybe UniversalTime)
->   agentsStopped :: sys -> IO (Maybe UniversalTime)
+>   agentsStarted :: sys -> IO (Maybe UTCTime)
+>   agentsStopped :: sys -> IO (Maybe UTCTime)
 
->   tryGetResult :: sys -> IO (Maybe (Either SomeException res))
->   waitResult   :: sys -> IO (Either SomeException res)
+>   tryGetResult :: sys -> IO (Maybe (SystemExecutionResult res))
+>   waitResult   :: sys -> IO (SystemExecutionResult res)
+
+
+> type SystemExecutionSuccess res  = Map AgentRef res
+> type SystemExecutionFailure res  = Map AgentRef SomeException
+> type SystemExecutionResult  res  = Either  (SystemExecutionFailure res)
+>                                            (SystemExecutionSuccess res)
+
 
 
 % >   mapAgents        :: (AgentFullRef -> IO a)   -> m -> IO [a]
@@ -119,37 +134,46 @@ structure and behavior traits.
 
 % > instance RoleIx (SomeRole res) where
 
+> anyRole (SomeRole r) = AnyRole r
+
 > data RootRole res = RootRole
 
 \verb|AgentSystem| creates an hierarchy, where all agents of the same role
 are controlled by a unique \verb|ControllerLeaf|. The only \verb|ControllerNode|
-is system's root.
+is system's root. The leafs should monitor their agents' execution states and report
+changes to the root.
+% The following rules apply to the system's life cycle:
+% \begin{itemize}
+%   \item An error during any agent's execution (that is denoted by \verb|Terminated|
+%     \verb|AgentStatus|) causes termination of all system's agents.
+%   \item When an agent finishes all its jobs, it changes its status to \verb|Waiting|.
+%     A leaf controller waits for all the agent to take \verb|Waiting| state; then
+%     it sends \verb|Lock| command message to the agents.
+%   \item After receiving \verb|Lock| message, an agent should fix its result and
+%    change the state to \verb|Locked|. The corresponding leaf controller waits for
+%    all the agent to set this status, then collects their results and propagates
+%    them to the root.
+% \end{itemize}
 
 \verb|AgentSystem| implementation:
 
 \begin{code}
 
-  data NegotiationSysCtrl result = NegotiationSysCtrl {
-      _negotiationBegan   :: TMVar ExecTime,
-      _negotiationEnded   :: TMVar ExecTime,
-      _negotiationResult  :: TMVar [(AgentRef, result)],
+  data AgentsSysCtrl result = AgentsSysCtrl {
+      _agentSysExecBegan   :: TMVar UTCTime,
+      _agentSysExecEnded   :: TMVar UTCTime,
+      _agentSysExecResult  :: TMVar (SystemExecutionResult result),
 
-      _negotiationDebug :: Bool,
-      rootController     :: RootController result
+      _agentSysDebug       :: Bool,
+      rootController       :: RootController result
   }
-
-  data ExecTime = forall t . (Ord t, Show t) => ExecTime t
-  instance Show ExecTime where show (ExecTime t) = show t
 
   type RootController res = AgentsOverseer (SomeRole res) res
 
   class NoResult res where noResult' :: res
 
-  instance ( Typeable res, NoResult res
-          --  , Typeable (AgentPosition (AgentsManager res))
-          -- !!!!! TODO : `ControllerLeaf` has no 'position', only nodes !!!!!!!  TODO
-            ) =>
-    AgentSystem (NegotiationSysCtrl res) res where
+  instance ( Typeable res, NoResult res ) =>
+    AgentSystem (AgentsSysCtrl res) res where
       newAgents sys r ris = fmap (map fst) $
         newAgentsN (rootController sys) (SomeRole r)
         $ do  ri <- ris
@@ -159,23 +183,44 @@ is system's root.
                              (roleStates r ri)
                              (nextRoleId r)
                              noResult'
-                             (_negotiationDebug sys)
+                             (_agentSysDebug sys)
 
               return $ crAg r descr (roleStatesExt r)
 
-      listAgents = undefined -- fmap () . listAgentStates'
-      listAgentStates' = fetchAgents [] <=< listControllers . rootController
+      listAgents = fmap (Map.map Map.keys) . listAgentStates
+      listAgentStates = fetchAgents [] <=< fmap Map.assocs . listControllers . rootController
         where  fetchAgents acc [] = return $ Map.fromList acc
-               fetchAgents acc (SomeController ctrl : ctrls) =
+               fetchAgents acc ((r, SomeController ctrl) : ctrls) =
                  case cast ctrl
-                  of Just (leaf :: AgentsManager res) -> do
-                      ags <- controlledAgents leaf
-                      let role' = case cast $ controllerPosition leaf
-                                  of Just (SomeRole r) -> AnyRole  r
-                      fetchAgents  ((role', ags) : acc)
-                                   ctrls
+                  of  Just (leaf :: AgentsManager res) ->
+                        do  ags <- controlledAgents leaf
+                            fetchAgents ((anyRole r, ags):acc) ctrls
 
+      startAgents  = agentsMsgCtrl StartMessage  _agentSysExecBegan
+      stopAgents   = agentsMsgCtrl StopMessage   _agentSysExecEnded
 
+      agentsStarted  = atomically . tryReadTMVar . _agentSysExecBegan
+      agentsStopped  = atomically . tryReadTMVar . _agentSysExecEnded
+
+      tryGetResult  = atomically . tryReadTMVar . _agentSysExecResult
+      waitResult    = atomically . readTMVar . _agentSysExecResult
+
+      createAgentSystem debug = do  began   <- newEmptyTMVarIO
+                                    ended   <- newEmptyTMVarIO
+                                    result  <- newEmptyTMVarIO
+                                    aDescr  <- defaultOverseerAgentDescriptor
+                                                 "/" debug
+                                    let  rootDescriptor =
+                                            OverseerDescriptor
+                                              (SomeRole RootRole)
+                                              aDescr
+
+                                         root = undefined
+                                    return $ AgentsSysCtrl  began
+                                                            ended
+                                                            result
+                                                            debug
+                                                            root
 
   crAg :: ( Typeable r, Typeable states, Typeable res
           , Typeable (RoleStates r) ) =>
@@ -184,6 +229,15 @@ is system's root.
              -> CreateAgent (AgentRunOfRole r) res
   crAg _ descr exState' = CreateAgent descr exState
     where exState = exState' . fromJust . extractAgentStates
+
+  sendAllCtrls msg  =    (mapM_ (`send` msg) . Map.elems )
+                    <=<  listControllers . rootController
+
+  agentsMsgCtrl msg tvf c = do  let tv = tvf c
+                                b <- atomically $ isEmptyTMVar tv
+                                when b $ do  t <- getCurrentTime
+                                             atomically $ putTMVar tv t
+                                             sendAllCtrls msg c
 
 \end{code}
 
