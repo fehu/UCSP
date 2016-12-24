@@ -51,10 +51,10 @@ library
         AUCSP.NegotiationStates
 
     build-depends:
-        base >=4.8 && <4.9,
+        base >=4.9 && <5.0,
         containers >=0.5,
         stm ==2.4.4.*,
-        time ==1.7
+        time >= 1.6 && < 1.7
 
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FunctionalDependencies
@@ -71,9 +71,9 @@ executable test-env-01
     main-is: AUCSP/Test/Environment01.lhs
     build-depends:
         Thesis-UCSP -any,
-        base >=4.8 && <4.9,
+        base >=4.9 && <5.0,
         containers >=0.5,
-        time == 1.7
+        time >= 1.6 && < 1.7
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FlexibleInstances TypeFamilies FlexibleContexts
     other-modules: AUCSP.Test.TestData01
@@ -86,7 +86,7 @@ executable run-ping-pong
     main-is: Agent/Test/RunPingPong.hs
     build-depends:
         Thesis-UCSP -any,
-        base >=4.8 && <4.9,
+        base >=4.9 && <5.0,
         hspec -any
     default-language: Haskell2010
 
@@ -95,7 +95,7 @@ executable run-ping-pong-sys
     main-is: Agent/Test/RunPingPongSys.hs
     build-depends:
         Thesis-UCSP -any,
-        base >=4.8 && <4.9,
+        base >=4.9 && <5.0,
         hspec -any
     default-language: Haskell2010
     other-modules: Agent.Test.PingPongSystemSend
@@ -107,7 +107,7 @@ test-suite test-generic-agent
     main-is: Agent/Test.hs
     build-depends:
         Thesis-UCSP -any,
-        base >=4.8 && <4.9,
+        base >=4.9 && <5.0,
         hspec -any
     default-language: Haskell2010
     other-modules:
