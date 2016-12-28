@@ -12,7 +12,8 @@ module AUCSP.Coherence.Information (
 , Information(..)
 , collectInf, collectInf', collectInfs
 
-, Needs(..), CanTeach(..) -- TODO: Should be moved from here
+, Needs(..), GroupSize(..)
+, CanTeach(..)
 , RoomProvides(..), RoomCapacity(..)
 ) where
 
@@ -146,7 +147,10 @@ instance Show Information where show (Information i) = show i
 
 -- -----------------------------------------------
 
-newtype Needs = Needs(Set Discipline)
+newtype Needs = Needs (Set Discipline)
+    deriving ( Eq, Ord, Show, Typeable )
+
+newtype GroupSize = GroupSize Int
     deriving ( Eq, Ord, Show, Typeable )
 
 newtype CanTeach = CanTeach  (Set Discipline)
@@ -159,10 +163,10 @@ newtype RoomCapacity = RoomCapacity Int
     deriving ( Eq, Ord, Show, Typeable )
 
 instance InformationPiece Needs
+instance InformationPiece GroupSize
 instance InformationPiece CanTeach
 instance InformationPiece RoomProvides
 instance InformationPiece RoomCapacity
 
 
 \end{code}
-

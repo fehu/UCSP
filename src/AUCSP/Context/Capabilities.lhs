@@ -128,19 +128,19 @@ instance BinaryRelation MeetsRequirementsRel where
 
 -- -----------------------------------------------
 
-data EnoughCapacityRel a = EnoughCapacityRel {
-    getGroupSize :: AgentRef' Role.Group -> Int
-    }
+data EnoughCapacityRel a = EnoughCapacityRel
 
-instance Functor EnoughCapacityRel where fmap _ = EnoughCapacityRel . getGroupSize
+instance Functor EnoughCapacityRel where fmap _ _ = EnoughCapacityRel
 type instance RelationDetails EnoughCapacityRel = NoDetails
 instance InformationRelation EnoughCapacityRel where  relationName _ = "Enough Capacity"
                                                       coerceRelation = coerce
 instance BinaryRelation EnoughCapacityRel where
-    binRelValue r a b = do  let v :: (AbstractClass c, Num n) => Int -> c -> n
-                                v size c =  if getGroupSize r (classGroup c) > size
-                                            then 0 else 1
-                            RoomCapacity cap <- collectInf a
+    binRelValue r a b = do
+                            -- let v :: (AbstractClass c, Num n) => Int -> c -> n
+                            --     v size c =  if getGroupSize r (classGroup c) > size
+                            --                 then 0 else 1
+                            RoomCapacity cap  <- collectInf a
+                            GroupSize grSize  <- collectInf b
                             let r1  = case collectInf b of Just (SomeClass c)  -> Just (v cap c, NoDetails)
                                 r2  = case collectInf b of Just (Class c)      -> Just (v cap c, NoDetails)
                             r1 <|> r2
@@ -149,7 +149,7 @@ instance BinaryRelation EnoughCapacityRel where
 -- -----------------------------------------------
 
 instance (Num a) => Context (Capabilities Role.Group) a where
-  contextName _       = "Capabilities"
+  contextName _       = "Group Capabilities"
   contextInformation  = return . fromNodes . (:[])
                       . Information . Needs
                       . Set.fromList . needsDisciplines
@@ -166,7 +166,7 @@ instance (Num a) => Context (Capabilities Role.Group) a where
 
 
 instance (Num a) => Context (Capabilities Role.Professor) a where
-  contextName _       = "Capabilities"
+  contextName _       = "Professor Capabilities"
   contextInformation  = return . fromNodes . (:[])
                       . Information . CanTeach
                       . Set.fromList . canTeachFullTime
@@ -184,7 +184,7 @@ instance (Num a) => Context (Capabilities Role.Professor) a where
 
 
 instance (Num a) => Context (Capabilities Role.Classroom) a where
-  contextName _         = "Capabilities"
+  contextName _         = "Classroom Capabilities"
   contextInformation c  = return $ fromNodes [
                         Information . RoomProvides . Set.fromList
                             $ classroomCapabilities c,
@@ -206,4 +206,3 @@ instance (Num a) => Context (Capabilities Role.Classroom) a where
 
 
 \end{code}
-

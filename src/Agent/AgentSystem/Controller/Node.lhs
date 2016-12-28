@@ -151,7 +151,7 @@ The \emph{node} is created from an \verb|OverseerDescriptor|:
     OverseerDescriptor hp s res -> CreateAgentsOverseer hp res
 
   createOverseer d parent =
-    do  (_ :: AgentRunOfRole OverseerRole, ref)
+    do  (_ :: ExecutableAgent, ref)
            <- createAgent $ overseerDescriptor d
         return $ AgentsOverseer ref (overseerPosition d) parent
 

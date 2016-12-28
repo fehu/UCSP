@@ -15,7 +15,6 @@ module AUCSP.Classes (
 
 ) where
 
-import qualified AUCSP.NegotiationRoles as Role
 import Agent.Abstract
 
 import Data.Typeable
@@ -65,9 +64,9 @@ For inner usage, the classes are divided into
 
 class (Ord c, Show c, Typeable c) =>
     AbstractClass c where  classDiscipline :: c -> Discipline
-                           classGroup      :: c -> AgentRef' Role.Group
-                           classProfessor  :: c -> AgentRef' Role.Professor
-                           classRoom       :: c -> AgentRef' Role.Classroom
+                           classGroup      :: c -> AgentRef
+                           classProfessor  :: c -> AgentRef
+                           classRoom       :: c -> AgentRef
                            classNumber     :: c -> Word
 
 class (AbstractClass c, DiscreteTime time) =>
@@ -207,4 +206,3 @@ class (DiscreteTime time, Monad m) =>
 
 
 \end{code}
-

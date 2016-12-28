@@ -13,7 +13,10 @@
 -----------------------------------------------------------------------------
 
 module Agent (
-  agentNoBehaviour
+
+  ExecutableAgent
+
+, agentNoBehaviour
 
 , extractAgentStates
 
