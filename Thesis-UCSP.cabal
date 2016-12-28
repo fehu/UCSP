@@ -16,22 +16,6 @@ extra-source-files:
 
 library
     exposed-modules:
-
-        Agent
-        Agent.Abstract
-        Agent.Extra
-        Agent.Ask
-        -- Agent.Manager
-        -- Agent.Manager.CreateAgent
-
-        -- Agent.AgentSystem
-        Agent.AgentSystem.Controller
-        Agent.AgentSystem.Controller.AgentStatus
-        Agent.AgentSystem.Controller.Interface
-        Agent.AgentSystem.Controller.Leaf
-        Agent.AgentSystem.Controller.Node
-        -- Agent.AgentSystem.Default
-
         AUCSP.Classes
         AUCSP.NegotiationRoles
         AUCSP.Coherence
@@ -52,9 +36,9 @@ library
 
     build-depends:
         base >=4.9 && <5.0,
-        containers >=0.5,
-        stm ==2.4.4.*,
-        time >= 1.6 && < 1.7
+        -- containers >=0.5,
+        -- stm ==2.4.4.*,
+        -- time >= 1.6 && < 1.7
 
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FunctionalDependencies
@@ -79,41 +63,3 @@ executable test-env-01
     other-modules: AUCSP.Test.TestData01
                    AUCSP.Test.Run
 --    Agent.Test.Environment01.
-
-
-executable run-ping-pong
-    hs-source-dirs: test
-    main-is: Agent/Test/RunPingPong.hs
-    build-depends:
-        Thesis-UCSP -any,
-        base >=4.9 && <5.0,
-        hspec -any
-    default-language: Haskell2010
-
-executable run-ping-pong-sys
-    hs-source-dirs: test
-    main-is: Agent/Test/RunPingPongSys.hs
-    build-depends:
-        Thesis-UCSP -any,
-        base >=4.9 && <5.0,
-        hspec -any
-    default-language: Haskell2010
-    other-modules: Agent.Test.PingPongSystemSend
-
-
-test-suite test-generic-agent
-    type: exitcode-stdio-1.0
-    hs-source-dirs: test
-    main-is: Agent/Test.hs
-    build-depends:
-        Thesis-UCSP -any,
-        base >=4.9 && <5.0,
-        hspec -any
-    default-language: Haskell2010
-    other-modules:
-        Agent.Test.PingPong
-        Agent.Test.PingPongAgentsSend
-        Agent.Test.PingPongAgentsAsk
-        Agent.Test.PingPongAgentsAsk2
-
-        Agent.Test.PingPongSystemSend
