@@ -15,7 +15,8 @@ module AUCSP.Classes (
 
 ) where
 
-import Agent.Abstract
+import AUCSP.AgentsInterface
+import AUCSP.NegotiationRoles
 
 import Data.Typeable
 import Data.Function (on)
@@ -64,9 +65,9 @@ For inner usage, the classes are divided into
 
 class (Ord c, Show c, Typeable c) =>
     AbstractClass c where  classDiscipline :: c -> Discipline
-                           classGroup      :: c -> AgentRef
-                           classProfessor  :: c -> AgentRef
-                           classRoom       :: c -> AgentRef
+                           classGroup      :: c -> KnownAgent Group
+                           classProfessor  :: c -> KnownAgent Professor
+                           classRoom       :: c -> KnownAgent Classroom
                            classNumber     :: c -> Word
 
 class (AbstractClass c, DiscreteTime time) =>
@@ -82,6 +83,10 @@ instance Show Class      where show (Class c)      = show c
 instance Show SomeClass  where show (SomeClass c)  = show c
 
 \end{code}
+
+Abstract classes refer to some kind of agents and have some
+predefined knowledge about them.
+
 
 
 The ``System.Time.Day'' is redefined, dropping the ``Sunday''.

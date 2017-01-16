@@ -17,8 +17,8 @@ module AUCSP.Coherence.Information (
 , RoomProvides(..), RoomCapacity(..)
 ) where
 
-import Agent.Abstract (AgentRef)
 import AUCSP.Classes
+import AUCSP.AgentsInterface
 
 import Data.Typeable
 import Data.Maybe (mapMaybe)
@@ -91,7 +91,7 @@ class (Typeable i, Eq i, Ord i, Show i) => InformationPiece i
 
 class (InformationPiece i, Personal ~ IScope i)  => PersonalInformation i
 class (InformationPiece i, Shared ~ IScope i)    => SharedInformation i
-    where sharedBetween :: i -> Set AgentRef
+    where sharedBetween :: i -> AgentsWithRoles
 
 -- -----------------------------------------------
 

@@ -10,10 +10,12 @@ module AUCSP.Context.Beliefs(
 
 )  where
 
+import AUCSP.AgentsInterface
 import AUCSP.Classes
 import AUCSP.Coherence
 import AUCSP.Context
 
+import qualified AUCSP.NegotiationRoles as Role
 import qualified AUCSP.Context.Combine as Combine
 
 import Data.Coerce (coerce)
@@ -22,7 +24,6 @@ import Data.Tuple
 import qualified Data.Map as Map
 
 import Control.Monad.Fix
-import Control.Concurrent.STM
 
 \end{code}
 %endif
@@ -115,7 +116,9 @@ The splitting is implemented as follows:
 %{
 %format SomeTime (x) = x
 \begin{code}
-data Beliefs a = Beliefs  {  knownProposals  :: TVar IGraph }
+data Beliefs a = Beliefs  {  knownProposals       :: IO IGraph
+                          ,  modifyKnownProposals :: (IGraph -> IGraph) -> IO ()
+                          }
 
 data TimeConsistency a = TimeConsistency
 
@@ -127,7 +130,14 @@ instance InformationRelation TimeConsistency where
 
 type instance RelationDetails TimeConsistency = NoDetails
 
-instance BinaryRelation TimeConsistency where
+type AgentsOfRoleConstraint = ( AgentOfRole Role.Group
+                              , AgentOfRole Role.Professor
+                              , AgentOfRole Role.Classroom
+                              )
+
+instance (AgentsOfRoleConstraint) =>
+  BinaryRelation TimeConsistency
+  where
   binRelValue _ i1 i2 = do
     Class c1  <- collectInf i1
     Class c2  <- collectInf i2
@@ -152,9 +162,9 @@ instance BinaryRelation TimeConsistency where
     return . swap . (,) NoDetails $ if sameAbstract  then 0
                                                      else if intersect then -1 else 1
 
-instance (Num a) => Context Beliefs a where
+instance (Num a, AgentsOfRoleConstraint) => Context Beliefs a where
   contextName _       = "Beliefs"
-  contextInformation  = readTVarIO . knownProposals
+  contextInformation  = knownProposals
   contextRelations _  = return [RelBin TimeConsistency]
   contextThreshold _  = return 0
 
@@ -170,9 +180,9 @@ instance (Num a) => Context Beliefs a where
   noAssessmentDetails _ = NoDetails
 
 
-instance (Num a) => SplittingContext Beliefs a where
+instance (Num a, AgentsOfRoleConstraint) => SplittingContext Beliefs a where
   splitGraph b gr = do
-    iGraph <- readTVarIO $ knownProposals b
+    iGraph <- knownProposals b
     let  cNodes = catMaybes $ collectInf <$> graphNodes gr
          consistent x y = fmap fst (binRelValue TimeConsistency x y) == Just 1
          extendCandidate Failure{} = []
@@ -191,4 +201,3 @@ instance (Num a) => SplittingContext Beliefs a where
 
 \end{code}
 %}
-

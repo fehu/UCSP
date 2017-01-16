@@ -10,8 +10,7 @@ module AUCSP.Context.Capabilities(
 , MeetsRequirementsRel(..), EnoughCapacityRel(..)
 ) where
 
-import Agent.Abstract
-
+import AUCSP.AgentsInterface
 import AUCSP.Classes
 import qualified AUCSP.NegotiationRoles as Role
 import AUCSP.Coherence
@@ -75,6 +74,17 @@ data instance Capabilities Role.Classroom a = ClassroomCapabilities {
 
 -- -----------------------------------------------
 
+instance AgentOfRoleData Role.Group where
+  type RoleData Role.Group = Capabilities Role.Group ()
+
+instance AgentOfRoleData Role.Professor where
+  type RoleData Role.Professor = Capabilities Role.Professor ()
+
+instance AgentOfRoleData Role.Classroom where
+  type RoleData Role.Classroom = Capabilities Role.Classroom ()
+
+-- -----------------------------------------------
+
 data CanTeachRel a = CanTeachRel deriving Typeable
 
 instance Functor CanTeachRel where fmap _ = const CanTeachRel
@@ -134,15 +144,21 @@ instance Functor EnoughCapacityRel where fmap _ _ = EnoughCapacityRel
 type instance RelationDetails EnoughCapacityRel = NoDetails
 instance InformationRelation EnoughCapacityRel where  relationName _ = "Enough Capacity"
                                                       coerceRelation = coerce
-instance BinaryRelation EnoughCapacityRel where
+instance (AgentOfRole Role.Group) => BinaryRelation EnoughCapacityRel where
     binRelValue r a b = do
-                            -- let v :: (AbstractClass c, Num n) => Int -> c -> n
-                            --     v size c =  if getGroupSize r (classGroup c) > size
-                            --                 then 0 else 1
+                            let v :: (AbstractClass c, Num n) => Int -> c -> n
+                                v size c = let grSize = groupSize . roleData
+                                                      $ classGroup c
+                                           in if grSize > size
+                                              then 0 else 1
                             RoomCapacity cap  <- collectInf a
                             GroupSize grSize  <- collectInf b
-                            let r1  = case collectInf b of Just (SomeClass c)  -> Just (v cap c, NoDetails)
-                                r2  = case collectInf b of Just (Class c)      -> Just (v cap c, NoDetails)
+                            let r1  = case collectInf b
+                                      of Just (SomeClass c) ->
+                                          Just (v cap c, NoDetails)
+                                r2  = case collectInf b
+                                      of Just (Class c) ->
+                                          Just (v cap c, NoDetails)
                             r1 <|> r2
 
 

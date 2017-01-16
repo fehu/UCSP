@@ -30,15 +30,16 @@ library
         AUCSP.Context.Preferences
         AUCSP.Context.External
         AUCSP.Contexts
---        AUCSP.NegotiatingAgent
+        AUCSP.NegotiatingAgent
 --        AUCSP.NegotiationEnvironment
         AUCSP.NegotiationStates
 
     build-depends:
-        base >=4.9 && <5.0,
-        -- containers >=0.5,
+        base >=4.9 && <4.10,
+        feh-agents-common -any,
+        containers ==0.5.*
         -- stm ==2.4.4.*,
-        -- time >= 1.6 && < 1.7
+        -- time == 1.7.*
 
     default-language: Haskell2010
     default-extensions: MultiParamTypeClasses FunctionalDependencies
@@ -50,16 +51,17 @@ library
 --    other-modules:
 
 
-executable test-env-01
-    hs-source-dirs: test
-    main-is: AUCSP/Test/Environment01.lhs
-    build-depends:
-        Thesis-UCSP -any,
-        base >=4.9 && <5.0,
-        containers >=0.5,
-        time >= 1.6 && < 1.7
-    default-language: Haskell2010
-    default-extensions: MultiParamTypeClasses FlexibleInstances TypeFamilies FlexibleContexts
-    other-modules: AUCSP.Test.TestData01
-                   AUCSP.Test.Run
+-- executable test-env-01
+--     hs-source-dirs: test
+--     main-is: AUCSP/Test/Environment01.lhs
+--     build-depends:
+--         Thesis-UCSP,
+--         -- feh-agents,
+--         base >=4.9 && <4.10
+--         -- containers >=0.5,
+--         -- time == 1.7.*
+--     default-language: Haskell2010
+--     default-extensions: MultiParamTypeClasses FlexibleInstances TypeFamilies FlexibleContexts
+--     other-modules: AUCSP.Test.TestData01
+--                    AUCSP.Test.Run
 --    Agent.Test.Environment01.

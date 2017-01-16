@@ -7,7 +7,7 @@ module AUCSP.NegotiationRoles(
 , Classroom(..)
 , Professor(..)
 
-, NegotiationRole(..)
+-- , NegotiationRole(..)
 
 ) where
 
@@ -56,11 +56,11 @@ data Professor  = FullTimeProfessor
 
 -- -----------------------------------------------
 
-data NegotiationRole = GroupRole
-                     | ClassroomRole
-                     | FullTimeProfRole
-                     | PartTimeProfRole
-    deriving (Typeable, Show, Eq, Ord, Enum)
+-- data NegotiationRole = GroupRole
+--                      | ClassroomRole
+--                      | FullTimeProfRole
+--                      | PartTimeProfRole
+--     deriving (Typeable, Show, Eq, Ord, Enum)
 
 \end{code}
 
@@ -75,4 +75,3 @@ the rest of the agents.
 
 The \emph{common goal} is incorporated in the \emph{contexts}
 mechanism, and is discussed in Section~\ref{subsec:context-external}.
-
