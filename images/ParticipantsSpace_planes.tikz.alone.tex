@@ -1,0 +1,105 @@
+% A candidate to solution (the classes) in participants space.
+
+% used examples from:
+% http://tex.stackexchange.com/questions/212699/text-projection-onto-plane-in-3d-pgf-plots
+
+\documentclass{standalone} % [varwidth]
+
+\usepackage{pgfplots}
+
+
+% Plot planes, that stand for classes of some participants.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 1) participant id; 2) color; 3) text scaling.
+\newcommand{\plotProfPlane}[3]{
+	\addplot3[patch,patch type=rectangle, opacity=0.5, color=#2]
+		coordinates {(#1,0,0)(#1,5,0)(#1,5,5)(#1,0,5)};
+
+	\path (axis cs:#1,0,0) -- (axis cs:#1,5,5)
+		node [color=#2!50!black, midway,
+        	  cm={sin(\viewA),cos(\viewA)*sin(\viewB),
+		          0,cos(\viewB), (0,0)},
+        	  text width=1cm, align=center, scale=#3]   
+		{Classes of $p_#1$};    
+}
+% 1) participant id; 2) color; 3) text scaling.
+\newcommand{\plotRoomPlane}[3]{
+	\addplot3[patch,patch type=rectangle, opacity=0.5, color=#2]
+		coordinates {(0,#1,0)(5,#1,0)(5,#1,5)(0,#1,5)};
+
+	\path (axis cs:0,#1,0) -- (axis cs:5,#1,5)
+		node [color=#2!50!black, midway,
+        	  cm={cos(\viewA),-sin(\viewA)*sin(\viewB),
+        	  	  0,cos(\viewB),(0,0)},
+        	  text width=1cm, align=center, scale=#3]   
+		{Classes of $r_#1$};    
+}
+% 1) participant id; 2) color; 3) text scaling.
+\newcommand{\plotGroupPlane}[3]{
+	\addplot3[patch,patch type=rectangle, opacity=0.5, color=#2]
+		coordinates {(0,0,#1)(5,0,#1)(5,5,#1)(0,5,#1)};
+
+	\path (axis cs:0,0,#1) -- (axis cs:5,5,#1)
+		node [color=#2!50!black, midway,
+        	  cm={cos(\viewA),-sin(\viewA)*sin(\viewB),
+		          sin(\viewA), cos(\viewA)*sin(\viewB),(0,0)},
+        	  text width=1cm, align=center, scale=#3]   
+		{Classes of $g_#1$};    
+}
+
+% Prepare axes.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newenvironment{liteAxis}
+{
+	\pgfplotsset{every tick label/.append style={font=\tiny}}
+	\begin{axis}
+	[
+	%    title={\small ???},
+	    grid=major,
+	    view={\viewA}{\viewB},
+	    scale mode=scale uniformly,
+	    ticks=none,
+	% X axis
+	    xmin=0, xmax=5,
+	% Y axis
+	    ymin=0, ymax=5,
+	    y dir=reverse,
+	% Z axis
+	    zmin=0, zmax=5,
+	]
+}{
+	\end{axis}
+}
+
+% Show several pictures in a row.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\def\viewA{30}
+\def\viewB{45}
+
+\def\scale{2}
+
+\begin{tikzpicture}[scale=\scale]
+	\begin{liteAxis}
+		\plotProfPlane{3}{green}{1};
+		\plotProfPlane{1}{magenta}{1};
+	\end{liteAxis}
+\end{tikzpicture}
+~
+\begin{tikzpicture}[scale=\scale]
+	\begin{liteAxis}
+		\plotRoomPlane{4}{blue}{0.7};
+		\plotRoomPlane{2}{red}{0.7};
+	\end{liteAxis}
+\end{tikzpicture}
+~
+\begin{tikzpicture}[scale=\scale]
+	\begin{liteAxis}
+		\plotGroupPlane{1}{brown}{0.7};
+		\plotGroupPlane{4}{yellow}{0.7};
+	\end{liteAxis}
+\end{tikzpicture}
+
+\end{document}

@@ -1,0 +1,74 @@
+% A candidate to solution (the classes) in participants space.
+
+\documentclass{standalone}
+
+\usepackage{pgfplots}
+
+
+
+% Plot points, that stand for classes of some participants.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 3 coordinates, color and position
+\newcommand{\plotPoint}[5]{
+	% the point
+	\addplot3[mark=*, color=#4]
+		coordinates { (#1,#2,#3) }
+		node[#5, scale=0.5,
+			%  text width=2cm, align=center				
+			 =1cm
+			] 
+			{\quad $p_#1$,$r_#2$,$g_#3$ \quad};	% classes of
+	
+	% projections
+	\addplot3[mark=none, dashed, color=#4] coordinates {(0,#2,#3) (#1,#2,#3)};
+	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,0,#3) (#1,#2,#3)};
+	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,#2,0) (#1,#2,#3)};
+}
+
+
+\begin{document}
+
+\def\viewA{30}
+\def\viewB{45}
+
+\begin{tikzpicture}[scale=1.5]
+	\pgfplotsset{every tick label/.append style={font=\tiny}}
+	\begin{axis}
+	[	title={\small Schedule in participants space},
+	    grid=major,
+	    view={\viewA}{\viewB},
+	% X axis
+	    xmin=0, xmax=5,
+    	xlabel = \tiny Professor,
+	    xtick = {1,2,3,4},
+	    xticklabel=$p_{\pgfmathprintnumber{\tick}}$,
+	% Y axis
+	    ymin=0, ymax=5,
+	    y dir=reverse,
+		ylabel = \tiny Classroom,
+	    ytick = {1,2,3,4},
+	    yticklabel=$r_{\pgfmathprintnumber{\tick}}$,	    
+	% Z axis
+	    zmin=0, zmax=5,
+		zlabel = \tiny Group,
+	    ztick = {1,2,3,4},
+	    zticklabel=$g_{\pgfmathprintnumber{\tick}}$,
+	]
+	
+	\plotPoint{2}{3}{2}{blue}{right};
+	\plotPoint{4}{3}{2}{blue}{right};
+
+	\plotPoint{2}{3}{3}{magenta}{left};
+	\plotPoint{3}{2}{3}{magenta}{right};
+
+	\plotPoint{1}{4}{1}{red}{right};
+	\plotPoint{1}{1}{4}{red}{right};	
+	
+%		\plotPoint{1}{1}{2}{blue}
+%		\plotPoint{1}{1}{4}{blue!50!black};
+%		\plotPoint{4}{3}{1}{green!60!black};
+%		\plotPoint{4}{3}{3}{green!40!black};
+%		\plotPoint{3}{4}{2}{red};
+	\end{axis}
+\end{tikzpicture}
+\end{document}
