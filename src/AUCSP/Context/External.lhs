@@ -6,21 +6,20 @@ module AUCSP.Context.External(
 
   External(..)
 
-, KnownAgent(..), askKnownAgent
-, SomeKnownAgent(..), knownAgentRef'
-, KnownAgents(..), emptyKnownAgents, flattenKnownAgents
-, findKnownAgent, getKnownAgent
-, getKnownGroup, getKnownProfessor, getKnownClassroom
+, KnownAgents(..), flattenKnownAgents
+-- , emptyKnownAgents
+-- , findKnownAgent, getKnownAgent
+-- , getKnownGroup, getKnownProfessor, getKnownClassroom
 
-, OpinionRel(..), OpinionAbout(..)
-, MyOpinion(..), extractMyOpinion
+, OpinionRel(..), OpinionRelation(..)
+, OpinionAbout(..), MyOpinion(..), extractMyOpinion
 
 
+, KnownAgent(..), SomeAgent(..)
 
 ) where
 
-import Agent.SomeAgent
-
+import AUCSP.AgentsInterface
 import AUCSP.Classes
 import AUCSP.NegotiationRoles as Role
 import AUCSP.Coherence
@@ -112,42 +111,45 @@ data External a = External {
   , externalThreshold  :: IO a
   }
 
+type AgentOfRoleC = (AgentOfRole Group, AgentOfRole Professor, AgentOfRole Classroom)
 
-instance (Typeable a, Num a) => Context External a where
-  contextName _       = "External"
-  contextInformation  = fmap (fromNodes . map Information)
-                      . flattenKnownAgents . knownAgents
-  contextRelations r  = return [ RelBinIO OpinionRel ]
-  contextThreshold    = externalThreshold
+instance ( Typeable a, Num a, OpinionRelation OpinionAbout MyOpinion
+         , AgentOfRoleC ) =>
+  Context External a where
+    contextName _       = "External"
+    contextInformation  = fmap (fromNodes . map Information)
+                        . flattenKnownAgents . knownAgents
+    contextRelations r  = return [ RelBinIO OpinionRel ]
+    contextThreshold    = externalThreshold
 
-  type AssessmentDetails External = ExternalDetails
+    type AssessmentDetails External = ExternalDetails
 
-  combineBinRels = Combine.binRelsProduct $
-        ExternalDetails . concatMap (
-            mapMaybe  (extractDetails . relBetweenDetails) . snd
-        )
+    combineBinRels = Combine.binRelsProduct $
+          ExternalDetails . concatMap (
+              mapMaybe  (extractDetails . relBetweenDetails) . snd
+          )
 
-  combineWholeRels    = undefined -- None
-  combineRels         = undefined -- None
+    combineWholeRels    = undefined -- None
+    combineRels         = undefined -- None
 
-  noAssessmentDetails _ = ExternalDetails []
+    noAssessmentDetails _ = ExternalDetails []
 
 -- -----------------------------------------------
 
 data OpinionRel a = OpinionRel deriving Typeable
 
--- newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
+newtype OpinionAbout = OpinionAbout Class deriving (Typeable, Show)
 
 type instance RelationDetails OpinionRel = OpinionRelDetail
 
--- data MyOpinion = forall a . (Show a, Typeable a, Fractional a) =>
---      MyOpinion a deriving Typeable
+data MyOpinion = forall a . (Show a, Typeable a, Fractional a) =>
+     MyOpinion a deriving Typeable
 --
 -- instance Show MyOpinion where show (MyOpinion x) = "MyOpinion (" ++ show x ++ ")"
 --
 -- type instance ExpectedResponse OpinionAbout = MyOpinion
 --
--- extractMyOpinion (MyOpinion mbOpinion) = cast mbOpinion
+extractMyOpinion (MyOpinion mbOpinion) = cast mbOpinion
 
 -- -----------------------------------------------
 
@@ -157,20 +159,24 @@ instance InformationRelation OpinionRel where
   relationName _  = "Opinion"
   coerceRelation  = coerce
 
--- instance BinaryIORelation OpinionRel where
---   binRelIOValue rel a b = maybe (return Nothing)
---                                 (fmap (fmap (opinionVal &&& id)))
---     $ do  knownAg  <- collectInf a
---           class'   <- collectInf b
---           return $ do  resp <- askKnownAgent knownAg (OpinionAbout class')
---                        let mbA = fmap fromUnitInterval $ extractMyOpinion =<< resp
---                        return $ fmap (OpinionRelDetail class' knownAg) mbA
+instance (OpinionRelation OpinionAbout MyOpinion) => BinaryIORelation OpinionRel where
+  binRelIOValue rel a b = maybe (return Nothing)
+                                (fmap (fmap (opinionVal &&& id)))
+    $ do  ag       <- collectInf a :: Maybe SomeAgent
+          class'   <- collectInf b
+          return $ do  resp <- extAskOpinion ag (OpinionAbout class')
+                       let mbA = fmap fromUnitInterval $ extractMyOpinion =<< resp
+                       return $ fmap (OpinionRelDetail class' ag) mbA
+
+
+class OpinionRelation op resp | op -> resp
+  where extAskOpinion :: SomeAgent -> op -> IO (Maybe resp)
 
 -- -----------------------------------------------
 
 data OpinionRelDetail a = OpinionRelDetail{
     opinionAbout  :: Class,
-    -- opinionOf     :: SomeKnownAgent,
+    opinionOf     :: SomeAgent,
     opinionVal    :: a
     }
 
@@ -184,33 +190,35 @@ data KnownAgents = KnownAgents{
   knownClassrooms   :: IO [KnownAgent Role.Classroom]
   }
 
+flattenKnownAgents :: AgentOfRoleC => KnownAgents -> IO [SomeAgent]
 flattenKnownAgents (KnownAgents gsv psv rsv) = do
     gs <- map someAgent <$> gsv
     ps <- map someAgent <$> psv
     rs <- map someAgent <$> rsv
     return $ gs ++ ps ++ rs
 
-emptyKnownAgents = atomically $ do
-    groups  <- newTVar []
-    profs   <- newTVar []
-    rooms   <- newTVar []
-    return $ KnownAgents groups profs rooms
+-- emptyKnownAgents :: AgentOfRoleC => IO KnownAgents
+-- emptyKnownAgents = atomically $ do
+--     groups  <- newTVar []
+--     profs   <- newTVar []
+--     rooms   <- newTVar []
+--     return $ KnownAgents groups profs rooms
 
-findKnownAgent var ref = do  ags <- readTVarIO var
-                             return $ find ((ref ==) . knownAgentRef) ags
+-- findKnownAgent var ref = do  ags <- readTVarIO var
+--                              return $ find ((ref ==) . knownAgentRef) ags
 
-getKnownAgent v r  = findKnownAgent v r
-                   >>= maybe (fail $ "agent not known: " ++ show r) return
-
-
-getKnownGroup kn c     = getKnownAgent  (knownGroups kn)
-                                        (simpleRef $ classGroup c)
-
-getKnownProfessor kn c = getKnownAgent  (knownProfessors kn)
-                                        (simpleRef $ classProfessor c)
-
-getKnownClassroom kn c = getKnownAgent  (knownClassrooms kn)
-                                        (simpleRef $ classRoom c)
+-- getKnownAgent v r  = findKnownAgent v r
+--                    >>= maybe (fail $ "agent not known: " ++ show r) return
+--
+--
+-- getKnownGroup kn c     = getKnownAgent  (knownGroups kn)
+--                                         (simpleRef $ classGroup c)
+--
+-- getKnownProfessor kn c = getKnownAgent  (knownProfessors kn)
+--                                         (simpleRef $ classProfessor c)
+--
+-- getKnownClassroom kn c = getKnownAgent  (knownClassrooms kn)
+--                                         (simpleRef $ classRoom c)
 
 
 \end{code}

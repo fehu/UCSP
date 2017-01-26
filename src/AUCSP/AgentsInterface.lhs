@@ -44,6 +44,8 @@ Consists of:
 >   roleData :: KnownAgent r -> RoleData r
 >   roleRef  :: KnownAgent r -> RoleRef r
 
+>   roleAgentId :: KnownAgent r -> String
+
   \item Some data, associated with the role.
 
 > class AgentOfRoleData r where type RoleData r :: *
@@ -69,20 +71,6 @@ handling their roles.
 \end{code}
 
 
-% \verb|RefOfRole| is a wrapper for instances of \verb|AgentOfRole| class.
-% \begin{code}
-%   newtype (AgentOfRole r) => RefOfRole r = RefOfRole r
-%
-%   instance AgentOfRole (RefOfRole r) where
-%     data AgentOfRole' (RefOfRole r) = AgentOfRole' r
-%     type RoleData     (RefOfRole r) = RoleData r
-%     type RoleRef      (RefOfRole r) = RoleRef r
-%
-% -- TODO
-%     -- roleData
-%     -- roleRef
-% \end{code}
-
 
 
 
@@ -100,6 +88,9 @@ handling their roles.
 > someAgentMatchRole r (SomeAgent r' ar') = isSame r r' >> cast ar'
 >     where isSame x = (`when` return ()) <=< fmap (x==) . cast
 
-% > someAgentRef (SomeAgent _ a) = roleRef a
+> someAgentId (SomeAgent _ a) = roleAgentId a
 
-% > instance
+> instance Eq  SomeAgent where (==)    = (==)    `on` someAgentId
+> instance Ord SomeAgent where compare = compare `on` someAgentId
+
+> instance Show SomeAgent where show (SomeAgent _ a) = show a
