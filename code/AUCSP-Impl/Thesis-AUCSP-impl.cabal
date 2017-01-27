@@ -12,7 +12,9 @@ author:         Dmitry K.
 
 library
     exposed-modules:
+        AUCSP.Agent.AgentState
         AUCSP.Agent.NegotiatingAgent
+        
         -- AUCSP.NegotiatingAgent
         -- AUCSP.NegotiationEnvironment
         -- AUCSP.NegotiationStates
