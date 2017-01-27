@@ -47,11 +47,11 @@ Such an agent must
 
 \begin{code}
 
-data Group      = Group      deriving (Show, Typeable)
-data Classroom  = Classroom  deriving (Show, Typeable)
+data Group      = Group      deriving (Show, Eq, Ord, Typeable)
+data Classroom  = Classroom  deriving (Show, Eq, Ord, Typeable)
 data Professor  = FullTimeProfessor
                 | PartTimeProfessor
-    deriving (Show, Typeable)
+    deriving (Show, Eq, Ord, Typeable)
 
 
 -- -----------------------------------------------

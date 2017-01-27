@@ -25,6 +25,7 @@ import AUCSP.NegotiationRoles as Role
 import AUCSP.Coherence
 import AUCSP.Context
 import AUCSP.Context.Capabilities (Capabilities)
+import AUCSP.Context.Beliefs (AgentsOfRoleConstraint)
 import AUCSP.Context.InUnitInterval
 
 import qualified AUCSP.Context.Combine as Combine
@@ -111,10 +112,9 @@ data External a = External {
   , externalThreshold  :: IO a
   }
 
-type AgentOfRoleC = (AgentOfRole Group, AgentOfRole Professor, AgentOfRole Classroom)
 
 instance ( Typeable a, Num a, OpinionRelation OpinionAbout MyOpinion
-         , AgentOfRoleC ) =>
+         , AgentsOfRoleConstraint ) =>
   Context External a where
     contextName _       = "External"
     contextInformation  = fmap (fromNodes . map Information)
@@ -190,7 +190,7 @@ data KnownAgents = KnownAgents{
   knownClassrooms   :: IO [KnownAgent Role.Classroom]
   }
 
-flattenKnownAgents :: AgentOfRoleC => KnownAgents -> IO [SomeAgent]
+flattenKnownAgents :: AgentsOfRoleConstraint => KnownAgents -> IO [SomeAgent]
 flattenKnownAgents (KnownAgents gsv psv rsv) = do
     gs <- map someAgent <$> gsv
     ps <- map someAgent <$> psv

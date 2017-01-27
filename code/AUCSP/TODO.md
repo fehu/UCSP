@@ -5,8 +5,8 @@ TODO
 
 - [ ] Capabilities for classrooms
 
+- [ ] Revise Beliefs context.
+
 ### Critical
 
-- [ ] Relations result type is now `Maybe a`, but `IO` is needed for external context.
-
-
+- [ ] Contexts' relations must provide reason information.

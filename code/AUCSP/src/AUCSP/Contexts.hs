@@ -21,14 +21,14 @@ import AUCSP.Context.External       as X
 
 import AUCSP.Classes (AbstractClass)
 
-class Contexts c a | c -> a
-  where
-    type ContextsRole c  :: *
-    agentRole            :: c -> ContextsRole c
-    capabilitiesContext  :: c -> Capabilities (ContextsRole c) a
-    beliefsContext       :: c -> Beliefs a
-    obligationsContext   :: c -> Obligations a
-    preferencesContext   :: c -> Preferences a
-    externalContext      :: c -> External a
 
-    counterpartsOf :: (AbstractClass cl) => c -> cl -> IO [SomeAgent]
+data Contexts r a = Contexts{
+    -- agentRole            :: r
+    capabilitiesContext  :: Capabilities r a
+  , beliefsContext       :: Beliefs a
+  , obligationsContext   :: Obligations a
+  , preferencesContext   :: Preferences a
+  , externalContext      :: External a
+
+  -- , counterpartsOf :: forall c . AbstractClass c => c -> IO [SomeAgent]
+}

@@ -16,8 +16,9 @@ extra-source-files:
 
 library
     exposed-modules:
-        AUCSP.Classes
         AUCSP.NegotiationRoles
+        AUCSP.AgentsInterface
+        AUCSP.Classes
         AUCSP.Coherence
         AUCSP.Coherence.Information
         AUCSP.Coherence.Relations

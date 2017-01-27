@@ -67,12 +67,12 @@ class (Ord c, Show c, Typeable c) =>
     AbstractClass c where  classDiscipline :: c -> Discipline
                            classGroup      :: c -> KnownAgent Group
                            classProfessor  :: c -> KnownAgent Professor
-                           classRoom       :: c -> KnownAgent Classroom
                            classNumber     :: c -> Word
 
 class (AbstractClass c, DiscreteTime time) =>
   ConcreteClass c time | c -> time
-    where  classDay     :: c -> Day
+    where  classRoom    :: c -> KnownAgent Classroom
+           classDay     :: c -> Day
            classBegins  :: c -> time
            classEnds    :: c -> time
 

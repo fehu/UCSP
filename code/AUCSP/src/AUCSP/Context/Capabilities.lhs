@@ -5,6 +5,7 @@
 module AUCSP.Context.Capabilities(
 
   Capabilities(GroupCapabilities, FullTimeProfCapabilities, ClassroomCapabilities)
+, CapabilitiesFor
 
 , CanTeachRel(..), NeedsDisciplineRel(..)
 , MeetsRequirementsRel(..), EnoughCapacityRel(..)
@@ -74,14 +75,16 @@ data instance Capabilities Role.Classroom a = ClassroomCapabilities {
 
 -- -----------------------------------------------
 
+type CapabilitiesFor r = Capabilities r ()
+
 instance AgentOfRoleData Role.Group where
-  type RoleData Role.Group = Capabilities Role.Group ()
+  type RoleData Role.Group = CapabilitiesFor Role.Group
 
 instance AgentOfRoleData Role.Professor where
-  type RoleData Role.Professor = Capabilities Role.Professor ()
+  type RoleData Role.Professor = CapabilitiesFor Role.Professor
 
 instance AgentOfRoleData Role.Classroom where
-  type RoleData Role.Classroom = Capabilities Role.Classroom ()
+  type RoleData Role.Classroom = CapabilitiesFor Role.Classroom
 
 -- -----------------------------------------------
 

@@ -8,6 +8,8 @@ module AUCSP.Context.Beliefs(
 
 , TimeConsistency
 
+, AgentsOfRoleConstraint
+
 )  where
 
 import AUCSP.AgentsInterface

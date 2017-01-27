@@ -20,6 +20,7 @@ module AUCSP.AgentsInterface (
   import Data.Function (on)
 
   import Control.Monad (when, (<=<), (>>))
+  import Control.Arrow ( (&&&) )
 
 \end{code}
 %endif
@@ -38,11 +39,10 @@ Consists of:
 >       , Show (KnownAgent r)) =>
 >   AgentOfRole r where
 >
->   roleInstance :: r
->
 >   data KnownAgent r :: *
 >   roleData :: KnownAgent r -> RoleData r
 >   roleRef  :: KnownAgent r -> RoleRef r
+>   roleOf   :: KnownAgent r -> r
 
 >   roleAgentId :: KnownAgent r -> String
 
@@ -81,7 +81,7 @@ handling their roles.
 >      SomeAgent r (KnownAgent r)
 
 > someAgent :: AgentOfRole r => KnownAgent r -> SomeAgent
-> someAgent = SomeAgent roleInstance
+> someAgent = uncurry SomeAgent . (roleOf &&& id)
 
 > someAgentMatchRole :: (AgentOfRole r) =>
 >                    r -> SomeAgent -> Maybe (KnownAgent r)
