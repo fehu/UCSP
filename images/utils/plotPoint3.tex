@@ -1,0 +1,30 @@
+% used examples from:
+% http://tex.stackexchange.com/questions/212699/text-projection-onto-plane-in-3d-pgf-plots
+
+
+\providecommand{\pPx}{0}
+\providecommand{\pPy}{0}
+\providecommand{\pPz}{0}
+
+\providecommand{\pPshowLx}{1}
+\providecommand{\pPshowLy}{1}
+\providecommand{\pPshowLz}{1}
+
+% Plot planes, that stand for classes of some participants.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 3 coordinates and color
+\newcommand{\plotPoint}[4]{
+	% the point
+	\addplot3[mark=*, color=#4] coordinates { (#1,#2,#3) };
+
+	% projections
+  \ifthenelse{\pPshowLx = 1}{
+	 \addplot3[mark=none, dashed, color=#4] coordinates {(\pPx,#2,#3) (#1,#2,#3)}
+   }{};
+  \ifthenelse{\pPshowLy = 1}{
+	 \addplot3[mark=none, dashed, color=#4] coordinates {(#1,\pPy,#3) (#1,#2,#3)}
+   }{};
+	\ifthenelse{\pPshowLz = 1}{
+   \addplot3[mark=none, dashed, color=#4] coordinates {(#1,#2,\pPz) (#1,#2,#3)}
+   }{};
+}

@@ -1,24 +1,12 @@
 \def\viewA{30}
 \def\viewB{45}
 
+\input{utils/plotPoint3}
 
 
 % used examples from:
 % http://tex.stackexchange.com/questions/212699/text-projection-onto-plane-in-3d-pgf-plots
 
-
-% Plot planes, that stand for classes of some participants.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 3 coordinates and color
-\newcommand{\plotPoint}[4]{
-	% the point
-	\addplot3[mark=*, color=#4] coordinates { (#1,#2,#3) };	
-	
-	% projections
-	\addplot3[mark=none, dashed, color=#4] coordinates {(0,#2,#3) (#1,#2,#3)};
-	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,0,#3) (#1,#2,#3)};
-	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,#2,0) (#1,#2,#3)};
-}
 
 % Plot planes, that stand for classes of some participants.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -57,7 +45,7 @@
     y dir=reverse,
 	ylabel = \tiny Classroom,
     ytick = {1,2,3,4},
-    yticklabel=$r_{\pgfmathprintnumber{\tick}}$,	    
+    yticklabel=$r_{\pgfmathprintnumber{\tick}}$,
 % Z axis
     zmin=0, zmax=5,
 	zlabel = \tiny Group,
@@ -87,21 +75,21 @@
 		\plotProfPlane{2}{brown};
 		\plotProfPlane{4}{brown};
 		}{}
-	% 5) 
+	% 5)
 	\ifthenelse{\stage = 5}
 		{
 		\plotGroupPlane{3}{yellow};
-		\plotPoint{2}{3}{3}{orange};	
+		\plotPoint{2}{3}{3}{orange};
 		}{}
 
-	% 6)	
+	% 6)
 	\ifthenelse{\stage = 6}
 		{
 		\plotGroupPlane{3}{magenta};
 		\plotPoint{2}{3}{3}{magenta};
 		\plotPoint{3}{2}{3}{magenta};
 		}{}
-	
-	
+
+
 \end{axis}
 \end{tikzpicture}

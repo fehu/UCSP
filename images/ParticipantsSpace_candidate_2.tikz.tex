@@ -3,18 +3,7 @@
 
 
 
-% Plot planes, that stand for classes of some participants.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% 3 coordinates and color
-\newcommand{\plotPoint}[4]{
-	% the point
-	\addplot3[mark=*, color=#4] coordinates { (#1,#2,#3) };	
-	
-	% projections
-	\addplot3[mark=none, dashed, color=#4] coordinates {(0,#2,#3) (#1,#2,#3)};
-	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,0,#3) (#1,#2,#3)};
-	\addplot3[mark=none, dashed, color=#4] coordinates {(#1,#2,0) (#1,#2,#3)};
-}
+\input{utils/plotPoint3}
 
 % Plot planes, that stand for classes of some participants.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -56,7 +45,7 @@
     y dir=reverse,
 	ylabel = \tiny Classroom,
     ytick = {1,2,3,4},
-    yticklabel=$r_{\pgfmathprintnumber{\tick}}$,	    
+    yticklabel=$r_{\pgfmathprintnumber{\tick}}$,
 % Z axis
     zmin=0, zmax=5,
 	zlabel = \tiny Group,
@@ -82,7 +71,7 @@
 
         \plotRoomPlane{2}{green!50!blue}{0.1};
         \plotRoomPlane{3}{green!50!blue}{0.1};
-        
+
         \plotGroupPlane{2}{red!50!blue}{0.1};
         \plotGroupPlane{3}{red!50!blue}{0.1};
         }{}
@@ -92,14 +81,14 @@
         {
         \plotGroupPlane{1}{brown}{0.2};
         \plotGroupPlane{4}{brown}{0.2};
-        
+
         \plotProfPlane{1}{yellow}{0.2};
         \plotProfPlane{6}{yellow}{0.2};
-        
+
         \plotRoomPlane{1}{red}{0.1};
         \plotRoomPlane{4}{red}{0.1};
         }{}
-	
+
 
 \end{axis}
 \end{tikzpicture}
