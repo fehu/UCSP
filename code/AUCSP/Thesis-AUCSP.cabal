@@ -1,5 +1,5 @@
 name:           Thesis-AUCSP
-version:        0.1.0.0
+version:        0.1.1.0
 cabal-version:  >=1.10
 build-type:     Simple
 license:        MIT
@@ -16,31 +16,31 @@ extra-source-files:
 
 library
     exposed-modules:
+        CSP.Coherence
+        CSP.Coherence.Information
+        CSP.Coherence.Context
+        CSP.Coherence.Candidate
+
         AUCSP.NegotiationRoles
         AUCSP.AgentsInterface
+        AUCSP.AgentsInterface.KnownAgents
+        AUCSP.AgentsInterface.RoleData
+
         AUCSP.Classes
-        AUCSP.Coherence
-        AUCSP.Coherence.Information
-        AUCSP.Coherence.Relations
-        AUCSP.Context
-        AUCSP.Context.Combine
-        AUCSP.Context.InUnitInterval
-        AUCSP.Context.Capabilities
-        AUCSP.Context.Beliefs
-        AUCSP.Context.Obligations
-        AUCSP.Context.Preferences
-        AUCSP.Context.External
-        AUCSP.Contexts
+        AUCSP.Classes.DiscreteTime
+        AUCSP.Classes.CoresGeneration
+        AUCSP.Classes.Generation
 
     build-depends:
         base >=4.9 && <4.10,
-        containers ==0.5.*
+        containers ==0.5.*,
+        random ==1.1
 
     default-language: Haskell2010
-    default-extensions: MultiParamTypeClasses FunctionalDependencies
-                        ExistentialQuantification TypeFamilies DataKinds FlexibleContexts
-                        FlexibleInstances UndecidableInstances RankNTypes ConstraintKinds
-                        TypeOperators PolyKinds ScopedTypeVariables NamedFieldPuns
-                        GeneralizedNewtypeDeriving TupleSections
+    other-extensions: ExistentialQuantification TypeFamilies
+                      FunctionalDependencies KindSignatures
+                      FlexibleContexts FlexibleInstances UndecidableInstances
+                      ConstraintKinds StandaloneDeriving
     hs-source-dirs: src
---    other-modules:
+    other-modules:  AUCSP.Utils.Random
+                    AUCSP.Utils.List

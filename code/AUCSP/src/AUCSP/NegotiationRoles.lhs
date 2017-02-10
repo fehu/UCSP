@@ -4,7 +4,7 @@
 module AUCSP.NegotiationRoles(
 
   Group(..)
-, Classroom(..)
+-- , Classroom(..)
 , Professor(..)
 
 -- , NegotiationRole(..)
@@ -48,7 +48,7 @@ Such an agent must
 \begin{code}
 
 data Group      = Group      deriving (Show, Eq, Ord, Typeable)
-data Classroom  = Classroom  deriving (Show, Eq, Ord, Typeable)
+-- data Classroom  = Classroom  deriving (Show, Eq, Ord, Typeable)
 data Professor  = FullTimeProfessor
                 | PartTimeProfessor
     deriving (Show, Eq, Ord, Typeable)

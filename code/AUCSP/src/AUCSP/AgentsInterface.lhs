@@ -2,6 +2,10 @@
 %if False
 \begin{code}
 
+{-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+
 module AUCSP.AgentsInterface (
 
   AgentOfRole(..)
