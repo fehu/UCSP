@@ -37,7 +37,7 @@ import Control.Monad (forM)
 
 
 data DayRoomTimeGenerator td = DayRoomTimeGenerator {
-    randomDRT   :: Discipline -> IO (Day, Classroom, DiscreteTime td, DiscreteTime td)
+    randomDRT   :: Discipline -> IO (Day, Classroom, DTime td, DTime td)
   , resetDRTGen :: IO ()
   }
 
@@ -45,8 +45,7 @@ generateClassDRT :: (DiscreteTimeDescriptor td) =>
                     DayRoomTimeGenerator td -> ClassCore -> IO Class
 generateClassDRT tgen core = do
   (day, room, btime, etime) <- tgen `randomDRT` classDiscipline' core
-  let mkTime = flip SomeDiscreteTime dTimeDescriptorInstance
-  return $ Class core room day (mkTime btime) (mkTime etime)
+  return $ Class core room day (SomeDiscreteTime btime) (SomeDiscreteTime etime)
 
 -- | Guards generated values to avoid repetitions.
 --   Don't use same instance without resetting too much.
@@ -62,7 +61,7 @@ shortUsageDayRoomTimeGenerator rooms td = do
                        hist <- readIORef historyVar
 
                        let lenMinutes = disciplineMinutesPerWeek d
-                           endTime    = time `dTimeAddMinutes` toInteger lenMinutes
+                           endTime    = time `addMinutes` toInteger lenMinutes
                            intersect etime (d, r, tb, te) =
                              d == day && r == room &&
                              fromMaybe True (dTimeIntersect (tb,te) (time,etime))
