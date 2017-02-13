@@ -27,9 +27,12 @@ module CSP.Coherence.Context.Filtering(
 , ConvertedContextRelation, ctxSomeRelationConvert
 
 
--- * Pure
+-- * Contexts
 
-, FilteringContextPure(..), newPureFilteringContext
+, FilteringContextPure, newPureFilteringContext
+, FilteringContextDataIO, newDataIOFilteringContext
+
+-- * Misc
 
 , Threshold(..), getThreshold
 
@@ -115,6 +118,7 @@ instance (Functor (CtxRelsM ctx)) =>
 
 
 -----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
 newtype Threshold a = Threshold a deriving (Show, Eq, Ord, Typeable)
 instance (Typeable a, Show a, Ord a) =>
@@ -141,10 +145,37 @@ instance (Typeable a, Show a, Ord a) =>
   FilteringContext (FilteringContextPure mode d a) a where
     type CtxThreM   (FilteringContextPure mode d a) = Id
     type CtxFilterM (FilteringContextPure mode d a) = Id
-    ctxThreshold ctx = head . collectInformation getThreshold <$> ctxData ctx
-    isCoherentAtCtx c mode = fmap (((>= thr) . fst) &&& id) . assessAtCxt c mode
-      where thr = fromId $ ctxThreshold c
+    ctxThreshold = ctxThreshold'
+    isCoherentAtCtx c = isCoherentAtCtx' (fromId $ ctxThreshold c) c
     isCoherentAtCtxIO c mode = return . fromId . isCoherentAtCtx c mode
+
+
+ctxThreshold' ctx = head . collectInformation getThreshold <$> ctxData ctx
+
+isCoherentAtCtx' thr c mode = fmap (((>= thr) . fst) &&& id) . assessAtCxt c mode
+
+-----------------------------------------------------------------------------
+
+type FilteringContextDataIO mode details a = GenericContext mode IO Id details a
+newDataIOFilteringContext :: (Typeable a, Show a, Ord a) =>
+                             String
+                          -> IO Information
+                          -> CtxRelations mode Id details a
+                          -> IO (Threshold a)
+                          -> FilteringContextDataIO mode details a
+newDataIOFilteringContext name inf rels thr = GenericContext name inf' rels
+  where inf' = Set.insert <$> fmap SomeInformationPiece thr <*> inf
+
+instance (Typeable a, Show a, Ord a) =>
+  FilteringContext (FilteringContextDataIO mode details a) a where
+    type CtxThreM   (FilteringContextDataIO mode details a) = IO
+    type CtxFilterM (FilteringContextDataIO mode details a) = IO
+    ctxThreshold = ctxThreshold'
+    isCoherentAtCtx c mode inf = do thr <- ctxThreshold c
+                                    return . fromId $
+                                      isCoherentAtCtx' thr c mode inf
+    isCoherentAtCtxIO = isCoherentAtCtx
+
 
 
 
