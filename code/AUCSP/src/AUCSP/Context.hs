@@ -20,13 +20,13 @@ module AUCSP.Context(
 
 , DetailsByRel, detailsByRel, findDetails
 
-, Relations(..)
+, Relations(..), SomeRelations, newCtxRels
 
 , module Export
 
 ) where
 
-import CSP.Coherence.Context as Export
+import CSP.Coherence.Context.Filtering as Export
 import AUCSP.AgentsInterface
 
 import Data.Typeable (Typeable)
@@ -89,10 +89,14 @@ instance Ord DetailsOfRel where compare = onRelationName compare
 
 -----------------------------------------------------------------------------
 
+type SomeRelations m a = [SomeContextRelation ContextMode m a]
+
 data Relations m a = Relations {
-    getRelations     :: [SomeContextRelation ContextMode m a]
+    getRelations     :: SomeRelations m a
   , combineRelations :: [a] -> a
 }
+
+newCtxRels rels = CtxRelations . Relations rels
 
 instance CtxRelations' (Relations m a) ContextMode m DetailsByRel a where
   ctxRelations' = getRelations

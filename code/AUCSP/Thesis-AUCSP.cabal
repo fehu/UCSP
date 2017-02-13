@@ -34,7 +34,10 @@ library
 
         AUCSP.Context
         AUCSP.Context.Obligations
+        AUCSP.Context.Preferences
         AUCSP.Contexts
+
+        AUCSP.Utils.InUnitInterval
 
     build-depends:
         base >=4.9 && <4.10,
