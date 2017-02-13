@@ -18,19 +18,19 @@ module CSP.Coherence.Context(
 
 -- * Definitions
 
-  Context(..) -- , SomeContext(..)
-, CtxRelations(..)
+  Context(..), CtxRelations(..), CtxRelations'(..)
 
-, ContextRelation(..), SomeRelationDetails(..)
+, ContextRelation(..)
+, SomeContextRelation(..), SomeRelationDetails(..)
 
-, FilteringContext(..), ModifyingContext(..)
+, FilteringContext(..)
 
 -- * Relations
 
 , CtxBinaryRelations(..), ctxBinaryRelations
-, CtxBinaryRelation(..) -- , CtxBinaryRelation'(..)
+, CtxBinaryRelation(..)
 , CtxWholeRelations(..), ctxWholeRelations
-, CtxWholeRelation(..) -- , CtxWholeRelation'(..)
+, CtxWholeRelation(..)
 
 
 -- * Misc
@@ -49,7 +49,7 @@ import Data.Maybe (maybeToList, mapMaybe)
 
 import qualified Data.Set as Set
 
-import Control.Arrow (second)
+import Control.Arrow (first, second)
 
 -----------------------------------------------------------------------------
 
@@ -64,21 +64,24 @@ class Context c a | c -> a
     type CtxRelsM c :: * -> *
 
     type CtxDetails c :: *
+    type CtxMode    c :: *
 
     ctxName      :: c -> String
     ctxData      :: c -> CtxDataM c Information
-    ctxRelations :: c -> CtxRelations (CtxRelsM c) (CtxDetails c) a
-    --
+    ctxRelations :: c -> CtxRelations (CtxMode c) (CtxRelsM c) (CtxDetails c) a
 
--- data SomeContext a = forall c . Context c a => SomeContext c
 
-data CtxRelations m d a = CtxRelations{
-    ctxRelsBinary      :: CtxBinaryRelations m a
-  , ctxRelsWhole       :: CtxWholeRelations  m a
-  , ctxCombineBinWhole :: [(a, SomeRelationDetails)]
-                       -> [(a, SomeRelationDetails)]
-                       -> (a, d)
-  }
+class CtxRelations' rels mode m d a | rels -> mode, rels -> m, rels -> d, rels -> a
+  where
+    ctxRelations'  :: rels -> [SomeContextRelation mode m a]
+    ctxCombineRels :: rels -> [(a, SomeRelationDetails)] -> (a, d)
+
+data CtxRelations mode m d a = forall rels . CtxRelations' rels mode m d a =>
+     CtxRelations rels
+
+instance CtxRelations' (CtxRelations mode m d a) mode m d a where
+  ctxRelations'  (CtxRelations r) = ctxRelations' r
+  ctxCombineRels (CtxRelations r) = ctxCombineRels r
 
 -----------------------------------------------------------------------------
 
@@ -89,29 +92,34 @@ class (Context c a) => FilteringContext c a | c -> a
     ctxThreshold :: c -> CtxThreM c a
 
     type CtxFilterM c :: * -> *
-    isCoherentAtCtx   :: c -> Information
+    isCoherentAtCtx   :: c -> CtxMode c -> Information
                       -> CtxFilterM c (Bool, (a, CtxDetails c))
-    isCoherentAtCtxIO :: c -> Information
+    isCoherentAtCtxIO :: c -> CtxMode c -> Information
                       -> IO (Bool, (a, CtxDetails c))
 
--- | A context could be used to modify/create some information.
-class (Context c a) => ModifyingContext c a | c -> a
-  where
-    type CtxResultM c :: * -> *
-    processAtCtx   :: c -> Information -> CtxResultM c (Information, CtxDetails c)
-    processAtCtxIO :: c -> Information -> IO           (Information, CtxDetails c)
-
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 
 
-class ContextRelation rel m a | rel -> m, rel -> a
+class ContextRelation rel mode m a | rel -> mode, rel -> m, rel -> a
   where
     type RelationDetails rel :: *
-    assessRelation :: rel -> Information -> Maybe (m (a, RelationDetails rel))
+    relationName   :: rel -> String
+    assessRelation :: rel -> mode -> Information -> Maybe (m (a, RelationDetails rel))
 
-data SomeRelationDetails = forall rel m a . ContextRelation rel m a =>
+data SomeContextRelation mode m a = forall rel . ( ContextRelation rel mode m a
+                                                --  , RelationDetails rel ~ SomeRelationDetails
+                                                 ) =>
+     SomeContextRelation rel
+
+instance (Functor m) => ContextRelation (SomeContextRelation mode m a) mode m a where
+  type RelationDetails (SomeContextRelation mode m a) = SomeRelationDetails
+  relationName   (SomeContextRelation rel) = relationName rel
+  assessRelation (SomeContextRelation rel) mode =
+    fmap (fmap (second (SomeRelationDetails rel))) . assessRelation rel mode
+
+data SomeRelationDetails = forall rel mode m a . ContextRelation rel mode m a =>
      SomeRelationDetails rel (RelationDetails rel)
 
 
@@ -120,80 +128,99 @@ data SomeRelationDetails = forall rel m a . ContextRelation rel m a =>
 
 -- * Relations
 
-data CtxBinaryRelations m a = CtxBinaryRelations [CtxBinaryRelation' m a]
-                            | CtxBinaryNoRels
+data CtxBinaryRelations mode m a = CtxBinaryRelations [CtxBinaryRelation' mode m a]
+                                 | CtxBinaryNoRels
 
-ctxBinaryRelations :: CtxBinaryRelations m a -> [CtxBinaryRelation' m a]
+ctxBinaryRelations :: CtxBinaryRelations mode m a -> [CtxBinaryRelation' mode m a]
 ctxBinaryRelations (CtxBinaryRelations rels) = rels
 ctxBinaryRelations _                         = []
 
-data CtxBinaryRelation m d a = forall d' . CtxBinaryRelation {
-    ctxBinRel :: SomeInformationPiece
-              -> SomeInformationPiece
-              -> Maybe (m (a, d'))
+data CtxBinaryRelation mode m d a = forall d' . CtxBinaryRelation {
+    ctxBinRelName     :: String
+  , ctxBinRel         :: mode
+                      -> SomeInformationPiece
+                      -> SomeInformationPiece
+                      -> Maybe (m (a, d'))
   , ctxBinRelsCombine :: (a, d') -> (a, d) -> (a, d)
   , emptyBinaryRelRes :: (a, d)
   }
 
-data CtxBinaryRelation' m a =
-    forall d . ContextRelation (CtxBinaryRelation m d a) m a =>
-    CtxBinaryRelation' (CtxBinaryRelation m d a)
+data CtxBinaryRelation' mode m a =
+    forall d . ContextRelation (CtxBinaryRelation mode m d a) mode m a =>
+    CtxBinaryRelation' (CtxBinaryRelation mode m d a)
 
-instance (Functor m) => ContextRelation (CtxBinaryRelation' m a) m a where
-  type RelationDetails (CtxBinaryRelation' m a) = SomeRelationDetails
+instance (Functor m) => ContextRelation (CtxBinaryRelation' mode m a) mode m a where
+  type RelationDetails (CtxBinaryRelation' mode m a) = SomeRelationDetails
+  relationName   (CtxBinaryRelation' rel) = relationName rel
   assessRelation (CtxBinaryRelation' rel) = assessRelation' rel
 
-assessRelation' rel = fmap (fmap (second $ SomeRelationDetails rel))
-                    . assessRelation rel
+assessRelation' rel mode = fmap (fmap (second $ SomeRelationDetails rel))
+                    . assessRelation rel mode
+
 
 -----------------------------------------------------------------------------
 
 
-data CtxWholeRelations m a = CtxWholeRelations [CtxWholeRelation' m a]
-                           | CtxWholeNoRels
+data CtxWholeRelations mode m a = CtxWholeRelations [CtxWholeRelation' mode m a]
+                                | CtxWholeNoRels
 
-ctxWholeRelations :: CtxWholeRelations m a -> [CtxWholeRelation' m a]
+ctxWholeRelations :: CtxWholeRelations mode m a -> [CtxWholeRelation' mode m a]
 ctxWholeRelations (CtxWholeRelations rels) = rels
 ctxWholeRelations _                        = []
 
-data CtxWholeRelation m d a = CtxWholeRelation {
-    ctxWholeRel :: Information -> Maybe (m (a, d))
+data CtxWholeRelation mode m d a = CtxWholeRelation {
+    ctxWholeRelName :: String
+  , ctxWholeRel     :: mode -> Information -> Maybe (m (a, d))
   }
 
-data CtxWholeRelation' m a =
-    forall d . ContextRelation (CtxWholeRelation m d a) m a =>
-    CtxWholeRelation' (CtxWholeRelation m d a)
+data CtxWholeRelation' mode m a =
+    forall d . ContextRelation (CtxWholeRelation mode m d a) mode m a =>
+    CtxWholeRelation' (CtxWholeRelation mode m d a)
 
-instance (Functor m) => ContextRelation (CtxWholeRelation' m a) m a where
-  type RelationDetails (CtxWholeRelation' m a) = SomeRelationDetails
+instance (Functor m) => ContextRelation (CtxWholeRelation' mode m a) mode m a where
+  type RelationDetails (CtxWholeRelation' mode m a) = SomeRelationDetails
+  relationName   (CtxWholeRelation' rel) = relationName rel
   assessRelation (CtxWholeRelation' rel) = assessRelation' rel
 
 
 
 -----------------------------------------------------------------------------
 
-instance ContextRelation (CtxWholeRelation m d a) m a where
-  type RelationDetails (CtxWholeRelation m d a) = d
-  assessRelation (CtxWholeRelation rel) = rel
+instance (Monad m) =>
+  ContextRelation (CtxBinaryRelation mode m d a) mode m a where
+    type RelationDetails (CtxBinaryRelation mode m d a) = d
+    relationName   = ctxBinRelName
+    assessRelation (CtxBinaryRelation _ rel comb empty) mode inf =
+      let assessed = do a <- Set.elems inf
+                        b <- Set.elems inf
+                        if a == b then []
+                                  else maybeToList $ rel mode a b
+      in if null assessed then Nothing
+                          else Just $ foldr comb empty <$> sequence assessed
+
+
+instance ContextRelation (CtxWholeRelation mode m d a) mode m a where
+  type RelationDetails (CtxWholeRelation mode m d a) = d
+  relationName   = ctxWholeRelName
+  assessRelation = ctxWholeRel
 
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- * Misc
 
-data GenericContext dm rm details a = GenericContext{
+data GenericContext mode dm rm details a = GenericContext{
     _ctxName      :: String
   , _ctxData      :: dm Information
-  , _ctxRelations :: CtxRelations rm details a
-  , _ctxDetails   :: [SomeRelationDetails] -> details
-  -- , _ctxExtra     :: extra
+  , _ctxRelations :: CtxRelations mode rm details a
   }
 
 
-instance Context (GenericContext dm rm det a) a where
-  type CtxDataM  (GenericContext dm rm det a) = dm
-  type CtxRelsM  (GenericContext dm rm det a) = rm
-  type CtxDetails (GenericContext dm rm det a) = det
+instance Context (GenericContext mode dm rm det a) a where
+  type CtxDataM   (GenericContext mode dm rm det a) = dm
+  type CtxRelsM   (GenericContext mode dm rm det a) = rm
+  type CtxDetails (GenericContext mode dm rm det a) = det
+  type CtxMode    (GenericContext mode dm rm det a) = mode
   ctxName = _ctxName
   ctxData = _ctxData
   ctxRelations = _ctxRelations
@@ -201,14 +228,15 @@ instance Context (GenericContext dm rm det a) a where
 
 -----------------------------------------------------------------------------
 
-assessAtCxt c inf = do
-  let rels = ctxRelations c
-  binary <- assessRelations inf . ctxBinaryRelations $ ctxRelsBinary rels
-  whole  <- assessRelations inf . ctxWholeRelations  $ ctxRelsWhole rels
-  return $ ctxCombineBinWhole rels binary whole
+assessAtCxt :: (Monad (CtxRelsM c)) =>
+               Context c a => c -> CtxMode c -> Information
+                           -> CtxRelsM c (a, CtxDetails c)
+assessAtCxt c mode inf = fmap (ctxCombineRels $ ctxRelations c)
+                       . assessRelations mode inf
+                       . ctxRelations' $ ctxRelations c
 
 
-assessRelations inf = sequence . mapMaybe (`assessRelation` inf)
+assessRelations mode inf = sequence . mapMaybe (\r -> assessRelation r mode inf)
 
 -----------------------------------------------------------------------------
 
