@@ -19,6 +19,7 @@ library
         CSP.Coherence
         CSP.Coherence.Information
         CSP.Coherence.Context
+        CSP.Coherence.Context.Filtering
         CSP.Coherence.Candidate
 
         AUCSP.NegotiationRoles
@@ -31,16 +32,20 @@ library
         AUCSP.Classes.CoresGeneration
         AUCSP.Classes.Generation
 
+        AUCSP.Context
+        AUCSP.Context.Obligations
+        AUCSP.Contexts
+
     build-depends:
         base >=4.9 && <4.10,
         containers ==0.5.*,
         random ==1.1
 
     default-language: Haskell2010
-    other-extensions: ExistentialQuantification TypeFamilies
+    other-extensions: ExistentialQuantification TypeFamilies MultiParamTypeClasses
                       FunctionalDependencies KindSignatures
                       FlexibleContexts FlexibleInstances UndecidableInstances
-                      ConstraintKinds StandaloneDeriving
+                      ConstraintKinds StandaloneDeriving TypeSynonymInstances
     hs-source-dirs: src
     other-modules:  AUCSP.Utils.Random
                     AUCSP.Utils.List

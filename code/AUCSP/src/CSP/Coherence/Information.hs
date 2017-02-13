@@ -12,14 +12,17 @@
 
 module CSP.Coherence.Information(
 
-  Information
+  Information, collectInformation
 , InformationPiece(..), SomeInformationPiece(..)
 , IsInformation(..)
 
 ) where
 
+import Data.Maybe (mapMaybe)
 import Data.Typeable (Typeable, cast)
+
 import Data.Set (Set)
+import qualified Data.Set as Set
 
 -----------------------------------------------------------------------------
 
@@ -30,6 +33,11 @@ class (Typeable i, Show i, Ord i) => InformationPiece i where
 
 data SomeInformationPiece = forall i . InformationPiece i =>
      SomeInformationPiece i
+
+
+collectInformation :: (InformationPiece i) => (i -> a) -> Information -> [a]
+collectInformation f inf = mapMaybe tryCollect $ Set.elems inf
+  where tryCollect (SomeInformationPiece i) = f <$> cast i
 
 -----------------------------------------------------------------------------
 
