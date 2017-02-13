@@ -17,12 +17,16 @@ module AUCSP.Classes (
 Discipline(..), Classroom(..), Requirement(..)
 
 , ClassCore(..), Class(..), classDiscipline, classGroup, classProfessor
+, classReferredAgent, classRefersAgent
+, classDuration
 
 , Day(..)
 
 , module AUCSP.Classes.DiscreteTime
 
 ) where
+
+import CSP.Coherence
 
 import AUCSP.AgentsInterface
 import AUCSP.AgentsInterface.KnownAgents
@@ -64,6 +68,9 @@ deriving instance (KnownAgentsConstraints) => Show ClassCore
 deriving instance (KnownAgentsConstraints) => Eq   ClassCore
 deriving instance (KnownAgentsConstraints) => Ord  ClassCore
 
+classReferredAgent' :: (KnownAgentsConstraints) => ClassCore -> [SomeAgent]
+classReferredAgent' cc = [ SomeAgent Group     $ classGroup' cc
+                         , SomeAgent Professor $ classProfessor' cc]
 
 data Class = Class { classCore       :: ClassCore
                    , classRoom       :: Classroom
@@ -78,6 +85,18 @@ deriving instance (KnownAgentsConstraints) => Ord  Class
 classDiscipline = classDiscipline' . classCore
 classGroup      = classGroup' . classCore
 classProfessor  = classProfessor' . classCore
+
+classReferredAgent :: (KnownAgentsConstraints) => Class -> [SomeAgent]
+classReferredAgent = classReferredAgent' . classCore
+
+classRefersAgent :: (KnownAgentsConstraints) => SomeAgent -> Class -> Bool
+classRefersAgent a = elem a . classReferredAgent
+
+classDuration :: Class -> Minutes
+classDuration c = diffMinutes (classBegins c) (classEnds c)
+
+instance (KnownAgentsConstraints) =>
+  InformationPiece Class where informationType _ = "Class"
 
 -----------------------------------------------------------------------------
 
