@@ -49,8 +49,8 @@ Such an agent must
 
 data Group      = Group      deriving (Show, Eq, Ord, Typeable)
 -- data Classroom  = Classroom  deriving (Show, Eq, Ord, Typeable)
-data Professor  = FullTimeProfessor
-                | PartTimeProfessor
+data Professor  = Professor
+  -- FullTimeProfessor | PartTimeProfessor
     deriving (Show, Eq, Ord, Typeable)
 
 
