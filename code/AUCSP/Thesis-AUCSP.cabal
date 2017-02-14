@@ -35,9 +35,10 @@ library
         AUCSP.Context
         AUCSP.Context.Obligations
         AUCSP.Context.Preferences
+        AUCSP.Context.External
         AUCSP.Contexts
 
-        AUCSP.Utils.InUnitInterval
+        AUCSP.Utils.InInterval
 
     build-depends:
         base >=4.9 && <4.10,
@@ -49,6 +50,7 @@ library
                       FunctionalDependencies KindSignatures
                       FlexibleContexts FlexibleInstances UndecidableInstances
                       ConstraintKinds StandaloneDeriving TypeSynonymInstances
+                      DataKinds PolyKinds TypeOperators
     hs-source-dirs: src
     other-modules:  AUCSP.Utils.Random
                     AUCSP.Utils.List

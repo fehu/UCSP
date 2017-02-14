@@ -17,7 +17,7 @@ module AUCSP.Context.Preferences (
 
 ) where
 
-import AUCSP.Utils.InUnitInterval as Export
+import AUCSP.Utils.InInterval as Export
 import AUCSP.Context
 
 import Data.Typeable (Typeable)
@@ -35,5 +35,8 @@ newPreferencesContext :: (Fractional a, Ord a, Show a, Typeable a) =>
                                         -> PreferencesContext a
 newPreferencesContext cdata rels = newDataIOFilteringContext "Preferences"
                                    cdata (newCtxRels rels inUnitIntervalProduct)
+
+inUnitIntervalProduct :: (Num a, Ord a) => [InUnitInterval a] -> InUnitInterval a
+inUnitIntervalProduct = toInterval . product . map fromInterval
 
 -----------------------------------------------------------------------------
