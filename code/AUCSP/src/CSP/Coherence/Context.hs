@@ -27,9 +27,7 @@ module CSP.Coherence.Context(
 
 -- * Relations
 
-, CtxBinaryRelations(..), ctxBinaryRelations
 , CtxBinaryRelation(..)
-, CtxWholeRelations(..), ctxWholeRelations
 , CtxWholeRelation(..)
 
 
@@ -128,13 +126,6 @@ data SomeRelationDetails = forall rel mode m a . ContextRelation rel mode m a =>
 
 -- * Relations
 
-data CtxBinaryRelations mode m a = CtxBinaryRelations [CtxBinaryRelation' mode m a]
-                                 | CtxBinaryNoRels
-
-ctxBinaryRelations :: CtxBinaryRelations mode m a -> [CtxBinaryRelation' mode m a]
-ctxBinaryRelations (CtxBinaryRelations rels) = rels
-ctxBinaryRelations _                         = []
-
 data CtxBinaryRelation mode m d a = forall d' . CtxBinaryRelation {
     ctxBinRelName     :: String
   , ctxBinRel         :: mode
@@ -159,14 +150,6 @@ assessRelation' rel mode = fmap (fmap (second $ SomeRelationDetails rel))
 
 
 -----------------------------------------------------------------------------
-
-
-data CtxWholeRelations mode m a = CtxWholeRelations [CtxWholeRelation' mode m a]
-                                | CtxWholeNoRels
-
-ctxWholeRelations :: CtxWholeRelations mode m a -> [CtxWholeRelation' mode m a]
-ctxWholeRelations (CtxWholeRelations rels) = rels
-ctxWholeRelations _                        = []
 
 data CtxWholeRelation mode m d a = CtxWholeRelation {
     ctxWholeRelName :: String
