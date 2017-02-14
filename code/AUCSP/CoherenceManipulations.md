@@ -24,14 +24,14 @@ Coherence of __an opinion__ is combined from three values:
 
   1. Internal coherence (within [0, 1]).
   2. Coherence with best, scaled from [0, 1] to [1, 2].
-  3. 10, if is coherent with best; otherwise 0.
+  3. 4, if is coherent with best; otherwise 0.
 
-The sum of these values lies within [0, 13] interval.
+The sum of these values lies within [0, 7] interval.
 The resulting _opinion coherence_ is unit-scaled sum.
 
 _External coherence_ is opinions coherence _product_ (within [0, 1]).
 
-A candidate is considered coherent if its coherence value is not less than __10/13__.
+A candidate is considered coherent if its coherence value is not less than __4/7__.
 
 [External.hs](/code/AUCSP/src/AUCSP/Context/External.hs)
 

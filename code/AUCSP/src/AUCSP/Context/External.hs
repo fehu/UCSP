@@ -83,9 +83,9 @@ instance InformationPiece SomeAgent where
 --   Estimates coherence of a response as sum of:
 --      1. 'opinionCoherenceInternal' scaled to [0, 1]
 --      2. 'opinionCoherenceWithBest' scaled to [1, 2]
---      3. 10, if is coherent with the best.
---   Resulting coherence is a product of scaled ([0,13] -> [0,1]) opinion coherences.
--- Threshold should be 10/13.
+--      3. 4, if is coherent with the best.
+--   Resulting coherence is a product of scaled ([0,7] -> [0,1]) opinion coherences.
+-- Threshold should be 4/7.
 
 opinionRelation :: (Fractional a, Ord a, Typeable a, KnownAgentsConstraints) =>
                    AskOpinion
@@ -107,9 +107,9 @@ opinionRelation askOpinion = CtxWholeRelation "External" $
                               cohExternal' = scaleToInterval cohExternal
                                             (Proxy :: Proxy '(Pos 1, Pos 2))
                               cohWithBest = if opinionCoherentWithBest resp
-                                            then 10 else 0
+                                            then 4 else 0
                               bigScale' :: (Fractional a, Ord a) =>
-                                           a -> InAnInterval Zero (Pos 13) a
+                                           a -> InAnInterval Zero (Pos 7) a
                               bigScale' = toInterval
                               bigScale = bigScale'
                                        $ if opinionCoherentInternal resp
@@ -123,7 +123,7 @@ opinionRelation askOpinion = CtxWholeRelation "External" $
         return (coh, details)
 
 opinionThreshold :: (Fractional a, Ord a) => IO (Threshold (InUnitInterval a))
-opinionThreshold = return . Threshold . toInterval $ 10/13
+opinionThreshold = return . Threshold . toInterval $ 4/7
 
 newtype OpinionDetails = OpinionDetails (Map SomeAgent OpinionResponse)
 
