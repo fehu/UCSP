@@ -5,12 +5,12 @@
 ##### Obligations Relations
 Boolean, combined with `and`.
 
-[Obligations.hs](code/AUCSP/src/AUCSP/Context/Obligations.hs)
+[Obligations.hs](/code/AUCSP/src/AUCSP/Context/Obligations.hs)
 
 ##### Preferences Relations
 Fractional, within [0, 1]. Combined by multiplication.
 
-[Preferences.hs](code/AUCSP/src/AUCSP/Context/Preferences.hs)
+[Preferences.hs](/code/AUCSP/src/AUCSP/Context/Preferences.hs)
 
 ##### External Relation: Opinion
 Coherence evaluation by other agents with details.
@@ -31,10 +31,10 @@ The resulting _opinion coherence_ is unit-scaled sum.
 
 A candidate is considered coherent if its coherence value is not less than __10/13__.
 
-[External.hs](code/AUCSP/src/AUCSP/Context/External.hs)
+[External.hs](/code/AUCSP/src/AUCSP/Context/External.hs)
 
 ### Inter-Context
 
 Coherence values, evaluated at contexts are _summed_.
 
-[Coherence.hs](code/AUCSP/src/CSP/Coherence.hs)
+[Coherence.hs](/code/AUCSP/src/CSP/Coherence.hs)
