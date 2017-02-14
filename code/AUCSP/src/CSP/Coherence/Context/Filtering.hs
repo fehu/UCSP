@@ -31,6 +31,7 @@ module CSP.Coherence.Context.Filtering(
 
 , FilteringContextPure, newPureFilteringContext
 , FilteringContextDataIO, newDataIOFilteringContext
+, FilteringContextIO, newIOFilteringContext
 
 -- * Misc
 
@@ -163,8 +164,10 @@ newDataIOFilteringContext :: (Typeable a, Show a, Ord a) =>
                           -> CtxRelations mode Id details a
                           -> IO (Threshold a)
                           -> FilteringContextDataIO mode details a
-newDataIOFilteringContext name inf rels thr = GenericContext name inf' rels
-  where inf' = Set.insert <$> fmap SomeInformationPiece thr <*> inf
+newDataIOFilteringContext name inf rels thr =
+  GenericContext name (addThreshold inf thr) rels
+
+addThreshold inf thr = Set.insert <$> fmap SomeInformationPiece thr <*> inf
 
 instance (Typeable a, Show a, Ord a) =>
   FilteringContext (FilteringContextDataIO mode details a) a where
@@ -177,7 +180,26 @@ instance (Typeable a, Show a, Ord a) =>
     isCoherentAtCtxIO = isCoherentAtCtx
 
 
+-----------------------------------------------------------------------------
 
+type FilteringContextIO mode details a = GenericContext mode IO IO details a
+newIOFilteringContext :: (Typeable a, Show a, Ord a) =>
+                         String
+                      -> IO Information
+                      -> CtxRelations mode IO details a
+                      -> IO (Threshold a)
+                      -> FilteringContextIO mode details a
+newIOFilteringContext name inf rels thr =
+  GenericContext name (addThreshold inf thr) rels
+
+instance (Typeable a, Show a, Ord a) =>
+  FilteringContext (FilteringContextIO mode details a) a where
+    type CtxThreM   (FilteringContextIO mode details a) = IO
+    type CtxFilterM (FilteringContextIO mode details a) = IO
+    ctxThreshold = ctxThreshold'
+    isCoherentAtCtx c mode inf = do thr <- ctxThreshold c
+                                    isCoherentAtCtx' thr c mode inf
+    isCoherentAtCtxIO = isCoherentAtCtx
 
 
 -----------------------------------------------------------------------------
