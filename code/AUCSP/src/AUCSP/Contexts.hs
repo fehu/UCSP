@@ -11,4 +11,13 @@
 
 module AUCSP.Contexts(
 
+  module Export
+
 ) where
+
+import AUCSP.Context             as Export
+import AUCSP.Context.Obligations as Export
+import AUCSP.Context.Preferences as Export
+import AUCSP.Context.External    as Export
+
+-----------------------------------------------------------------------------
