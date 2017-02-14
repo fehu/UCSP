@@ -16,7 +16,7 @@ module AUCSP.AgentsInterface (
 , AgentsOfRole(..)
 
 
-, SomeAgent(..), someAgent, someAgentMatchRole
+, SomeAgent(..), someAgent, someAgentIsOfRole, someAgentMatchRole
 
 ) where
 
@@ -91,6 +91,10 @@ handling their roles.
 >                    r -> SomeAgent -> Maybe (KnownAgent r)
 > someAgentMatchRole r (SomeAgent r' ar') = isSame r r' >> cast ar'
 >     where isSame x = (`when` return ()) <=< fmap (x==) . cast
+
+> someAgentIsOfRole :: (AgentOfRole r) => SomeAgent -> r -> Bool
+> someAgentIsOfRole (SomeAgent r' ar') = maybe False (r'==) . cast
+
 
 > someAgentId (SomeAgent _ a) = roleAgentId a
 
