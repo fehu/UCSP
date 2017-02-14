@@ -71,7 +71,7 @@ data AnyContextRelation = forall mode m a . Functor m =>
 data DetailsOfRel = DetailsOfRel SomeRelationDetails
                   | FindDetails  AnyContextRelation
 detailsOfRel (DetailsOfRel rel) = rel
-
+detailsRelationName (DetailsOfRel (SomeRelationDetails rel _)) = relationName rel
 
 onRelationName f (DetailsOfRel (SomeRelationDetails r1 _))
                  (DetailsOfRel (SomeRelationDetails r2 _)) =
@@ -83,9 +83,13 @@ onRelationName f (FindDetails  (AnyContextRelation r1))
 onRelationName f x@(DetailsOfRel _) y@(FindDetails _) = onRelationName f y x
 
 
-instance Eq  DetailsOfRel where (==) = onRelationName (==)
-instance Ord DetailsOfRel where compare = onRelationName compare
+instance Eq   DetailsOfRel where (==) = onRelationName (==)
+instance Ord  DetailsOfRel where compare = onRelationName compare
 
+
+instance Show DetailsByRel where
+  show (DetailsByRel rels) = "Details for relations: " ++
+                             show (map detailsRelationName $ Set.elems rels)
 
 -----------------------------------------------------------------------------
 
