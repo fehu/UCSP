@@ -29,6 +29,8 @@ Coherence of __an opinion__ is combined from three values:
 The sum of these values lies within [0, 13] interval.
 The resulting _opinion coherence_ is unit-scaled sum.
 
+_External coherence_ is opinions coherence _product_ (within [0, 1]).
+
 A candidate is considered coherent if its coherence value is not less than __10/13__.
 
 [External.hs](/code/AUCSP/src/AUCSP/Context/External.hs)
