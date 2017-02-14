@@ -13,6 +13,8 @@ extra-source-files:
     Document/*.lhs
     Document/*.tex
     Document/tikz/*.tex
+    TODO.md
+    CoherenceManipulations.md
 
 library
     exposed-modules:
