@@ -14,16 +14,19 @@ library
     exposed-modules:
         AUCSP.Agent.AgentState
         AUCSP.Agent.NegotiatingAgent
-        
-        -- AUCSP.NegotiatingAgent
-        -- AUCSP.NegotiationEnvironment
-        -- AUCSP.NegotiationStates
+        AUCSP.Agent.NegotiatingAgent.NegotiationDefinition
+        AUCSP.Agent.NegotiatingAgent.SearchCandidates
+        AUCSP.Agent.NegotiatingAgent.Decide
+        AUCSP.Agent.NegotiatingAgent.HandleNegotiation
+        AUCSP.Agent.NegotiationEnvironment
+        AUCSP.Agent.NegotiationEnvironment.Integration
+        AUCSP.Agent.NegotiationEnvironment.Controller
 
 
     build-depends:
         base >=4.9 && <4.10,
         Thesis-AUCSP -any,
-        feh-agents -any,
+        feh-agents >= 0.0.3.0,
         stm ==2.4.4.*,
         containers ==0.5.*
         -- time == 1.7.*
