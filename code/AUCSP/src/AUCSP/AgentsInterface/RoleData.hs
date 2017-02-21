@@ -17,7 +17,7 @@ module AUCSP.AgentsInterface.RoleData (
 , groupSize, groupNeedsDisciplines
 , professorCanTeach, professorMinClasses, professorMaxClasses
 
-, RoleData'(capabilities, knownAgents, knownSelf)
+, RoleData'(..)
 
 , module Export
 

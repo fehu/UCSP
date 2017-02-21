@@ -11,7 +11,9 @@
 
 module AUCSP.Contexts(
 
-  module Export
+  Contexts(..)
+
+, module Export
 
 ) where
 
@@ -19,5 +21,13 @@ import AUCSP.Context             as Export
 import AUCSP.Context.Obligations as Export
 import AUCSP.Context.Preferences as Export
 import AUCSP.Context.External    as Export
+
+-----------------------------------------------------------------------------
+
+data Contexts a = Contexts {
+    obligations :: ObligationsContext
+  , preferences :: PreferencesContext a
+  , external    :: ExternalContext a
+  }
 
 -----------------------------------------------------------------------------
