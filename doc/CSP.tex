@@ -1,3 +1,6 @@
+\documentclass[ThesisDoc]{subfiles}
+\begin{document}
+
 \def\domain{\mathrm{domain}}
 
 \green{Explicar que son los CSP}
@@ -104,11 +107,11 @@ $$
 
   In our \emph{university classes scheduling} problem (UCSP) the variables
 are personal schedules, called \emph{timetables} in this thesis,
-for each \emph{participant}: professor, group/student and classroom.
+for each \emph{participant}: professor and group/student.
   A timetable consists of the day-time slots, where classes can be put.
   A \emph{class} is formed for teaching a group a specific \emph{subject},
-connecting the three participants (of each kind) and establishing
-the beginning and end \emph{time}.
+connecting the participants (of each kind) and establishing a classroom and
+the beginning--end \emph{time}.
   Problem \emph{constraints} can be divided into:
 \begin{enumerate}
   \item \underline{Class constraints}: a class should be a productive event, so
@@ -135,12 +138,12 @@ the beginning and end \emph{time}.
 be extended to an \emph{optimization} one by defining an
 \emph{objective function} over the values configurations.
 
-  Unlike the restrictions (that yield a boolean result), the objective functions
-should have a bigger codomain:
+  Unlike the restrictions (that yield boolean result), the objective functions
+should have continuous codomains:
 $$\tilde\xi : \{{\dot v}^i_\ast\}_{i=1}^N \mapsto \Re$$
   In order to facilitate the calculations and erase the internal differences of
-the objectives, it's often required that the functions must be normalized,
-with the codomains restricted to $[-1,1]$ or $[0,1]$ intervals.
+the objectives, it's often required that the functions must be normalized:
+the co-domains are restricted to $[-1,1]$ or $[0,1]$ intervals.
 
   For example, in case of our UCSP,
 one can add \underline{personal preferences} or some institution criteria as
@@ -208,7 +211,7 @@ the problem knowledge and constraints
   For example, a constraint satisfaction problem can often be
   decomposed into several not entirely independent
   subproblems that can be solved on different processors. $\dots$
-  MAS (Multiagent System) allows the subproblems of a constraint satisfaction
+  MAS (Multiagent System) allows the sub-problems of a constraint satisfaction
   problem to be subcontracted to different problem solving agents with their own
   interests and goals.
 \end{displayquote}
@@ -232,20 +235,25 @@ strong restrictions and personal preferences are determined by agent's creator
 and his interests. The class and time constraints apply to all the agents and
 represent common behavior base.
 
-  The original UCSP is decomposed in a set of subproblems, one for each participant.
-A subproblem consist in resolving constraints over a \emph{timetable} variable.
-Some subproblems are interdependent through \emph{classes connections}. In this
+  The original UCSP is decomposed in a set of sub-problems, one for each participant.
+A sub-problem consist in resolving constraints over a \emph{timetable} variable.
+Some sub-problems are interdependent through \emph{classes connections}. In this
 case, the timetable configurations of the connected agents must be negotiated
 until consensus is reached. If some agents cannot reach it, they could change the
 class, searching for another participant.
-  The solution to the original problem is a list of participants with the corresponding
-timetables. The last ones are simply gathered, when all the subproblems have been
-resolved. At the figure \ref{fig:ScheduleSpace} the university schedule is
-shown as a 3-dimentional table; horizontal rectangles represent individual
-schedules for the corresponding participants.
 
-\begin{figure}
-  \input{Introduction/ScheduleSpace.tikz}
-  \caption{Distributed university schedule.}
-  \label{fig:ScheduleSpace}
-\end{figure}
+  The solution to the original problem is a list of participants with the corresponding
+timetables. The last ones are gathered, after all sub-problems have been resolved.
+
+% At the figure \ref{fig:ScheduleSpace} the university schedule is
+% shown as a 3-dimentional table; horizontal rectangles represent individual
+% schedules for the corresponding participants.
+
+% \begin{figure}
+%   \input{Introduction/ScheduleSpace.tikz}
+%   \caption{Distributed university schedule.}
+%   \label{fig:ScheduleSpace}
+% \end{figure}
+
+
+\end{document}

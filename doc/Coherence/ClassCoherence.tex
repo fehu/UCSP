@@ -1,0 +1,63 @@
+\documentclass[../ThesisDoc]{subfiles}
+\begin{document}
+
+\providecommand{\rootdir}{..}
+
+\subsection{Class Coherence}
+
+Class coherence enforces and institution restrictions (and common sense).
+Coherence value is completely independent of who's assessed it.
+Because of the latter, this kind coherence isn't assessed at contexts
+in the implementation, but rather immediately after class/candidate creation.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsubsection{Capabilities}
+
+Represent \emph{strong} restrictions, set by the institution.
+Setting \emph{mode} has no effect on evaluation.
+
+All the relations should yield either \emph{true} or \emph{false}.
+A candidate is declared coherent if all the relations are \emph{true}.
+
+Following \emph{binary} relations are defined over \emph{class data}:
+\begin{itemize}
+  \item \emph{group} wants to take classes of \emph{discipline};
+  \item \emph{professor} can teach \emph{discipline};
+  \item \emph{classroom} is equipped for \emph{discipline};
+  \item \emph{classroom} has enough seats for whole \emph{group}.
+\end{itemize}
+
+Single \emph{whole-graph} relation is defined over whole candidate (set of classes):
+each group must have the exact classes duration, defined by the disciplines chosen.
+
+An agent should be keeping the capabilities of known agents, to avoid creation
+of unacceptable classes.
+
+\begin{figure}[h]
+  \centering
+  \input{\rootdir/img/Document/Capabilities}
+  \caption{Capabilities required to form a \emph{class}.}
+  \label{fig:capabilities}
+\end{figure}
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsubsection{Time Consistency}
+
+Asserts that all the classes are consistent in time (do not intersect).
+
+Defines a single \emph{binary} relation over classes.
+Two classes are \emph{incoherent} when:
+\begin{enumerate}
+  \item both classes reference same group, professor or/and classroom;
+  \item both classes are on the same day and their time intersect:
+          either the beginning or end time of one class is in between of
+          beginning and end time of another.
+\end{enumerate}
+
+\begin{center}
+  \input{\rootdir/img/TimeIntersects.tikz}
+\end{center}
+
+
+\end{document}

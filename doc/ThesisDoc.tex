@@ -3,6 +3,8 @@
 \usepackage[english]{babel}
 \usepackage[utf8]{inputenc}
 
+\usepackage{subfiles}
+
 \usepackage[inline,shortlabels]{enumitem}
 \usepackage{amsmath, amssymb}
 \usepackage{xcolor, ifthen}
@@ -46,13 +48,16 @@
 \tableofcontents
 \newpage
 
-\input{Introduction}
-\input{CSP}
-\input{Agents}
-\input{Coherence}
-\input{FormalProblem}
-\input{ProposedSolution}
-\input{Conclusions}
+
+\newcommand{\rootdir}{.}
+
+\subfile{Introduction}
+\subfile{CSP}
+\subfile{Agents}
+\subfile{Coherence}
+% \subfile{FormalProblem}
+% \subfile{ProposedSolution}
+% \subfile{Conclusions}
 
 
 \newpage

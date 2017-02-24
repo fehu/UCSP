@@ -1,8 +1,14 @@
+\documentclass[ThesisDoc]{subfiles}
+\begin{document}
+
+\providecommand{\rootdir}{.}
+
 \section{Coherence}
 \label{sec:Coherence}
 
 \def\coh{\mathrm{coh}}
-\def\cohi{\mathrm{\widetilde{coh}}}
+\def\rel{\mathrm{rel}}
+\def\fold{\mathit{fold}\,}
 
 \green{Explicar qué es coherencia.}
 \medskip
@@ -92,7 +98,7 @@ It's value is $\frac{|1| \cdot 3 + |-1| \cdot 5}{17} \approx 0.47$.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=0.5\textwidth]{img/UAB-splitting.png} % scale=0.5
+  \includegraphics[width=0.5\textwidth]{\rootdir/img/UAB-splitting.png} % scale=0.5
   % \captionsetup{singlelinecheck=off}
   \caption{Example: information graph partitioning, proposed by Thagard
            \cite{ThagVerb98, UAB-Thesis}. }
@@ -123,33 +129,35 @@ help of \emph{bridge rules}  \cite[62]{UAB-Thesis}.
 \medskip
 
 \noindent
-In this thesis, a different aproach is taken. The initial information graph,
-composed of \emph{classes propositions}, is passed to a \emph{splitting} context,
-that generates all posiible \emph{acceptable} (by the splitting context) sub-graphs,
-called \emph{candidates} (as it will be shown in \emph{Beliefs} context).
+In this thesis a different approach is taken.
+% The initial information graph,
+% composed of \emph{classes propositions}, is passed to a \emph{splitting} context,
+% that generates all posiible \emph{acceptable} (by the splitting context) sub-graphs,
+% called \emph{candidates} (as it will be shown in \emph{Beliefs} context).
 
-Each candidate is propagated through the contexts in the established
+A set of class propositions or a \emph{candidate} forms initial information graph,
+that is propagated through the \emph{filtering contexts} in the established
 order. At each context it gets assessed
-(using \emph{context-specific} knowledge and relations)
-and the result is compared against \emph{context-specific threshold}.
+(using context-specific knowledge and relations)
+and the result is compared against context-specific threshold.
 If passing threshold test,
 the candidate is sent to the next context, otherwise it is marked as failed
 (providing a reason) and is propagated no further. In both cases the coherence
 value is guarded alongside the candidate.
 
 Thus a context in this thesis serves as \emph{candidates} filter. This approach
-allows us to avoid:
+\textbf{allows to avoid}:
 \begin{enumerate}
-  \item Usage of \emph{bridge rules}. It permits more flexebility for
-    the \emph{internal rules}. Changes in contexts' logics do not affect the way
+  \item Usage of \emph{bridge rules}. It permits more flexibility for
+    the \emph{internal rules}. Changes in contexts' logic do not affect the way
     the results are combined, even if the changes are incompatible.
   \item Huge graph partitioning. Such graph would have to unite all the
     candidates and every context's internal knowledge. Then the entire graph
     needs to be stored, until the best partition is found.
 
-    In \red{my} approach, both \emph{candidates generation} and
+    In the proposed approach, both \emph{candidates generation} and
     \emph{filtering} can be done sequentially and lazily,
-    thereby cutting memory usage.
+    thereby reducing memory usage.
 
 \end{enumerate}
 
@@ -159,23 +167,79 @@ allows us to avoid:
 A \emph{context} represents an aspect for optimization/restriction, considered
 by an agent. It defines context-specific information and relations over the
 information graph, with the corresponding combination functions. There are
-two types of relations: \emph{binary} and over the \emph{whole graph}. The former ones
-are applied to every pair of nodes and the results are combined by
-\emph{binary fold functions} (one combines the results of the same relation
-and the other combines the latter results). The whole-graph relations' values are
-combined by the corresponding \emph{whole-graph fold function}. In the end the
-combined values of both relations types are merged into the result by
-\emph{combined merge function}. All the combination functions are defined at
-contexts.
+two types of relations: \emph{binary} and over the \emph{whole graph}.
+The former ones are applied to every pair of nodes and the results are combined
+by a \emph{binary fold function} $f^\cup_2$ (for each relation).
+The latter, as follows from the name, are defined over whole information graph,
+thus permitting more flexible evaluation.
 
-\begin{figure}[h]
-  \centering
-  \fbox{ \input{../code/AUCSP/src/Document/tikz/ContextAssess} }
-  \caption{Binary relations within an information graph. One can
-           distinguish the relations between the assessed information pieces
-           and the relations between assessed and the known ones.
-          }
-\end{figure}
+Coherence values, assessed by all the relations, are combined using another
+\emph{binary fold function} $f^\cup$, that yields \emph{coherence at the context}.
 
-\input{Coherence/InternalCoherence}
-\input{Coherence/ExternalCoherence}
+\begin{align}
+\begin{split}
+  \coh[\mathrm{context}] &: \mathit{Candidate} \mapsto \Re \times \mathit{Details} \\
+  \coh[\mathrm{context}] &= \fold(f^\cup) \circ \mathrm{assess}
+\end{split}
+\end{align}
+\emph{where}
+\begin{align*}
+    \mathrm{assess}(c) &=
+      \lbrace \coh[\rel](c) ~|~ \rel \in \mathrm{relations}(\mathrm{context})
+      \rbrace\\
+    \coh[\rel](c) &= \begin{cases}
+                       \rel(c) & \textbf{if } \rel \text{ is \emph{over whole graph}}
+                       \\
+                       \fold (f^\cup_2[\rel]) ~
+                                (\lbrace \rel(x,y) ~|~ x,y \in c, ~ x \not= y
+                                 \rbrace)
+                          & \textbf{if } \rel \text{ is \emph{binary}}
+                     \end{cases}
+\end{align*}
+\begin{align*}
+  f^\cup, f^\cup_2 &: (\Re \times \mathit{Details}) \times (\Re \times \mathit{Details})
+                      \mapsto \Re \times \mathit{Details} & &
+  \\ \\
+  \rel &:\lbrace \mathit{Information\,piece} \rbrace
+              \mapsto \Re \times \mathit{Details}
+       & \textbf{if } & \rel \text{ is \emph{over whole graph}}
+  \\
+  \rel &:\mathit{Information\,piece} \times \mathit{Information\,piece}
+              \mapsto \Re \times \mathit{Details}
+       & \textbf{if } & \rel \text{ is \emph{binary}}
+\end{align*}
+
+% \begin{figure}[h]
+%   \centering
+%   \fbox{ \input{../code/AUCSP/src/Document/tikz/ContextAssess} }
+%   \caption{Binary relations within an information graph. One can
+%            distinguish the relations between the assessed information pieces
+%            and the relations between assessed and the known ones.
+%           }
+% \end{figure}
+
+\medskip
+\noindent
+Contexts may have restrictions, that would compromise a potential solution
+because of lack of information during assessment. A good example is
+\emph{minimum classes} relation for \emph{professors}, that would force
+corresponding agents to immediately reject propositions, that don't have enough
+professor's classes, without considering a possibility of joining them to achieve
+full constraints compliance.
+
+Coherence assessment \emph{modes} are introduced to counter the problem.
+All coherence assessment functions should provide \emph{mode} argument, that
+\begin{enumerate}
+  \item Is \underline{passed to each context}, when filtering candidates.
+  \item Is \underline{passed to each relation}, when assessing a candidate at a context.
+  \item Can \underline{change relation evaluation}, weakening or disabling the
+        restriction described.
+\end{enumerate}
+
+
+\subfile{Coherence/ClassCoherence}
+\subfile{Coherence/InternalCoherence}
+\subfile{Coherence/ExternalCoherence}
+
+
+\end{document}
