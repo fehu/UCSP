@@ -111,6 +111,7 @@ module AUCSP.Agent.NegotiatingAgent.NegotiationDefinition(
     proaction         :: RequitedData r a -> AgentAction (RoleState r) (RoleResult r)
     initialContexts   :: RequitedData r a -> IO (Contexts a)
     roleRequiredData  :: RequitedData r a -> RoleData r
+    initialExtraState :: RequitedData r a -> IO (StateExtra r a)
 
   -----------------------------------------------------------------------------
 
@@ -148,7 +149,9 @@ module AUCSP.Agent.NegotiatingAgent.NegotiationDefinition(
     , messageHandling = combineMessageHandling handleSystemMessages
                                               (handleNegotiation d)
     , action = proaction d
-    , initialState = newAgentState =<< initialContexts d
+    , initialState = do extra <- initialExtraState d
+                        ctxs  <- initialContexts d
+                        newAgentState extra ctxs
     }
 
 

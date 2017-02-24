@@ -29,16 +29,23 @@ import Data.Typeable (Typeable)
 --    * Try next class-core.
 --    * Try another day-time-room configuration.
 --    * Negotiate over a candidate.
+--    * Assess coherence in Final mode.
 --    * Fail with error
-data GroupDecision = UseNextClassCore
-                   | GenerateTimeRoom
-                   | forall a . Typeable a => NegotiateOver (ACandidate a)
-                   | NegotiationFailed                                          -- TODO: reason
+--    * Update class-core pool after new agenet became known.
+data GroupDecision a = UseNextClassCore (ACandidate a)
+                     | GenerateTimeRoom (ACandidate a)
+                     | NegotiateOver    (ACandidate a)
+                     | ConfirmCoherence (ACandidate a)
+                     | UpdateClassCores
+                     | NegotiationFailed                                          -- TODO: reason
+
 
 data GroupDecider a =
-  GroupDecider (RoleState Group -> ACandidate a -> IO GroupDecision)
+  GroupDecider (RoleState (RoleT Group a) -> ACandidate a -> IO (GroupDecision a))
 
-groupDecide :: GroupDecider a -> RoleState Group -> ACandidate a -> IO GroupDecision
+groupDecide :: GroupDecider a -> RoleState (RoleT Group a)
+                              -> ACandidate a
+                              -> IO (GroupDecision a)
 groupDecide (GroupDecider f) = f
 
 -----------------------------------------------------------------------------

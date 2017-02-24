@@ -14,9 +14,9 @@
 
 module AUCSP.Agent.AgentState (
 
-  AgentState(..), newAgentState
+  AgentState(..), StateExtra, newAgentState
 , SomeAgentState(..), ACandidate
-, CandidateDetails(..)
+, CandidateDetails(..), CandidateCreationDetails(..)
 
 , MutableKnownAgents(..), newMutableKnownAgents
 
@@ -30,6 +30,7 @@ import CSP.Coherence.Candidate
 
 import AUCSP.Contexts
 import AUCSP.Classes
+import AUCSP.Classes.Generation
 import AUCSP.NegotiationRoles
 
 import Data.Typeable
@@ -39,14 +40,19 @@ import qualified Data.Set as Set
 
 import Control.Concurrent.STM
 
+-- import AUCSP.Agent.NegotiatingAgent.Decide
+
 -----------------------------------------------------------------------------
 
 data AgentState r a = AgentState{
    contexts        :: Contexts a,
    bestCandidate   :: TVar (Maybe (ACandidate a)),
    knownAgentsVars :: MutableKnownAgents,
-   knownAgents'    :: KnownAgents
+   knownAgents'    :: KnownAgents,
+   stateExtra      :: StateExtra r a
  }
+
+type family StateExtra r a :: *
 
 type ACandidate a = Candidate a CandidateDetails
 
@@ -68,14 +74,24 @@ newMutableKnownAgents = atomically $ do groups  <- newTVar []
 
 -----------------------------------------------------------------------------
 
-
-newAgentState cxts = do bestVar   <- newTVarIO Nothing
-                        knownVar  <- newMutableKnownAgents
-                        return . AgentState cxts bestVar knownVar
-                               $ mkKnownAgents knownVar
+newAgentState :: StateExtra r a -> Contexts a -> IO (AgentState r a)
+newAgentState extra cxts = do bestVar   <- newTVarIO Nothing
+                              knownVar  <- newMutableKnownAgents
+                              return $ AgentState cxts bestVar knownVar
+                                       (mkKnownAgents knownVar) extra
 
 
 -----------------------------------------------------------------------------
 
-data CandidateDetails = CandidateDetails -- TODO
+data CandidateDetails = CandidateDetails CandidateCreationDetails
+                                          -- TODO
   deriving Show
+
+
+newtype CandidateCreationDetails = CandidateCreationDetails SomeClassesGenerator
+instance Show CandidateCreationDetails where show _ = "CandidateCreationDetails"
+
+
+
+
+-----------------------------------------------------------------------------
