@@ -24,6 +24,8 @@ module AUCSP.Context.Obligations (
 
 ) where
 
+import CSP.Coherence.Context.Filtering.Convert
+
 import AUCSP.Context
 import AUCSP.Classes
 import AUCSP.AgentsInterface.KnownAgents
@@ -42,7 +44,7 @@ newObligationsContext :: Information -> SomeRelations Id Bool
 newObligationsContext cdata rels = newPureFilteringContext "Obligations"
                                     cdata (newCtxRels rels and) (Threshold True)
 
-instance (Num a, Ord a) => CtxRelationValueConvertable Bool a where
+instance (Num a, Ord a) => CtxRelationValueConvertible Bool a where
   ctxConvertRelationValue b = if b then 1 else 0
   ctxConvertRelationValue'  = (>= 1)
 

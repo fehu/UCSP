@@ -22,6 +22,7 @@ library
         CSP.Coherence.Information
         CSP.Coherence.Context
         CSP.Coherence.Context.Filtering
+        CSP.Coherence.Context.Filtering.Convert
         CSP.Coherence.Candidate
 
         AUCSP.NegotiationRoles

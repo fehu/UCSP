@@ -14,7 +14,6 @@
 module CSP.Coherence(
 
   SomeFilteringContext(..)
-, AssessmentDetails, CtxAssessment(..)
 , propagateThroughContexts
 
 , module Export
@@ -32,21 +31,27 @@ import Control.Arrow (first, second)
 data SomeFilteringContext mode a = forall c . ( FilteringContext c a
                                               , CtxMode c ~ mode
                                               ) =>
-     SomeContext c
+     SomeFilteringContext c
 
-data CtxAssessment a = forall c . FilteringContext c a =>
-     CtxAssessment c Bool a (CtxDetails c)
-
-type AssessmentDetails a = [CtxAssessment a]
-
--- | Sums coherence.
+-- | Sums coherence values, evaluated at each context,
+--   until some value doesn't pass the threshold.
+--   After that the candidate is lest as is.
 propagateThroughContexts :: (Num a) =>
-                            [SomeFilteringContext mode a] -> mode -> Information
-                         -> IO (a, AssessmentDetails a)
-propagateThroughContexts (SomeContext c : cs) mode inf =
-  do (cohBool, (cohVal, details')) <- isCoherentAtCtxIO c mode inf
-     let details = CtxAssessment c cohBool cohVal details'
-     (first (cohVal +) . second (details :))
-      <$> propagateThroughContexts cs mode inf
+                            [SomeFilteringContext mode a] -> mode
+                         -> Candidate a details -> IO (Candidate a details)
+propagateThroughContexts [] mode candidate = return candidate
+propagateThroughContexts (SomeFilteringContext c : cs) mode candidate =
+  do (cohBool, (cohVal, details')) <- isCoherentAtCtxIO c mode
+                                    $ candidateInfo candidate
+     let details = CtxAssessment c cohVal details'
+         candidate' = candidate {
+                         candidateCoherent   = Just cohBool
+                       , candidateCoherence  = candidateCoherence candidate
+                                             + cohVal
+                       , candidateAssessment = details
+                                             : candidateAssessment candidate
+                       }
+     if cohBool then propagateThroughContexts cs mode candidate'
+                else return candidate'
 
 -----------------------------------------------------------------------------

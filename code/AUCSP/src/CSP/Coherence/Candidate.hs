@@ -13,7 +13,7 @@
 module CSP.Coherence.Candidate(
 
   Candidate(..)
-, CandidateAssessment(..)
+, CtxAssessment(..)
 
 ) where
 
@@ -26,11 +26,11 @@ data Candidate a d = Candidate{ candidateInfo       :: Information
                               , candidateCoherent   :: Maybe Bool
                               , candidateCoherence  :: a
                               , candidateDetails    :: d
-                              , candidateAssessment :: [CandidateAssessment a]
+                              , candidateAssessment :: [CtxAssessment a]
                               }
 
-data CandidateAssessment a = forall c . Context c a =>
-    CandidateAssessment c a (CtxDetails c)
+data CtxAssessment a = forall c . FilteringContext c a =>
+     CtxAssessment c a (CtxDetails c)
 
 
 -----------------------------------------------------------------------------

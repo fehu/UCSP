@@ -10,11 +10,18 @@
 
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module AUCSP.Classes.Generation (
 
   DayRoomTimeGenerator(..)
 , shortUsageDayRoomTimeGenerator
+
+, ClassesGenerator(..), SomeClassesGenerator(..)
+
+, GenericClassesGenerator(..)
+
+, newGenericGroupClassesGenerator
 
 , module Export
 
@@ -84,12 +91,42 @@ class ClassesGenerator gen where
   usingNextClassCore :: gen -> IO (Maybe (Set Class))
   usingSameClassCore :: gen -> IO (Maybe (Set Class))
 
+data SomeClassesGenerator = forall gen . ClassesGenerator gen =>
+    SomeClassesGenerator gen
+
+
+-----------------------------------------------------------------------------
+
+instance ClassesGenerator SomeClassesGenerator where
+  usingNextClassCore (SomeClassesGenerator gen) = usingNextClassCore gen
+  usingSameClassCore (SomeClassesGenerator gen) = usingSameClassCore gen
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
 data GenericClassesGenerator r td = GenericClassesGenerator {
     gcgSelfData     :: RoleData r
   , gcgCoresPool    :: IORef GroupClassCorePool
   , gcgCurrentCore  :: IORef (Maybe GroupClassCore)
   , gcgDRTGenerator :: IORef (DayRoomTimeGenerator td)
   }
+
+newGenericGroupClassesGenerator :: ( KnownAgentsConstraints
+                                   , DiscreteTimeDescriptor td
+                                    ) =>
+                                   Set Classroom
+                                -> td
+                                -> RoleData Group
+                                -> IO (GenericClassesGenerator Group td)
+newGenericGroupClassesGenerator classrooms td rData = do
+  pool      <- generateClassCores rData
+  coreGen   <- shortUsageDayRoomTimeGenerator classrooms td
+  poolRef   <- newIORef pool
+  tdrGenRef <- newIORef coreGen
+  coreRef   <- newIORef Nothing
+  return $ GenericClassesGenerator rData poolRef coreRef tdrGenRef
+
+-----------------------------------------------------------------------------
 
 generateFromGroupCore :: (KnownAgentsConstraints, DiscreteTimeDescriptor td) =>
                          GroupClassCore -> DayRoomTimeGenerator td

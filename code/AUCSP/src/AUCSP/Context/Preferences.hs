@@ -8,6 +8,9 @@
 --
 -----------------------------------------------------------------------------
 
+{-# LANGUAGE TypeSynonymInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module AUCSP.Context.Preferences (
 
@@ -16,6 +19,8 @@ module AUCSP.Context.Preferences (
 , module Export
 
 ) where
+
+import CSP.Coherence.Context.Filtering.Convert
 
 import AUCSP.Utils.InInterval as Export
 import AUCSP.Context
@@ -38,5 +43,12 @@ newPreferencesContext cdata rels = newDataIOFilteringContext "Preferences"
 
 inUnitIntervalProduct :: (Num a, Ord a) => [InUnitInterval a] -> InUnitInterval a
 inUnitIntervalProduct = toInterval . product . map fromInterval
+
+-----------------------------------------------------------------------------
+
+instance (Num a, Ord a, IntValue min, IntValue max) =>
+  CtxRelationValueConvertible (InAnInterval min max a) a where
+    ctxConvertRelationValue  = fromInterval
+    ctxConvertRelationValue' = toInterval
 
 -----------------------------------------------------------------------------
