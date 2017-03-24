@@ -13,9 +13,11 @@
 \usepackage{graphicx, multirow}
 \usepackage{subcaption}
 \usepackage{accents} % provides \accentset, used in Problem Formalization.
+\usepackage{tabularx}
 
 
 \usepackage{tikz, pgfplots}
+\usetikzlibrary{fit, shapes.geometric}
 %\usetikzlibrary{ fit, calc, arrows, shapes }
 
 % from http://tex.stackexchange.com/questions/157389/how-to-center-column-values-in-a-table
@@ -28,8 +30,6 @@
 
 \def\todo{\red{TODO}}
 
-
-
 \newcommand{\multibinom}[2]{
   \left(\!\middle(\genfrac{}{}{0pt}{}{#1}{#2}\middle)\!\right)
 }
@@ -38,7 +38,26 @@
 %   \begin{center} \rule{#1\textwidth}{#2} \end{center}
 % }
 
+\newcommand{\secpartc}[1]{%
+  \bigskip
+  \begin{center}%
+  \textbf{\underline{#1}}%
+  \end{center}%
+  \medskip
+}
+\newcommand{\secpartl}[1]{%
+  \bigskip
+
+  \noindent
+  \textbf{#1}%
+
+  \medskip
+}
+
+
 \begin{document}
+
+\input{MathDefs}
 
 \begin{abstract}
   \todo
@@ -55,8 +74,8 @@
 \subfile{CSP}
 \subfile{Agents}
 \subfile{Coherence}
-% \subfile{FormalProblem}
-% \subfile{ProposedSolution}
+\subfile{FormalProblem}
+\subfile{Solution}
 % \subfile{Conclusions}
 
 

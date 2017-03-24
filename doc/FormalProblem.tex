@@ -1,13 +1,9 @@
+\documentclass[ThesisDoc]{subfiles}
+\begin{document}
+
 \section{Problem Formalization}
 \label{sec:ProblemFormal}
 \green{Definir el problema del "scheduling" como CSP}
-
-\def\coh{\mathrm{coh}}
-
-\def\restrC{\accentset{C}{\xi}^p_i}
-\def\restrT{\accentset{T}{\xi}}
-\def\restrS{\accentset{S}{\xi}^p_i}
-\def\restrW{\accentset{W}{\xi}^p_i}
 
 
 
@@ -15,7 +11,7 @@ Let \begin{itemize}
 \item $D=\{d_i\}$ be the set of \emph{disciplines}.
   A discipline may be seen as class descriptor, it contains
   academic program name and information about special requirements,
-  such as laboratories.
+  such as laboratory equipment.
 \item $G=\{g_i\}$ be the set of \emph{groups}.
   A group unites some students. In this thesis it is assumed that
   \textbf{each student belongs strictly to one group}.
@@ -34,7 +30,7 @@ Let \begin{itemize}
 \item $ c \sim \left< d, g, p, r, \bar d, t_b, t_e \right> $ be a \emph{class}
   of discipline $d$ for group $g$, taught by professor $p$, that takes place
   at classroom $r$ every day $d$ in time interval $t_b$--$t_e$.
-\item $\{\restrC\}$ be the restrictions over classes of participant $p$.
+\item $\{\restrC\}$ be the restrictions over the classes.
       $\restrC : c \mapsto \mathrm{Bool}$
 \item $\restrT$ be the \emph{time-consistency} restriction, that ensures
   classes non-intersection for each participant.
@@ -59,3 +55,5 @@ thus can be selected as the solution (individual).
 
 \noindent
 A solution to the scheduling problem is the set of \emph{all} the individual solutions.
+
+\end{document}

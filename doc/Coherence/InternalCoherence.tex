@@ -1,16 +1,15 @@
 \documentclass[../ThesisDoc]{subfiles}
 \begin{document}
 
-\def\cohi{\mathrm{\widetilde{coh}}}
-
-\subsection{Internal Contexts}
+\providecommand{\rootdir}{..}
+\providecommand{\seccmd}[1]{\section{#1}}
 
 An internal context requires no knowledge from other agents.
 The combined coherence of all the internal contexts is called
 \emph{inner coherence} and is denoted as $\cohi$.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\subsubsection{Obligations}
+\seccmd{Obligations}
 
 The obligations determine custom \emph{strong restrictions} over the classes.
 As in the case of \emph{capabilities}, the obligation relations must yield
@@ -24,10 +23,10 @@ Possible \emph{obligation relations} examples:
 maximum and minimum classes per week, maximum classes per day,
 lunch recess time, lower/upper class time limit, two classes must/cannot follow etc.
 
-\red{At the moment there are no obligations used (but they are supported).}
+% \red{At the moment there are no obligations used (but they are supported).}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\subsubsection{Preference}
+\seccmd{Preferences}
 
 The preferences define \emph{weak restrictions}. The relations values might be any
 value within $[0,1]$ interval. To avoid overrestrictions, this context's \emph{threshold}
@@ -35,7 +34,7 @@ should decrease with time. Relations results are combined using \emph{multiplica
 \emph{Initial threshold value} and \emph{threshold decrease rate} must be
 provided for this context.
 
-\red{Possible preferences}
+% \red{Possible preferences}
 
 
 \end{document}

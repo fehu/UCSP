@@ -1,0 +1,177 @@
+\documentclass[../../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{../..}
+\input{\rootdir/MathDefs}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Group Agents}
+
+\emph{Group agents} play active role in the negotiation.
+Initially, each group generates a \emph{random candidate}.
+Generation process ensures that \emph{class coherence} constraints
+($\restrC$ and $\restrT$) are satisfied, thus implementing \textit{Capabilities}
+and \textit{Time Consistency} contexts at once. It consists of three stages:
+\begin{enumerate}
+  \item \emph{Class-Cores Pool} generation.
+  \item Generation of a \emph{class-cores} from the \emph{pool}.
+  \item \emph{Day-Time-Room} assignment.
+  %  Values are generated randomly for the
+  %       entire set of class-cores, respecting time restrictions $\restrT$.
+  %       % Classes duration is specified alongside each discipline.
+\end{enumerate}
+
+\noindent
+After estimating generated candidate's coherence, a decision is chosen:\\
+\begin{itemize}
+  \item Create new class-core pool.
+  \item Try next class-core.
+  \item Try another day-time-room configuration.
+  \item Assess coherence in another \emph{mode}.
+  \item Negotiate over a candidate.
+  \item Fail with error.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Class-Cores}
+A class core is considered to be the immutable part of a class, that doesn't
+change during its existence. It links \emph{group} and \emph{professor} agents
+through a \emph{discipline}, respecting the \emph{capability} restrictions $\restrC$.
+It can also be seen as an ``abstract'' class, with no time or classroom assigned.
+
+A \emph{Class-Cores Pool} is a lazy random sequence of \emph{class-cores},
+that contains a class for each discipline, needed by the group.
+
+\emph{Pool} creation requires knowledge of the existing professor agents with
+the disciplines, that the represented person can teach.
+\begin{enumerate}
+  \item For each discipline needed select professors, that can teach it.
+        Randomize professors lists.
+  \item Lazily generate all possible combinations \emph{professor} -- \emph{discipline}.
+  \item When getting next combination, assign the generating \emph{group}.
+\end{enumerate}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Day -- Time -- Room}
+
+In order to obtain concrete classes, the cores must be completed with day, room,
+beginning time and duration (end time), while respecting both discipline duration
+requirements and time consistency $\restrT$.
+
+Assigning the missing values can be seen as mapping (randomly) the set of cores onto
+3-dimensional space: $\left< \text{day, time, room} \right>$.
+In order to do it, a random generator is used. It uses a history variable to
+store generated values and test time consistency of the new ones against the former.
+The following process is repeated for each class core (using same generator).
+\begin{enumerate}
+  \item Generate random \emph{day}.
+  \item Select random \emph{classroom}.
+  \item Generate \emph{beginning time}.
+  \item Get class duration from the \emph{discipline}, contained in argument class-core.
+        Calculate \emph{end time}.
+  \item Test \emph{end time} consistency (upper bound).
+  \item Test \emph{time consistency} of the values from (1-4) using the history.
+  \item If new values are consistent, add them to history, assign to class-core
+        and return it.
+        Otherwise, repeat from (1).
+
+\end{enumerate}
+After the assignment has been done for all the class-cores in the given set,
+the history variable is reset.
+
+\medskip
+
+With rather big set of classrooms and adequate time discretization, the generated
+values can be considered unique with a rather high probability.
+\red{Put numbers here?}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Decisions}
+
+The decision is made, over a \emph{candidate}, that is first assessed by agent's contexts
+(section \ref{sec:solution-contexts}). The decision might also depend on the
+\emph{best candidate} and other \emph{state variables}.
+Regardless of the decision taken, candidate's coherence is compared with the one
+of current best candidate (if there is none, 0 is used). In case new candidate's
+coherence was found greater, then the best candidate variable is updated.
+
+
+\secpartl{Negotiate over a candidate}
+\noindent
+The central decision, it should be taken when possible. Starts negotiation process
+with a goal to modify the candidate to suite external restrictions.
+It is properly discussed in section \ref{sec:c-negotiation}.
+
+
+\secpartl{New class-core pool}
+\noindent
+Because the pool already contains all possible professor -- discipline combinations,
+this decision is only taken if new professor counterparts have appeared
+in the negotiation.
+
+\secpartl{Try next class core}
+\noindent
+This decision is the only way to change the three class parameters
+defined by the core (group, professor, discipline), because these values
+cannot be changed by a negotiation, as it defines its participants.
+It is taken if a negotiation over a candidate failed.
+
+\secpartl{Try another day -- time -- room assignment}
+\noindent
+This decision causes result, similar to a negotiation --- reassignment of
+the day, time and room values of all the classes of a candidate, but without
+grantee of coherence, other than the common one (class and time consistency).
+It is used for quick random search of a better starting candidate variant to begin a
+negotiation over.
+
+\secpartl{Assess coherence in another mode}
+\noindent
+A mode, as already written in section \ref{sec:solution-contexts}, is an extra
+argument, used at candidate's assessment. It is passed by the contexts to every
+evaluated relation.
+
+Current implementation uses two assessment modes:
+\emph{preliminary} and \emph{final}. The former one should disable certain
+relations, it is intended primarily to be used by professor agents. It is the
+default assessment mode.
+In order for a candidate to become a \emph{partial solution} to the schedule
+problem, it should be assessed in \emph{final} mode.
+
+\secpartl{Fail with error}
+\noindent
+Terminate the agent and report given error as a result.
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{\rootdir/img/CandidateNegotiation.tikz}
+
+\begin{figure}[b]
+  \begin{subfigure}{0.3\textwidth}
+    \drawFirstAlone{2cm} % using CandidateNegotiation.tikz
+    \caption{}
+    \label{fig:candidate-1}
+  \end{subfigure}
+  ~
+  \begin{subfigure}{0.3\textwidth}
+    \drawSecondAlone[trim left, xshift=1.7cm]{2cm} % using CandidateNegotiation.tikz
+    \caption{}
+    \label{fig:candidate-2}
+  \end{subfigure}
+  ~
+  \begin{subfigure}{0.3\textwidth}
+    \drawThirdAlone{2cm} % using CandidateNegotiation.tikz
+    \caption{}
+    \label{fig:candidate-3}
+  \end{subfigure}
+
+  \caption{Possible candidates, generated by some \emph{group} agents
+            $G_1$ (\ref{fig:candidate-1}), $G_2$ (\ref{fig:candidate-2}) and
+            $G_3$ (\ref{fig:candidate-3}).}
+  \label{fig:candidates-alone}
+\end{figure}
+
+\end{document}

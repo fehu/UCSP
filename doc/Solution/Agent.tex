@@ -1,0 +1,137 @@
+\documentclass[../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+\subsection{Agent Implementation}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+As it says in section \ref{sec:NegotiatingAgents}, an agent is defined by its
+\emph{behavior}, that is composed from \emph{proactive} and \emph{reactive}
+behavior functions. Both functions use agent's \emph{state} (that should include
+agent's \emph{contexts}). Thus an \emph{executing} agent $a$ can is defined by
+its behavior and state at the moment.
+
+Current agent implementation extends the definition above by adding:
+\begin{enumerate*}[1)]
+  \item unique agent name for disambiguous referencing;
+  \item \emph{execution state} for execution control;
+  \item \emph{result variable} for collecting results.
+\end{enumerate*}
+
+$$ a = \left< \mathit{name},
+              \behaviour^a,
+              \state,
+              \state_\mathit{exec},
+              \state_\mathit{result},
+       \right> $$
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\noindent
+\emph{Execution state} and \emph{result variable} are the only two entities,
+accessible both to the agent and external environment. The internal state,
+denoted as $\state$ is accessible only to the agent itself (e.g. its behavior functions).
+
+
+The implementation uses three execution states: \texttt{run}, \texttt{pause}
+and \texttt{terminate}. Newly created agents are set to \texttt{pause}.
+\texttt{Pause} state prevents \emph{proactive} behavior execution until the state is changed.
+Message handling (\emph{reactive} behavior) is unaffected.
+Setting \texttt{Run} state initiates repetitive $\behaviour\act$ execution.
+\texttt{Terminate} state forces both behavior aspects to stop (irreversibly).
+
+Agent can report results using \emph{result variable}.
+Reporting result doesn't stop an agent.
+There can be two type of results: the values reported by an agent or
+the descriptions of errors, that occurred during agent's execution
+and forced it to stop.
+
+\medskip
+
+\noindent
+In order to create a new agent, one needs to specify: \\
+\begin{tabularx}{\textwidth}{X c}
+  \multicolumn{1}{m{0.4\textwidth}}{
+    \begin{enumerate}
+      \item unique name,
+      \item initial internal state,
+      \item behavior functions,
+      \item result type.
+    \end{enumerate}
+  }
+&  (A)
+\end{tabularx}
+
+\bigskip
+
+\noindent
+Agents are implemented using \emph{Software Transactional Memory} (STM)
+\cite{STMCode07} --- a promising concurrency paradigm.
+They are executed in two computational threads:
+one for message handling and another for proactive action.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{References}
+As agent's internal state must be private, an agent should not be accessible directly.
+In order to hide both the state and behavior implementation, \emph{agent reference}
+is used instead. It provides four ways to interact with an agent:
+\begin{enumerate}
+  \item Execution management: run, pause, terminate.
+  \item Result recollection: gets the result, reported by an agent, if any.
+        There is also a modification, that \emph{waits} (blocks thread) for an agent
+        to report a result (or terminate with an error).
+  \item \emph{Send} a message. No response is expected. Handled by
+        \emph{reactive behavior} function.
+  \item \emph{Ask} a question. The expected \emph{response} is defined by
+        the question message sent. Asking an agent returns a \emph{promise of response},
+        that can be either handled asynchronously or awaited (blocking).
+\end{enumerate}
+
+Of course a reference also provides agent's \emph{unique name}. Two
+reference are considered to be appointing to the same agent if the names
+of the underlying agents match.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Roles}
+
+As it is stated in section \ref{sec:NegotiatingAgents}, an \emph{agent role}
+generalizes agents behavior and serves as a template for new agents.
+A role defines both \emph{types} and the \emph{template} for the agents, associated with it.
+
+The types defined by it are:
+  \begin{enumerate*}[1)]
+    \item internal state,
+    \item result,
+    \item template argument.
+  \end{enumerate*}
+The last type should contain the information, needed for \emph{individual} agent creation.
+
+The template, defined by a role, provides all the information needed to create agents (A),
+given the corresponding \emph{template argument}.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Agent System}
+
+\emph{Agent system} controls agents creation, execution and termination
+(both successful and not).
+It helps to mass-manage agents by
+\begin{enumerate*}[1)]
+  \item registering all the agents created by the system,
+  \item allowing to search references by name (and role),
+  \item providing methods for bulk execution state changes and result recollection.
+\end{enumerate*}
+
+
+Agent system makes extensive use of agent roles. Internally, agents,
+registered in a system, are grouped by roles.
+Apart from defining \emph{types} of corresponding agents' states and results,
+a \emph{role} defines templates for agents creation, alongside the types, expected
+as arguments for the tempate functions.
+A system uses these templates to create new agents.
+
+\end{document}
