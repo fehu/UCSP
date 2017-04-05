@@ -1,4 +1,3 @@
 ### TODO
 
-- [ ] sec:NegotiatingAgents
-- [ ] sec:coherence
+- [ ] there are now 3 roles, with 'Schedule Controller(s)'

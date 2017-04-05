@@ -6,7 +6,7 @@
 \usepackage{subfiles}
 
 \usepackage[inline,shortlabels]{enumitem}
-\usepackage{amsmath, amssymb}
+\usepackage{amsmath, amssymb, relsize}
 \usepackage{xcolor, ifthen}
 \usepackage{siunitx} % represent numbers with separators
 \usepackage{csquotes}
@@ -34,9 +34,9 @@
   \left(\!\middle(\genfrac{}{}{0pt}{}{#1}{#2}\middle)\!\right)
 }
 
-% \newcommand{\crule}[2][1][1px]{
-%   \begin{center} \rule{#1\textwidth}{#2} \end{center}
-% }
+\newcommand{\crule}[2][1pt]
+    {\begin{center}\rule{#2\textwidth}{#1}\end{center}}
+
 
 \newcommand{\secpartc}[1]{%
   \bigskip
@@ -54,6 +54,7 @@
   \medskip
 }
 
+\def\bydoc{thesis}
 
 \begin{document}
 

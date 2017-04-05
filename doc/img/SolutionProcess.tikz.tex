@@ -18,7 +18,7 @@
   start chain=1 going below,
   gmsg/.style={on chain=1, text width=5cm},
   start chain=2 going below,
-  bothmsg/.style={on chain=2, text width=10cm},
+  bothmsg/.style={on chain=2, text width=12cm},
   start chain=3 going below,
   pmsg/.style={on chain=3, text width=5cm},
   flow/.style={draw, ->, >=stealth, double, line width=3pt},
@@ -126,10 +126,6 @@
 
   %%% Both Message Handling
   \node[bothmsg, between=G-msg and P-msg] (msg-both) {};
-
-  %%% Center
-  \node[between=G-act and P-msg] (center) {};
-
 
 \end{scope}
 
@@ -322,7 +318,7 @@
           {\scriptsize
           Notifies all professors, the mentioned by $c_i^j$ of being ready
           to negotiate over the candidate. The agent itself sets $c_i^j$ in
-          \emph{negotiation mode}, thus permitting changes to classes' day, time and room.
+          \red{\emph{negotiation mode}}, thus permitting changes to classes' day, time and room.
           \darkgray{The ``workhorse'' of the proposed solution; chosen in the
           rest of occasions.}\\}
      \end{enumerate}
@@ -399,8 +395,8 @@
              (its projection on $g_i$).
        \item The rest of professors, mentioned by $c_i^j$, are asked their
              \emph{cascade opinions} of updated candidate $\tilde{c}_k^t$.
-       \item \textbf{If} all opinions are \emph{positive}, then the professors are
-             ordered to \underline{update} corresponding candidates.
+       \item \textbf{If} all opinions are \emph{positive}, then \emph{cascade update}
+             is ordered.
        \item \textbf{Otherwise}, candidate $\tilde{c}_k^t$ is negotiated with
              the original professor agent $p_k$ \underline{face-to-face}
              (considering received opinions).
@@ -449,10 +445,24 @@
     (Cascade-Opinion.east) -- ++(2.5,0) |- ($(P-opinion.east) + (0,3.5cm)$);
 \end{scope}
 
+%% Cascade Update
+\begin{scope}
+  \node[bothmsg, draw] (Cascade-Update)
+    {{\centering \textbf{Cascade Update} \\
+                 {\scriptsize (of candidate $c_*$,
+                               to candidate $\tilde{c}_*$,
+                               by agent $a_*$)} \\}
+    {\scriptsize
+     On receiving this message an agent changes \todo
+    }\\};
+\end{scope}
+
 %% V. Candidate Change Negotiation
 \begin{scope}
-  \node[center, below=40cm of center, text width=10cm] (neg-change-label)
-    {\Large \underline{\emph{Face-to-Face} Negotiation: Candidate Change} \\ \bigskip \todo
+  \node[bothmsg, draw]
+    (face-2-face)
+    {{\centering \textbf{Face-to-Face} Negotiation: Candidate Change \\}
+
     };
 \end{scope}
 

@@ -1,35 +1,42 @@
 \documentclass[ThesisDoc]{subfiles}
 \begin{document}
 
+\input{MathDefs}
+
+\red{\crule{1}}
+
 \section{Problem Formalization}
 \label{sec:ProblemFormal}
-\green{Definir el problema del "scheduling" como CSP}
-
 
 
 Let \begin{itemize}
-\item $D=\{d_i\}$ be the set of \emph{disciplines}.
+\item $D=\{d_i\}$ be set of \emph{disciplines}.
   A discipline may be seen as class descriptor, it contains
   academic program name and information about special requirements,
   such as laboratory equipment.
-\item $G=\{g_i\}$ be the set of \emph{groups}.
+\item $G=\{g_i\}$ be set of \emph{groups}.
   A group unites some students. In this thesis it is assumed that
   \textbf{each student belongs strictly to one group}.
   A group has a set of disciplines, that it is obliged to take by an
-  academical program.
-\item $P=\{p_i\}$ be the set of \emph{professors}.
+  academical program: $D^G_i$.
+\item $P=\{p_i\}$ be set of \emph{professors}.
   Each professor can teach a set of disciplines, that is determined
   by the institution. There are two kinds of professors:
   \emph{full-time} and \emph{part-time}. The difference is that the
   latter have more flexible obligations, while the former have preference
-  in classes assignment.
-\item $R=\{r_i\}$ be the set of \emph{classrooms}.
+  in classes assignment. All professors are treated in the same manner;
+  \emph{part-time} agents have stronger obligations ... \todo\red{: it should be
+  written elsewhere.}
+\item $R=\{r_i\}$ be set of \emph{classrooms}.
   A classroom has two properties: capacity and special equipment installed.
-\item $D=\{\bar d_i\}$ be the set of working \emph{days}.
-\item $T=\{t_i\}$ be \emph{discrete time} (limited by working hours).
-\item $ c \sim \left< d, g, p, r, \bar d, t_b, t_e \right> $ be a \emph{class}
-  of discipline $d$ for group $g$, taught by professor $p$, that takes place
-  at classroom $r$ every day $d$ in time interval $t_b$--$t_e$.
+\item $\bar D=\{\bar d_i\}$ be the set of working \emph{days}.
+\item $\bar T=\{\bar t_i\}$ be \emph{discrete time} (limited by working hours).
+\item $\mathrm{cc} \sim \left< d, g, p \right>$ be a \emph{class core}, that
+      links group $g$ with professor $p$ through a \emph{possible class} for
+      discipline $d$.
+\item $ c \sim \left< \mathrm{cc}, r, \bar d, \bar t_b, \bar t_e \right> $
+      be a \emph{class} --- an ``instance'' of some \emph{class core}, that has
+      certain day, time (beginning \& end) and room assigned.
 \item $\{\restrC\}$ be the restrictions over the classes.
       $\restrC : c \mapsto \mathrm{Bool}$
 \item $\restrT$ be the \emph{time-consistency} restriction, that ensures
@@ -41,19 +48,32 @@ Let \begin{itemize}
 \item $\{\restrW\}$ be the weak restrictions, or \emph{preferences}, of participant $p$.
       In order to avoid overrestrictions, the preferences should weaken with time.
       $\restrW : \tau \mapsto \{c\} \mapsto (0,1]$
-% \item $\xi^p$ be the combined restrictions of agent $p$.
 \item $\tau$ be \emph{negotiation time}. $\tau \in \mathbb{N}$
 \end{itemize}
 \medskip
 
-A \emph{candidate} to solution $\tilde{c}$ is a configuration (set) of classes
-$\{c\}$, that form participant's individual schedule. An \emph{acceptable candidate}
-respects all the restrictions $\{\xi^p_i\}$ (of the participant $p$),
-thus can be selected as the solution (individual).
+\noindent
+A \emph{candidate to partial solution} $\tilde{c}_a^k$ (just \emph{candidate} further)
+is a set of classes $\{c_a^*\}$, that:
+\begin{enumerate}
+  \item Complies with \emph{class restrictions}: \\
+    $$\forall c_a^* \in \tilde{c}_a^k \implies \restrC(c_a^*) = \TRUE$$
+  \item Complies with \emph{time-consistency} restriction: \\
+    $$\forall c_a^*, c_a^\circ \in \tilde{c}_a^k ~|~ c_a^* \not= c_a^\circ \implies
+      \restrT(c_a^*, c_a^\circ) = \TRUE$$
+  \item Is \textbf{proposed by a group}: $a = g_i$.
+  \item Has enough classes for each discipline, that group $g_i$ is inscribed.
+        Doesn't have excess classes or classes for other groups:
+        $$\tilde{c}_i^k = \bigcup\limits_{d \in D^G_i}
+                            \lbrace c_i^n \rbrace_d ~|~ \mathsmaller{
+                                \mathrm{discipline}(c_i^n) = d;~
+                                \sum\limits_n \mathrm{time}(c_i^n) =
+                                              \mathrm{time}(d)   }$$
 
+\end{enumerate}
 \bigskip
 
 \noindent
-A solution to the scheduling problem is the set of \emph{all} the individual solutions.
+A solution to the scheduling problem is a valid union of \emph{all} partial solutions.
 
 \end{document}

@@ -5,6 +5,8 @@
 \providecommand{\rootdir}{../..}
 \input{\rootdir/MathDefs}
 
+\providecommand{\seccmd}[1]{\secpartc{#1}}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Group Agents}
 
@@ -22,7 +24,15 @@ and \textit{Time Consistency} contexts at once. It consists of three stages:
   %       % Classes duration is specified alongside each discipline.
 \end{enumerate}
 
+\bigskip
+\green{REPETITION ENDS\crule{1}}
+\red{\crule{1}}
+
 \noindent
+After estimating generated candidate's coherence, the agent either tries to put
+it into the \emph{common schedule variable} or generates a new one.
+
+\red{
 After estimating generated candidate's coherence, a decision is chosen:\\
 \begin{itemize}
   \item Create new class-core pool.
@@ -32,10 +42,14 @@ After estimating generated candidate's coherence, a decision is chosen:\\
   \item Negotiate over a candidate.
   \item Fail with error.
 \end{itemize}
+}
 
+\green{REPETITION BEGINS\crule{1}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Class-Cores}
+\label{sec:solution-CC}
+
 A class core is considered to be the immutable part of a class, that doesn't
 change during its existence. It links \emph{group} and \emph{professor} agents
 through a \emph{discipline}, respecting the \emph{capability} restrictions $\restrC$.
@@ -55,6 +69,7 @@ the disciplines, that the represented person can teach.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsubsection{Day -- Time -- Room}
+\label{sec:solution-DTR}
 
 In order to obtain concrete classes, the cores must be completed with day, room,
 beginning time and duration (end time), while respecting both discipline duration
@@ -90,66 +105,9 @@ values can be considered unique with a rather high probability.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Decisions}
-
-The decision is made, over a \emph{candidate}, that is first assessed by agent's contexts
-(section \ref{sec:solution-contexts}). The decision might also depend on the
-\emph{best candidate} and other \emph{state variables}.
-Regardless of the decision taken, candidate's coherence is compared with the one
-of current best candidate (if there is none, 0 is used). In case new candidate's
-coherence was found greater, then the best candidate variable is updated.
-
-
-\secpartl{Negotiate over a candidate}
-\noindent
-The central decision, it should be taken when possible. Starts negotiation process
-with a goal to modify the candidate to suite external restrictions.
-It is properly discussed in section \ref{sec:c-negotiation}.
-
-
-\secpartl{New class-core pool}
-\noindent
-Because the pool already contains all possible professor -- discipline combinations,
-this decision is only taken if new professor counterparts have appeared
-in the negotiation.
-
-\secpartl{Try next class core}
-\noindent
-This decision is the only way to change the three class parameters
-defined by the core (group, professor, discipline), because these values
-cannot be changed by a negotiation, as it defines its participants.
-It is taken if a negotiation over a candidate failed.
-
-\secpartl{Try another day -- time -- room assignment}
-\noindent
-This decision causes result, similar to a negotiation --- reassignment of
-the day, time and room values of all the classes of a candidate, but without
-grantee of coherence, other than the common one (class and time consistency).
-It is used for quick random search of a better starting candidate variant to begin a
-negotiation over.
-
-\secpartl{Assess coherence in another mode}
-\noindent
-A mode, as already written in section \ref{sec:solution-contexts}, is an extra
-argument, used at candidate's assessment. It is passed by the contexts to every
-evaluated relation.
-
-Current implementation uses two assessment modes:
-\emph{preliminary} and \emph{final}. The former one should disable certain
-relations, it is intended primarily to be used by professor agents. It is the
-default assessment mode.
-In order for a candidate to become a \emph{partial solution} to the schedule
-problem, it should be assessed in \emph{final} mode.
-
-\secpartl{Fail with error}
-\noindent
-Terminate the agent and report given error as a result.
-
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{\rootdir/img/CandidateNegotiation.tikz}
 
-\begin{figure}[b]
+\begin{figure}[h]
   \begin{subfigure}{0.3\textwidth}
     \drawFirstAlone{2cm} % using CandidateNegotiation.tikz
     \caption{}
@@ -173,5 +131,147 @@ Terminate the agent and report given error as a result.
             $G_3$ (\ref{fig:candidate-3}).}
   \label{fig:candidates-alone}
 \end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\bigskip
+\green{REPETITION ENDS\crule{1}}
+\red{\crule{1}}
+
+\subsubsection{Candidate placement}
+\begin{itemize}
+  \item If generated candidate was found coherent by all contexts,
+        then the agent must try to put it in the \emph{common schedule}
+        (see section \ref{sec:solution-schedule-var}).
+        \begin{itemize}
+          \item In case of successful candidate placement, the agent ``goes to sleep'',
+                until disturbed by \emph{yield} or \emph{continuation} demands.
+          \item In case of conflicts with any candidates, already existing
+                in current schedule, the conflict is resolved as described
+                in section \ref{sec:solution-compare}.
+                \begin{itemize}
+                  \item It the conflict is resolved in favor of the agent,
+                        then it tries again to put the candidate into the
+                        schedule, providing evidence of its superiority.
+                \end{itemize}
+        \end{itemize}
+  \item If the candidate was found incoherent or has lost a conflict competition,
+        then the candidate must be changed, as described in section
+        \ref{sec:solution-change}.
+\end{itemize}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Placement Conflicts Resolution --- Candidates Comparison}
+\label{sec:solution-compare}
+
+A conflict over placing a candidate $\tilde{c}_i$ into the schedule arises
+between candidates' creators: group agents $g_i$ and $\{g_k\}$.
+The latter are group agents, that have proposed the conflicting classes
+as part of their candidates.
+
+As it was mentioned earlier, candidates ``quality'' comparison is not only based
+on coherence, but also on candidates ``rareness'', based on \emph{discipline priority}.
+There is a third measure: \emph{deep} (or \emph{cascade}) coherence.
+
+\medskip
+\noindent
+These measures have priorities:
+$$ \text{Ext. coherence} < \text{Deep ext. coherence} < \text{Discipline priority} $$
+
+\medskip
+\noindent
+Agents' goal in this sub-negotiation is providing a stronger support for its
+candidate. The ``newcomer'', an agent that is wants to put its candidate, is
+in disadvantage here: it must beat all the conflicting candidates at once in
+order to receive a place. The conflicting candidates, already put in the schedule,
+keep their places if at least one of them was found better then the ``newcomer''.
+It the latter could prove its candidate superiority in every conflict, then
+it can demand candidate's placement (attaching victory proofs).
+If no new conflict has arisen, the \emph{schedule controller}
+(see section \ref{sec:solution-schedule-var}) puts the new candidate into the
+common variable, removing the conflicting candidates (given proof) and notifying
+corresponding creators with \emph{yield demand}.
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\seccmd{External coherence}
+Is used for preliminary/default assessment of the candidates.
+Evaluation is done with ``preliminary'' context assessment \emph{mode}, that
+disables certain relations; it is intended primarily to be used by professor agents.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\seccmd{Deep external coherence}
+Cascade external coherence of depth $N$. Can be assessed in either \emph{preliminary}
+or \emph{final} context assessment mode. Deep coherence has higher priority if
+assessed in the latter mode (than in the former, not ``rareness'').
+
+\red{Maximum depth is limited by other conflicts in the schedule. No class
+(or its references), belonging to a contested candidate, can be used in the evaluation.}
+$N$ is the maximum depth of evaluation recursive calls reached. The limit can
+be set at the beginning of evaluation; if not, the process will cover all
+\red{valid} routes (avoiding cycles).
+Depth of the default external coherence is 0 --- only own external coherence is
+considered.
+
+\bigskip
+\noindent
+\red{here goes \emph{connections} matrix diagram}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\seccmd{Candidate ``rareness''}
+Sum of ``rare'' disciplines' priorities. Discipline's ``rarity'' (or
+\emph{priority}) is ratio
+\begin{itemize}
+  \item[\textit{of}] groups \red{(total groups' time)} inscribed to the discipline ($N_G$)
+  \item[\textit{to}] professors able to teach it ($N_P$).
+\end{itemize}
+
+$$\rho^d = \dfrac{N_G}{N_P}$$
+
+\medskip
+\noindent
+Discipline $d$ is considered ``rare'' if its priority $\rho_d$ is higher than
+some threshold. \\
+\noindent
+Candidate's ``rareness'' $\rho_{\tilde{c}}$ therefore is
+\begin{align*}
+  \rho_{\tilde{c}} &= \sum\limits_{d \in D'_{\tilde{c}}}
+        \rho^d \mathsmaller{ \sum\limits_{c \in \tilde{c}'_d}
+                              \mathit{duration}\, c }\\
+  D'_{\tilde{c}} &= \lbrace d ~|~ d ~\mathit{referenced\,by}~ \tilde{c};~
+                                \rho_d > \rho_* \rbrace\\
+  \tilde{c}'_d &= \lbrace c ~|~ c \in \tilde{c};~ c ~\mathit{is\,class\,for}~ d \rbrace
+\end{align*}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Change of a candidate}
+\label{sec:solution-change}
+
+Triggered either when a candidate was found \emph{not sufficiently coherent}
+(see section \ref{sec:solution-better}) immediately after generation
+or as a result of loosing candidates conflict.
+When the change was caused by a conflict, then agent must consider adversaries'
+quality values and try to better them.
+
+Agent should first try to achieve expected quality by changing
+\emph{day}, \emph{time} and \emph{classroom} parameters of candidate's classes
+(see section \ref{sec:solution-DTR}).
+If it is unable to find a satisfying candidate by these changes within some
+reasonable negotiation time, then it should generate a candidate with new
+\emph{class core} (see section \ref{sec:solution-CC}).
+
+When class cores end up, an error would be raised by the agent, causing the whole
+negotiation to terminate.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Messaging}
+\todo
 
 \end{document}
