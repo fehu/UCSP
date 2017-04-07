@@ -1,0 +1,31 @@
+
+% see http://www.texample.net/tikz/examples/colorful-tables/
+% see http://tex.stackexchange.com/questions/1111/problem-with-defining-shortcuts-for-tikz-matrices
+
+\newcommand{\connectionsMatrix}[2][]{
+  \def\x{$\bullet$}
+  \matrix (#2) [#1, matrix of nodes, nodes in empty cells,
+    ampersand replacement=\&,
+    column sep=0pt, row sep=0pt, inner sep=0pt,
+    nodes={ draw, color=lightgray, text=black, minimum size=1cm, anchor=center },
+    column 1/.style={nodes={draw=none}},
+    row 1/.style={nodes={draw=none}},
+    ]{
+         \& $p_1$ \& $p_2$ \& \dots \& $p_k$ \& \dots \& \dots \& $p_m$ \\
+  $g_1$  \&       \&   \x  \&       \&       \&   \x  \&       \&   \x  \\
+  $g_2$  \&   \x  \&       \&   \x  \&       \&   \x  \&   \x  \&       \\
+  \vdots \&       \&   \x  \&       \&       \&   \x  \&   \x  \&       \\
+  $g_i$  \&   \x  \&       \&   \x  \&   \x  \&       \&       \&       \\
+  \vdots \&       \&       \&   \x  \&       \&   \x  \&       \&   \x  \\
+  $g_n$  \&   \x  \&       \&       \&   \x  \&       \&   \x  \&   \x  \\
+  };
+}
+
+\def\mminh{2}
+\def\mmaxh{8}
+
+\def\mminv{2}
+\def\mmaxv{7}
+
+\def\mmin{\mminh}
+\def\mmax{\mmaxh}

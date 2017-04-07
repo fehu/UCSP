@@ -1,0 +1,43 @@
+\documentclass[tikz]{standalone}
+
+\usepackage{tikz}
+\usetikzlibrary{matrix, fit, positioning}
+
+\input{../ConnectionMatrix.tikz}
+
+
+\begin{document}
+
+
+\newcommand*{\showExtCoh}[4]{
+  \def\m{#1}
+  \def\i{#2}
+  \def\j{#3}
+  \def\ps{#4}
+
+  \gdef\cohs{}
+  \foreach \x in \ps { \global\edef\cohs{\cohs, coh(p_\x)} }
+
+  \node[fit=(\m-\i-\mmin) (\m-\i-\mmax), inner sep=-5pt, draw, color=blue] {};
+  \node[right=2pt of \m-\i-\mmax]
+      {$ \mathrm{ext.\,coh.}(\tilde{c}_\j) = \Gamma\big( coh(g_\j) \cohs \big) $};
+}
+
+\begin{tikzpicture}
+
+% Matrix - External coherence
+
+\connectionsMatrix{m};
+
+\showExtCoh{m}{2}{1}{2, *, m}
+\showExtCoh{m}{3}{2}{1, *, *, *}
+\showExtCoh{m}{4}{*}{2, *, *}
+\showExtCoh{m}{5}{i}{1, *, k}
+\showExtCoh{m}{6}{*}{*, *, m}
+\showExtCoh{m}{7}{n}{1, k, *, m}
+
+
+
+\end{tikzpicture}
+
+\end{document}
