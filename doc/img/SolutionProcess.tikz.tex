@@ -5,7 +5,7 @@
 % \usepackage[inline,shortlabels]{enumitem}
 
 \usepackage{tikz}
-\usetikzlibrary{chains, shapes, arrows, calc} %, calc, fit}
+\usetikzlibrary{chains, shapes, arrows, calc, fit}
 
 \newcommand{\red}[1]{{\color{red} #1}}
 \def\todo{\red{TODO}}
@@ -18,8 +18,10 @@
   start chain=1 going below,
   amsg/.style={on chain=1, text width=4.5cm, minimum height=30pt},
   start chain=2 going below,
-  holder/.style={on chain=2, text width=4.5cm, minimum height=30pt},
-  gact_if/.style={gact, draw, diamond, shape aspect=3, text width=3cm},
+  hmsg/.style={on chain=2, text width=4.5cm, minimum height=30pt},
+  hact/.style={text width=4.5cm, minimum height=30pt, align=center},
+  ifshape/.style={draw, diamond, shape aspect=3, text width=3cm},
+  gact_if/.style={gact, ifshape},
   extracol/.style={text width=4.5cm},
   % mymark/.style={draw, circle, double, thick, inner sep=2pt},
   % goto/.style={draw, circle, double, dotted, inner sep=2pt},
@@ -143,7 +145,7 @@
       by agent $a_k$ is agent's \emph{internal coherence} of the candidate.};
 
 \draw[msg] ($(G-assess-e.east) + (0, 4pt)$)
-           node[right, yshift=10pt, text width=2.2cm, center]
+           node[right, yshift=10pt, text width=2.2cm, center, xshift=1pt]
                 {\underline{ask opinion} \\ of $p_k$ about $\tilde{c}$}
            -| ($(A-opinion.south) - (1cm, 0)$);
 \draw[msg] ($(A-opinion.south) + (1cm, 0)$)
@@ -152,28 +154,30 @@
 
 % % % % % % % % % % % % % % % %
 
-\node[amsg, yshift=-10cm, draw, text width=7cm, xshift=-1.3cm] (A-deep)
-    {\underline{Deep} external coherence assessment:\\
-     \todo\\\todo\\\todo\\\todo\\\todo\\\todo\\\todo\\
+\node[amsg, yshift=-10.7cm, draw] (A-deep)
+    {\underline{Deep} external coherence assessment is cascade opinions
+     interrogation (with protection against infinite cycles).
     };
 
-\draw[msg] (G-prove-deep) -- ($(A-deep.west) + (0,1.5cm)$);
+\draw[msg] (G-prove-deep) -- ($(A-deep.west) + (0,0.5cm)$);
 \draw[msg] (A-deep.west|-G-prove-deep) -- (G-prove-deep);
-\draw[msg] ($(A-deep.south) - (2cm, 0)$) -- ++(0,-0.5cm)
-           -- ++(4 cm,0) node[midway, above] { \emph{ask recursively}  }
-           -- ($(A-deep.south) + (2cm, 0)$);
+\draw[msg] ($(A-deep.north) - (2cm, 0)$) -- ++(0,0.5cm)
+           -- ++(4 cm,0) node[midway, below] (A-deep-rec) { \emph{ask recursively}  }
+           -- ($(A-deep.north) + (2cm, 0)$);
+
+\draw[msg, <->, dotted] (A-deep-rec) -- (A-opinion);
 
 \end{scope}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% Schedule Holder(s)
+% Schedule Holder(s) MSG
 \begin{scope}
 
-\node[holder, right=of A-Msg-label, draw, double, center] (H-label)
-    {\textbf{Schedule Holder(s)}};
+\node[hmsg, right=of A-Msg-label, draw, double, center] (H-Msg-label)
+    {\textbf{Schedule Holder(s) Messages}};
 
-\node[holder, yshift=-5.25cm, draw, align=left] (H-try-put)
+\node[hmsg, yshift=-5.25cm, draw, align=left] (H-try-put)
     { \underline{Try to \textbf{put candidate} $\tilde{c_i}$} (of group $g_i$)
       \underline{\textbf{into}}
       the \underline{\textbf{common schedule}} (distributed) variable.\\
@@ -188,7 +192,7 @@
 
 % % % % % % % % % % % % % % % %
 
-\node[holder, yshift=-6cm, draw] (H-try-put-super)
+\node[hmsg, yshift=-6cm, draw] (H-try-put-super)
     {\underline{Try to \textbf{put candidate} $\tilde{c}_i$} (of group $g_i$)
       \underline{\textbf{into}}
       the \underline{\textbf{common schedule}} (distributed) variable. \\
@@ -199,6 +203,69 @@
 \draw[msg] (H-try-put-super) to [bend right] (G-put-resp-right);
 
 \end{scope}
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% Schedule Holder(s) ACT
+\begin{scope}
+
+\node[hact, below=2cm of G-prove-res, draw, double, center, text width=5cm]
+    (H-Act-label) {\textbf{Schedule Holder(s) Action}};
+
+\node[hact, right=of H-Act-label, draw, yshift=1cm] (H-monitor)
+    {Monitor placed candidates, until \dots};
+\node[hact, below=of H-monitor, draw] (H-total)
+    {Assess \emph{total} (deep) coherence of the entire solution};
+
+\node[hact, ifshape, right=of H-total] (H-coherent)
+    {Is \underline{coherent}?};
+\node[above=of H-coherent, draw, double, green, text width=3cm,
+      minimum height=25pt, center] (H-notify)
+{\color{black} \underline{Notify listeners} };
+
+\node[hact, right=of H-coherent, draw] (H-d-other)
+    { \underline{Demand} solution reassessment };
+\node[hact, above=1.2cm of H-d-other, draw] (H-d-better)
+    { \underline{Demand} better solution };
+
+% % % % % % % % % % % % % % % %
+
+\draw[flow] (H-monitor.east) -- ++(8pt,0) |- ($(H-monitor.north) + (0,6pt)$)
+            -| ($(H-monitor.west) - (12pt,0)$) -- (H-monitor);
+\draw[flow] (H-monitor) -- node[right, xshift=2pt, text width=3cm]
+                               {\underline{all} groups placed their candidate}
+            (H-total);
+\draw[flow] (H-total) -- (H-coherent);
+
+\draw[flow2] (H-coherent) -- node[left, yshift=-3pt] {\large \textbf{Yes}}
+             (H-notify);
+\draw[flow2] (H-coherent) -- node[above, xshift=-5pt] {\large \textbf{No}}
+             (H-d-other);
+\draw[flow] (H-notify) -- (H-d-better);
+
+\end{scope}
+
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% sub-diagrams
+\begin{scope}[every node/.style={color=gray}]
+
+\node[left=18pt of G-Act-label.north west] (G-Act-left-upper) {};
+\node[fit=(G-Act-left-upper) (G-prove-res) (G-demand-placement),
+      draw, inner sep=7pt, rounded corners] (fit-G) {};
+\node[fit=(A-Msg-label) (A-deep),
+      draw, inner sep=7pt, rounded corners] (fit-A) {};
+\node[fit=(H-Msg-label) (H-try-put-super),
+      draw, inner sep=7pt, rounded corners] (fit-H-M) {};
+\node[fit=(H-Act-label) (H-monitor) (H-d-other),
+      draw, inner sep=12pt, rounded corners, yshift=1pt] (fit-H-A) {};
+\draw[thick, gray] (fit-H-M.south) -- (fit-H-A.north-|fit-H-M);
+\end{scope}
+
+
+
 
 
 \end{tikzpicture}
