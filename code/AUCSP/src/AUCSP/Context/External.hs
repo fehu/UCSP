@@ -60,10 +60,8 @@ newExternalContext askOpinion known self =
       opinionThreshold
     where counterparts = case self
             of SelfAgent a
-                | someAgentIsOfRole a Group     -> mkAgentInf . knownProfessors
-                | someAgentIsOfRole a Professor -> mkAgentInf . knownGroups
-
-          opinionRel   = undefined
+                | someAgentIsOfRole a Group                       -> mkAgentInf . knownProfessors
+                | someAgentIsOfRole' a (Proxy :: Proxy Professor) -> mkAgentInf . knownGroups
 
 
 type AskOpinion = SomeAgent -> OpinionRequest -> IO OpinionResponse

@@ -18,7 +18,9 @@ module AUCSP.Classes.DiscreteTime (
 , DiscreteTime(..), DiscreteTimeDescriptor(..)
 
 , DTime, dTimeIntersect
+
 , SomeDiscreteTime(..)
+, SomeDiscreteTimeDescriptor(..)
 
 , DTimeRange, dTimeRange
 , dTimeRangeIntersect, dTimeRangeLength
@@ -55,7 +57,7 @@ class DiscreteTimeDescriptor td where
 
 -----------------------------------------------------------------------------
 
-data DTime td = DTime Int8 deriving (Eq, Ord)
+newtype DTime td = DTime Int8 deriving (Eq, Ord)
 
 
 dTimeDescriptor' :: (DiscreteTimeDescriptor td) => DTime td -> td
@@ -142,5 +144,17 @@ instance UnderlyingMinutes SomeDiscreteTime where
 instance Eq   SomeDiscreteTime where (==) = (==) `on` getMinutes
 instance Ord  SomeDiscreteTime where compare = compare `on` getMinutes
 instance Show SomeDiscreteTime where show (SomeDiscreteTime t) = show t
+
+-----------------------------------------------------------------------------
+
+data SomeDiscreteTimeDescriptor = forall td . DiscreteTimeDescriptor td =>
+     SomeDiscreteTimeDescriptor td
+
+instance DiscreteTimeDescriptor SomeDiscreteTimeDescriptor where
+  dTimeDescriptorInstance = error "cannot create SomeDiscreteTimeDescriptor"
+  dTimeId (SomeDiscreteTimeDescriptor td) = dTimeId td
+  dTimeMin (SomeDiscreteTimeDescriptor td) = dTimeMin td
+  dTimeMax (SomeDiscreteTimeDescriptor td) = dTimeMax td
+  dTimeStep (SomeDiscreteTimeDescriptor td) = dTimeStep td
 
 -----------------------------------------------------------------------------

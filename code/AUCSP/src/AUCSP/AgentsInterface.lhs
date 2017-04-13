@@ -16,7 +16,8 @@ module AUCSP.AgentsInterface (
 , AgentsOfRole(..)
 
 
-, SomeAgent(..), someAgent, someAgentIsOfRole, someAgentMatchRole
+, SomeAgent(..), someAgent
+, someAgentIsOfRole, someAgentIsOfRole', someAgentMatchRole
 
 ) where
 
@@ -95,6 +96,10 @@ handling their roles.
 > someAgentIsOfRole :: (AgentOfRole r) => SomeAgent -> r -> Bool
 > someAgentIsOfRole (SomeAgent r' ar') = maybe False (r'==) . cast
 
+> someAgentIsOfRole' :: (AgentOfRole r) => SomeAgent -> Proxy r -> Bool
+> someAgentIsOfRole' (SomeAgent r' ar') = maybe False (sameType r') . cast
+>   where sameType :: a -> Proxy a -> Bool
+>         sameType _ _ = True
 
 > someAgentId (SomeAgent _ a) = roleAgentId a
 

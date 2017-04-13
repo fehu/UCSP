@@ -69,8 +69,8 @@ deriving instance (KnownAgentsConstraints) => Eq   ClassCore
 deriving instance (KnownAgentsConstraints) => Ord  ClassCore
 
 classReferredAgent' :: (KnownAgentsConstraints) => ClassCore -> [SomeAgent]
-classReferredAgent' cc = [ SomeAgent Group     $ classGroup' cc
-                         , SomeAgent Professor $ classProfessor' cc]
+classReferredAgent' cc = [ someAgent $ classGroup' cc
+                         , someAgent $ classProfessor' cc]
 
 data Class = Class { classCore       :: ClassCore
                    , classRoom       :: Classroom
