@@ -20,7 +20,6 @@
 module AUCSP.Agent.NegotiationEnvironment.Integration(
 
   KnownAgentsUpdate(..)
-, ReportBestCandidate(..), BestCandidateReport(..)
 
 ) where
 
@@ -37,28 +36,15 @@ import Control.Concurrent.STM
 newtype KnownAgentsUpdate = KnownAgentsUpdate KnownAgents
 instance Show KnownAgentsUpdate where show _ = "KnownAgentsUpdate"
 
-data ReportBestCandidate = ReportBestCandidate deriving Show
-data BestCandidateReport = forall a . Typeable a =>
-      BestCandidateReport (Maybe (ACandidate a))
-instance Show BestCandidateReport where show _ = "BestCandidateReport"
-
-
-type instance ExpectedResponse ReportBestCandidate = BestCandidateReport
-
--- newtype NegotiationTimeUpdate = NegotiationTimeUpdate Int
 
 -----------------------------------------------------------------------------
 
-instance (Typeable a) => SystemIntegration (AgentState r a) NegotiationPartialResult where
+instance (Typeable a) => SystemIntegration (AgentState r a) () where
   handleSystemMessages = MessageHandling {
     msgHandle = selectMessageHandler [
                 mbHandle $ \i (KnownAgentsUpdate upd) -> updateKnownAgents i upd
               ]
-  , msgRespond = selectResponse [
-                 mbResp $ \i ReportBestCandidate -> fmap BestCandidateReport
-                                                  . readTVarIO . bestCandidate
-                                                  $ agentState i
-               ]
+  , msgRespond = selectResponse []
   }
 
 updateKnownAgents i upd =

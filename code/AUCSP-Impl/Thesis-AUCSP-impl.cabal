@@ -1,5 +1,5 @@
 name:           Thesis-AUCSP-impl
-version:        0.1.0.0
+version:        0.1.1.0
 cabal-version:  >=1.10
 build-type:     Simple
 license:        MIT
@@ -12,15 +12,13 @@ author:         Dmitry K.
 
 library
     exposed-modules:
-        AUCSP.Agent.AgentState
-        AUCSP.Agent.NegotiatingAgent
+        AUCSP.Agent.SharedSchedule
+        AUCSP.Agent.NegotiatingAgent.State
         AUCSP.Agent.NegotiatingAgent.NegotiationDefinition
-        AUCSP.Agent.NegotiatingAgent.SearchCandidates
-        AUCSP.Agent.NegotiatingAgent.Decide
-        AUCSP.Agent.NegotiatingAgent.HandleNegotiation
-        AUCSP.Agent.NegotiationEnvironment
+        AUCSP.Agent.NegotiatingAgent
         AUCSP.Agent.NegotiationEnvironment.Integration
         AUCSP.Agent.NegotiationEnvironment.Controller
+        AUCSP.Agent.NegotiationEnvironment
 
 
     build-depends:

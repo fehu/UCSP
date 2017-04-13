@@ -18,7 +18,6 @@ module AUCSP.Agent.NegotiatingAgent (
 -- hiding AgentSystem.Generic (AgentOfRole)
 
 , AgentRole(..), RoleName(..), RoleT(..)
-, isSameRole
 , SomeRole(..)
 
 , AgentRefOfRole
@@ -41,12 +40,11 @@ import AUCSP.AgentsInterface.RoleData as Export
 import AUCSP.Classes                  as Export
 import AUCSP.Contexts                 as Export
 
-import AUCSP.Agent.AgentState         as Export
-
+import AUCSP.Agent.NegotiatingAgent.State                 as Export
 import AUCSP.Agent.NegotiatingAgent.NegotiationDefinition as Export
-import AUCSP.Agent.NegotiatingAgent.SearchCandidates      as Export
-import AUCSP.Agent.NegotiatingAgent.Decide                as Export
-import AUCSP.Agent.NegotiatingAgent.HandleNegotiation     as Export
+-- import AUCSP.Agent.NegotiatingAgent.SearchCandidates      as Export
+-- import AUCSP.Agent.NegotiatingAgent.Decide                as Export
+-- import AUCSP.Agent.NegotiatingAgent.HandleNegotiation     as Export
 
 -----------------------------------------------------------------------------
 
