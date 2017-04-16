@@ -26,7 +26,7 @@ module AUCSP.Agent.NegotiatingAgent.NegotiationDefinition(
 
 , negotiatingAgentDescriptor, negotiatingGenericAgentDescriptor
 
-, module Export, AgentRef', ScheduleInterface(..), Schedule
+, module Export, AgentRef', ScheduleInterface(..) -- , Schedule
 
 ) where
 
@@ -37,7 +37,7 @@ import AUCSP.AgentsInterface.RoleData     as Export
 import AUCSP.Agent.NegotiatingAgent.State as Export
 import AUCSP.Agent.SharedSchedule
 
-import AgentSystem.Generic hiding (AgentOfRole)
+import AgentSystem.Generic
 
 import Data.Typeable
 
@@ -59,30 +59,30 @@ instance AgentRole (RoleT Professor a) where
 
 -----------------------------------------------------------------------------
 
-instance AgentOfRoleRef Group where type RoleRef Group = AgentRef'
-instance AgentOfRole Group where
+instance NegotiatorOfRoleRef Group where type RoleRef Group = AgentRef'
+instance NegotiatorOfRole Group where
   data KnownAgent Group = KnownGroup AgentRef' (RoleData Group)
   roleOf _ = Group
-  roleData (KnownGroup _ d) = d
-  roleRef  (KnownGroup r _) = r
-  roleAgentId = agentId . roleRef
+  knownData (KnownGroup _ d) = d
+  knownRef  (KnownGroup r _) = r
+  knownAgentId = rawAgentId . agentId . knownRef
 instance Show (KnownAgent Group) where
-  show = ("KnownGroup " ++) . show . roleAgentId
+  show = ("KnownGroup " ++) . show . knownAgentId
 
 
-instance AgentOfRoleRef Professor where
+instance NegotiatorOfRoleRef Professor where
   type RoleRef Professor = AgentRef'
-instance AgentOfRole Professor where
+instance NegotiatorOfRole Professor where
   data KnownAgent Professor = KnownProfessor Professor
                                              AgentRef'
                                             (RoleData Professor)
 
   roleOf   (KnownProfessor p _ _) = p
-  roleData (KnownProfessor _ _ d) = d
-  roleRef  (KnownProfessor _ r _) = r
-  roleAgentId = agentId . roleRef
+  knownData (KnownProfessor _ _ d) = d
+  knownRef  (KnownProfessor _ r _) = r
+  knownAgentId = rawAgentId . agentId . knownRef
 instance Show (KnownAgent Professor) where
-  show = ("KnownProfessor " ++) . show . roleAgentId
+  show = ("KnownProfessor " ++) . show . knownAgentId
 
 
 newKnownGroup = KnownGroup
@@ -96,7 +96,7 @@ class SystemIntegration s res where
 
 type RoleSystemIntegration r = SystemIntegration (RoleState r) (RoleResult r)
 
-class NegotiatorOfRole r where
+class NegotiatorOfRole r => NegotiatorOfRoleCreation r where
   data RequitedData r :: * -> *
 
   uniqueAgentName   :: RequitedData r a -> String
@@ -116,7 +116,8 @@ type NegotiationRole r a =  ( RoleResult r ~ ()
                             , RoleArgs r ~ RequitedData r a )
 
 type NegotiatorCreation r a = ( NegotiationRole r a, Typeable r, Typeable a
-                              , NegotiatorOfRole r, RoleSystemIntegration r)
+                              , NegotiatorOfRoleCreation r
+                              , RoleSystemIntegration r)
 
 negotiatingAgentDescriptor :: ( NegotiatorCreation r a, Num a ) =>
                               r -> GenericRoleDescriptor r
@@ -124,8 +125,7 @@ negotiatingAgentDescriptor r =
   AgentRoleDescriptor r (return . negotiatingGenericAgentDescriptor)
 
 
-negotiatingGenericAgentDescriptor :: ( NegotiatorOfRole r, RoleSystemIntegration r
-                                     , NegotiationRole r a, Num a ) =>
+negotiatingGenericAgentDescriptor :: ( NegotiatorCreation r a, Num a ) =>
                             RequitedData r a -> GenericAgentOfRoleDescriptor r
 negotiatingGenericAgentDescriptor d = GenericAgentDescriptor{
     agName  = uniqueAgentName d

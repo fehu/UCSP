@@ -20,7 +20,7 @@ module AUCSP.Agent.NegotiationEnvironment.Controller(
   NegotiationController, newNegotiationController
 , negotiationSystem, notifyNegotiation
 , startNegotiation, pauseNegotiation, terminateNegotiation
-, createNegotiatorsOfRole
+-- , createNegotiatorsOfRole
 
 ) where
 
@@ -57,12 +57,12 @@ notifyNegotiation     :: (Message msg) => NegotiationController -> msg -> IO ()
 
 type NegotiationResult = Schedule
 
-class (AgentRole (RoleT r a)) => NegotiatorsOfRole r a where
-  createNegotiatorsOfRole :: (NegotiationRole r a) =>
-                             NegotiationController
-                          -> GenericRoleDescriptor (RoleT r a)
-                          -> [IO (RequitedData r a)]
-                          -> IO [KnownAgent r]
+-- class (AgentRole (RoleT r a)) => NegotiatorsOfRoleCreation r a where
+--   createNegotiatorsOfRole :: (NegotiationRole r a) =>
+--                              NegotiationController
+--                           -> GenericRoleDescriptor (RoleT r a)
+--                           -> [IO (RequitedData r a)]
+--                           -> IO [KnownAgent r]
 
 ----------------------------------------------------------------------------
 ----------------------------------------------------------------------------
@@ -90,33 +90,33 @@ type NegotiatorAgentsConstraints = ( KnownAgentsConstraints
                                    , Typeable (RoleResult Group)
                                    , Typeable (RoleResult Professor) )
 
-instance NegotiatorAgentsConstraints =>
-  NegotiatorsOfRole Group a where
-    createNegotiatorsOfRole = createNegotiatorsOfRole'
-                                newKnownGroup varKnownGroups
-                                ((`KnownAgents` return []) . return)
-                                [ProfessorFullTime, ProfessorPartTime]
+-- instance NegotiatorAgentsConstraints =>
+--   NegotiatorsOfRole Group a where
+--     createNegotiatorsOfRole = createNegotiatorsOfRole'
+--                                 newKnownGroup varKnownGroups
+--                                 ((`KnownAgents` return []) . return)
+--                                 [ProfessorFullTime, ProfessorPartTime]
+--
+-- instance NegotiatorAgentsConstraints =>
+--   NegotiatorsOfRole Professor a where
+--     createNegotiatorsOfRole ctrl descr@(AgentRoleDescriptor (RoleT r) _) =
+--        createNegotiatorsOfRole' (newKnownProfessor r)  varKnownProfessors
+--                                  (KnownAgents (return []) . return)
+--                                  [Group] ctrl descr
 
-instance NegotiatorAgentsConstraints =>
-  NegotiatorsOfRole Professor a where
-    createNegotiatorsOfRole ctrl descr@(AgentRoleDescriptor (RoleT r) _) =
-       createNegotiatorsOfRole' (newKnownProfessor r)  varKnownProfessors
-                                 (KnownAgents (return []) . return)
-                                 [Group] ctrl descr
 
-
-createNegotiatorsOfRole' newKnownAgent varKnownAgents newKnownAgents counterpartRoles
-  (NegotiationController sys globalKnown) roleD args =
-  do refs <- forM args $ newAgentOfRole sys roleD
-     newKnown <- sequence $
-                 do (ref, arg) <- refs `zip` args
-                    return $ (newKnownAgent ref . roleRequiredData) <$> arg
-     atomically $ varKnownAgents globalKnown `modifyTVar` (++ newKnown)
-
-     let upd = KnownAgentsUpdate $ newKnownAgents newKnown
-     counterparts <- sys `listAgentsOfRoles` counterpartRoles
-     forM_ counterparts (`sendPriority` upd)
-
-     return newKnown
+-- createNegotiatorsOfRole' newKnownAgent varKnownAgents newKnownAgents counterpartRoles
+--   (NegotiationController sys globalKnown) roleD args =
+--   do refs <- forM args $ newAgentOfRole sys roleD
+--      newKnown <- sequence $
+--                  do (ref, arg) <- refs `zip` args
+--                     return $ (newKnownAgent ref . roleRequiredData) <$> arg
+--      atomically $ varKnownAgents globalKnown `modifyTVar` (++ newKnown)
+--
+--      let upd = KnownAgentsUpdate $ newKnownAgents newKnown
+--      counterparts <- sys `listAgentsOfRoles` counterpartRoles
+--      forM_ counterparts (`sendPriority` upd)
+--
+--      return newKnown
 
 -----------------------------------------------------------------------------

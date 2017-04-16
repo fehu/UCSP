@@ -102,7 +102,7 @@ instance Show CandidateCreationDetails where show _ = "CandidateCreationDetails"
 
 type CandidateCreator = AgentRefOfRole Group
 
-instance (RoleResult Group ~ ()) => HasCreator CandidateDetails AgentRef' where
-  getCreator (CandidateDetails _ c) = c
+-- instance (RoleResult Group ~ ()) => HasCreator CandidateDetails AgentRef' where
+--   getCreator (CandidateDetails _ c) = c
 
 -----------------------------------------------------------------------------
