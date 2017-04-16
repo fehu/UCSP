@@ -49,7 +49,7 @@ generateClassCores :: (KnownAgentsConstraints) =>
                       RoleData Group -> IO GroupClassCorePool
 generateClassCores rdata = do
   let ds    = Set.toList . groupNeedsDisciplines $ capabilities rdata
-      canTeach d p = d `member` professorCanTeach (capabilities $ roleData p)
+      canTeach d p = d `member` professorCanTeach (capabilities $ knownData p)
   profs <- knownProfessors $ knownAgents rdata
   -- for each discipline needed
   -- select professors, that can teach it.

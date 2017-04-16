@@ -31,7 +31,7 @@ data KnownAgents = KnownAgents{
   -- knownClassrooms   :: IO [KnownAgent Classroom]
   }
 
-type KnownAgentsConstraints = ( AgentOfRole Group
-                              , AgentOfRole Professor
-                              -- , AgentOfRole Classroom
+type KnownAgentsConstraints = ( NegotiatorOfRole Group
+                              , NegotiatorOfRole Professor
+                              -- , NegotiatorOfRole Classroom
                               )

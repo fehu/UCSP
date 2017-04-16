@@ -10,6 +10,7 @@
 
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module CSP.Coherence(
 
@@ -30,6 +31,7 @@ import Control.Arrow (first, second)
 
 data SomeFilteringContext mode a = forall c . ( FilteringContext c a
                                               , CtxMode c ~ mode
+                                              , Show (CtxDetails c)
                                               ) =>
      SomeFilteringContext c
 

@@ -34,6 +34,7 @@ class (Typeable i, Show i, Ord i) => InformationPiece i where
 data SomeInformationPiece = forall i . InformationPiece i =>
      SomeInformationPiece i
 
+instance Show SomeInformationPiece where show (SomeInformationPiece i) = show i
 
 collectInformation :: (InformationPiece i) => (i -> a) -> Information -> [a]
 collectInformation f inf = mapMaybe tryCollect $ Set.elems inf

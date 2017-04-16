@@ -8,12 +8,12 @@
 
 module AUCSP.AgentsInterface (
 
-  AgentOfRole(..)
-, AgentOfRoleData(..)
-, AgentOfRoleRef(..)
+  NegotiatorOfRole(..)
+, NegotiatorOfRoleData(..)
+, NegotiatorOfRoleRef(..)
 
-, AgentsWithRoles(..)
-, AgentsOfRole(..)
+, NegotiatorsWithRoles(..)
+, NegotiatorsOfRole(..)
 
 
 , SomeAgent(..), someAgent
@@ -31,7 +31,7 @@ module AUCSP.AgentsInterface (
 %endif
 
 Problem definition involves agents, but to remain independent from agents
-implementation, only \verb|AgentOfRole| interface is used to describe
+implementation, only \verb|NegotiatorOfRole| interface is used to describe
 necessary functionality.
 
 Consists of:
@@ -39,40 +39,40 @@ Consists of:
 \begin{enumerate}
   \item A container for the information below.
 
-> class ( AgentOfRoleData r, AgentOfRoleRef r
+> class ( NegotiatorOfRoleData r, NegotiatorOfRoleRef r
 >       , Typeable r, Show r, Eq r
 >       , Show (KnownAgent r)) =>
->   AgentOfRole r where
+>   NegotiatorOfRole r where
 >
 >   data KnownAgent r :: *
->   roleData :: KnownAgent r -> RoleData r
->   roleRef  :: KnownAgent r -> RoleRef r
+>   knownData :: KnownAgent r -> RoleData r
+>   knownRef  :: KnownAgent r -> RoleRef r
 >   roleOf   :: KnownAgent r -> r
 
->   roleAgentId :: KnownAgent r -> String
+>   knownAgentId :: KnownAgent r -> String
 
   \item Some data, associated with the role.
 
-> class AgentOfRoleData r where type RoleData r :: *
+> class NegotiatorOfRoleData r where type RoleData r :: *
 
 \item A reference to an agent of given role; depends on the used agents.
 
 > class (Show (RoleRef r), Ord (RoleRef r)) =>
->   AgentOfRoleRef r where type RoleRef r :: *
+>   NegotiatorOfRoleRef r where type RoleRef r :: *
 
 \end{enumerate}
 
-> instance (AgentOfRole r) => Eq (KnownAgent r) where (==) = (==) `on` roleRef
+> instance (NegotiatorOfRole r) => Eq (KnownAgent r) where (==) = (==) `on` knownRef
 
-> instance (AgentOfRole r) => Ord (KnownAgent r) where compare = compare `on` roleRef
+> instance (NegotiatorOfRole r) => Ord (KnownAgent r) where compare = compare `on` knownRef
 
 
 It's often needed to pass a list of agent references without worrying about
 handling their roles.
 
 \begin{code}
-  newtype AgentsWithRoles = AgentsWithRoles [AgentsOfRole]
-  data AgentsOfRole = forall r . AgentOfRole r => AgentsOfRole r [KnownAgent r]
+  newtype NegotiatorsWithRoles = NegotiatorsWithRoles [NegotiatorsOfRole]
+  data NegotiatorsOfRole = forall r . NegotiatorOfRole r => NegotiatorsOfRole r [KnownAgent r]
 \end{code}
 
 
@@ -82,26 +82,26 @@ handling their roles.
 \verb|SomeAgent| hides role information, but allows it to be matched through
 \verb|cast|.
 
-> data SomeAgent = forall r . AgentOfRole r =>
+> data SomeAgent = forall r . NegotiatorOfRole r =>
 >      SomeAgent r (KnownAgent r)
 
-> someAgent :: AgentOfRole r => KnownAgent r -> SomeAgent
+> someAgent :: NegotiatorOfRole r => KnownAgent r -> SomeAgent
 > someAgent = uncurry SomeAgent . (roleOf &&& id)
 
-> someAgentMatchRole :: (AgentOfRole r) =>
+> someAgentMatchRole :: (NegotiatorOfRole r) =>
 >                    r -> SomeAgent -> Maybe (KnownAgent r)
 > someAgentMatchRole r (SomeAgent r' ar') = isSame r r' >> cast ar'
 >     where isSame x = (`when` return ()) <=< fmap (x==) . cast
 
-> someAgentIsOfRole :: (AgentOfRole r) => SomeAgent -> r -> Bool
+> someAgentIsOfRole :: (NegotiatorOfRole r) => SomeAgent -> r -> Bool
 > someAgentIsOfRole (SomeAgent r' ar') = maybe False (r'==) . cast
 
-> someAgentIsOfRole' :: (AgentOfRole r) => SomeAgent -> Proxy r -> Bool
+> someAgentIsOfRole' :: (NegotiatorOfRole r) => SomeAgent -> Proxy r -> Bool
 > someAgentIsOfRole' (SomeAgent r' ar') = maybe False (sameType r') . cast
 >   where sameType :: a -> Proxy a -> Bool
 >         sameType _ _ = True
 
-> someAgentId (SomeAgent _ a) = roleAgentId a
+> someAgentId (SomeAgent _ a) = knownAgentId a
 
 > instance Eq  SomeAgent where (==)    = (==)    `on` someAgentId
 > instance Ord SomeAgent where compare = compare `on` someAgentId

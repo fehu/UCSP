@@ -52,5 +52,5 @@ data RoleData' r = RoleData' {
   , knownSelf    :: KnownAgent r
   }
 
-instance AgentOfRoleData Group     where type RoleData Group     = RoleData' Group
-instance AgentOfRoleData Professor where type RoleData Professor = RoleData' Professor
+instance NegotiatorOfRoleData Group     where type RoleData Group     = RoleData' Group
+instance NegotiatorOfRoleData Professor where type RoleData Professor = RoleData' Professor

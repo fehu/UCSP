@@ -68,7 +68,7 @@ type AskOpinion = SomeAgent -> OpinionRequest -> IO OpinionResponse
 
 -----------------------------------------------------------------------------
 
-mkAgentInf :: (AgentOfRole r) => IO [KnownAgent r] -> IO [SomeInformationPiece]
+mkAgentInf :: (NegotiatorOfRole r) => IO [KnownAgent r] -> IO [SomeInformationPiece]
 mkAgentInf = fmap (map (SomeInformationPiece . someAgent))
 
 instance InformationPiece SomeAgent where
@@ -126,7 +126,7 @@ opinionThreshold = return . Threshold . toInterval $ 4/7
 newtype OpinionDetails = OpinionDetails (Map SomeAgent OpinionResponse)
 
 
-data OpinionRequest  = OpinionRequest (Set Class) deriving Typeable
+newtype OpinionRequest  = OpinionRequest (Set Class) deriving Typeable
 deriving instance (KnownAgentsConstraints) => Show OpinionRequest
 
 data SomeCoherence = forall a . (Fractional a, Show a, Ord a, Typeable a) =>
