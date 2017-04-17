@@ -26,21 +26,14 @@ import Data.Typeable
 
 import Data.Set (Set)
 import Data.Map.Strict (Map)
+
+import Data.Maybe (fromMaybe)
 import Control.Monad ( when )
 
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as Map
 
 import Control.Concurrent.STM
-
------------------------------------------------------------------------------
-
-
--- data ScheduleObserver  = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
-
-
--- newtype Schedule = Schedule (Set Class)
--- deriving instance NegotiatorsConstraint => Show Schedule
 
 -----------------------------------------------------------------------------
 
@@ -65,18 +58,6 @@ data ScheduleObserverDemand = DemandReset | DemandBetter
     deriving (Typeable, Show, Eq)
 
 -----------------------------------------------------------------------------
--- * Messages Private
-
--- data CandidateChange = CandidateAdded | CandidateRemoved
---     deriving (Typeable, Show, Eq)
--- newtype CandidatesChanges = CandidatesChanges (Map (AgentRefOfRole Group) CandidateChange)
---     deriving (Typeable, Show)
---
--- boolCandidateChange = (==) CandidateAdded
-
--- data ScheduleHolderReset = ScheduleHolderReset deriving (Typeable, Show)
-
------------------------------------------------------------------------------
 -- * Implementation: ScheduleObserver
 
 
@@ -88,7 +69,7 @@ instance AgentRole (RoleT ScheduleObserver a) where
                                                , SharedScheduleHolders
                                                , TotalCoherenceThresholdFilter a)
 
-scheduleObserverDescriptor :: (Typeable a) =>
+scheduleObserverDescriptor :: (Typeable a, NegotiatorsConstraint) =>
                         Bool -> GenericRoleDescriptor (RoleT ScheduleObserver a)
 scheduleObserverDescriptor debug =
    genericRoleDescriptor (RoleT ScheduleObserver) $
@@ -103,16 +84,14 @@ scheduleObserverDescriptor debug =
                 ]
           , msgRespond = selectResponse []
           }
-      , action = AgentAction $ \i -> do complete <- atomically . isScheduleComplete
-                                                               $ agentState i
-                                        coherence <- totalCoherence gs
-                                        when complete $ do
-                                            -- resetScheduleHolders holders
-                                            scheduleObserverDemand $
-                                              if applyTotalCoherenceThreshold
-                                                  threshold coherence
-                                                then DemandBetter
-                                                else DemandReset
+      , action = AgentAction $ \i -> do
+                    complete <- atomically . isScheduleComplete $ agentState i
+                    when complete $ do
+                        scheduleClasses <- listAndReset holders
+                        coherence <- totalCoherence scheduleClasses gs
+                        scheduleObserverDemand $
+                          if applyTotalCoherenceThreshold threshold coherence
+                            then DemandBetter else DemandReset
       , emptyResult = EmptyResult
       }
 
@@ -139,8 +118,13 @@ isScheduleComplete (ScheduleCompleteness cs) = fmap and .
 -- resetScheduleHolders (SharedScheduleHolders hs) =
 --   mapM_ (`send` ScheduleHolderReset) hs
 
-totalCoherence :: NegotiatingGroups -> IO a
-totalCoherence (NegotiatingGroups gs) = undefined
+listAndReset :: NegotiatorsConstraint => SharedScheduleHolders -> IO (Set Class)
+listAndReset (SharedScheduleHolders hs) =
+    fmap (Set.unions . maybe [] (map scheduleHolderClasses))
+  . waitResponses =<< mapM (`ask` ScheduleHolderListAndReset) hs
+
+totalCoherence :: Set Class -> NegotiatingGroups -> IO a
+totalCoherence cs (NegotiatingGroups gs) = undefined
 
 
 scheduleObserverDemand :: ScheduleObserverDemand -> IO ()

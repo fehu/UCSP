@@ -56,8 +56,7 @@ newtype Schedule = Schedule (Set Class) deriving Typeable
 deriving instance NegotiatorsConstraint => Show Schedule
 
 newtype ScheduleInterface = ScheduleInterface {
-  tryPutCandidate :: forall a d . ( -- HasCreator d AgentRef'
-                                    Typeable a, Typeable d
+  tryPutCandidate :: forall a d . ( Typeable a, Typeable d
                                   , Show (Candidate a d)
                                     ) =>
                      Candidate a d -> IO (Response PutCandidateResult)
@@ -72,11 +71,8 @@ newScheduleInterface ref = ScheduleInterface $
 
 data SomeCandidate = forall a d . ( Typeable a, Typeable d
                                   , Show (Candidate a d)
-                                  -- , HasCreator d AgentRef'
                                   ) =>
     SomeCandidate (Candidate a d)
-
--- class HasCreator d c where getCreator :: d -> c
 
 candidateInfo' :: SomeCandidate -> Information
 candidateInfo' (SomeCandidate c) = candidateInfo c
