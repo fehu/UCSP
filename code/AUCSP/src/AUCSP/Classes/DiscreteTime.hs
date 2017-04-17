@@ -17,18 +17,19 @@ module AUCSP.Classes.DiscreteTime (
   Minutes, UnderlyingMinutes(..)
 , DiscreteTime(..), DiscreteTimeDescriptor(..)
 
-, DTime, dTimeIntersect
+, DTime, dTimeIntersect, dTimeWithin
 
-, SomeDiscreteTime(..)
+, SomeDiscreteTime(..), fromSomeDiscreteTime
 , SomeDiscreteTimeDescriptor(..)
 
 , DTimeRange, dTimeRange
-, dTimeRangeIntersect, dTimeRangeLength
+, dTimeRangeIntersect, dTimeRangeWithin, dTimeRangeLength
 
 ) where
 
 import Data.Int (Int8)
 import Data.Function (on)
+import Data.Maybe (fromMaybe, fromJust)
 
 import Text.Printf (printf)
 
@@ -107,12 +108,13 @@ instance (DiscreteTimeDescriptor td) =>
 dTimeMaxInd d = (dTimeMax d - dTimeMin d) `quot` dTimeStep d
 
 
-dTimeIntersect :: (DTime td, DTime td)
-               -> (DTime td, DTime td)
-               -> Maybe Bool
-dTimeIntersect p1 p2 = do r1 <- uncurry dTimeRange p1
-                          r2 <- uncurry dTimeRange p2
-                          return $ dTimeRangeIntersect r1 r2
+dTimeIntersect :: (DiscreteTimeDescriptor td) =>
+                  (DTime td, DTime td) -> (DTime td, DTime td) -> Bool
+dTimeIntersect p1 p2 = dTimeRangeIntersect (uncurry unsafeTimeRange p1)
+                                           (uncurry unsafeTimeRange p2)
+
+dTimeWithin :: (DTime td, DTime td) -> DTime td -> Bool
+dTimeWithin r t = maybe False (`dTimeRangeWithin` t) $ uncurry dTimeRange r
 
 -----------------------------------------------------------------------------
 
@@ -122,10 +124,17 @@ data DTimeRange td = DTimeRange (DTime td) (DTime td)
 dTimeRange :: DTime td -> DTime td -> Maybe (DTimeRange td)
 dTimeRange t1 t2 = if t1 <= t2 then Just $ DTimeRange t1 t2 else Nothing
 
+unsafeTimeRange :: (DiscreteTimeDescriptor td) =>
+                   DTime td -> DTime td -> DTimeRange td
+unsafeTimeRange x y = fromMaybe (timeRangeErr (x, y)) $ dTimeRange x y
+timeRangeErr r = error $ "Couldn't make timerange from " ++ show r
+
 dTimeRangeIntersect :: DTimeRange td -> DTimeRange td -> Bool
-dTimeRangeIntersect (DTimeRange x1 x2) (DTimeRange y1 y2) =
-  (x1 `between` (y1,y2)) || (x2 `between` (y1,y2))
-  where between v (vmin, vmax) = vmin <= v && v <= vmax
+dTimeRangeIntersect (DTimeRange x1 x2) r = let within = dTimeRangeWithin r
+                                           in within x1 || within x2
+
+dTimeRangeWithin :: DTimeRange td -> DTime td -> Bool
+dTimeRangeWithin (DTimeRange vmin vmax) v = vmin <= v && v <= vmax
 
 dTimeRangeLength :: (DiscreteTimeDescriptor td) => DTimeRange td -> Minutes
 dTimeRangeLength (DTimeRange t@(DTime b) (DTime e)) =
@@ -144,6 +153,10 @@ instance UnderlyingMinutes SomeDiscreteTime where
 instance Eq   SomeDiscreteTime where (==) = (==) `on` getMinutes
 instance Ord  SomeDiscreteTime where compare = compare `on` getMinutes
 instance Show SomeDiscreteTime where show (SomeDiscreteTime t) = show t
+
+fromSomeDiscreteTime :: (DiscreteTimeDescriptor td) =>
+                     td -> SomeDiscreteTime -> DTime td
+fromSomeDiscreteTime td = fromJust . dTime td . getMinutes
 
 -----------------------------------------------------------------------------
 

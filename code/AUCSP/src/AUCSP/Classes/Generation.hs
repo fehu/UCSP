@@ -71,7 +71,7 @@ shortUsageDayRoomTimeGenerator rooms td = do
                            endTime    = time `addMinutes` toInteger lenMinutes
                            intersect etime (d, r, tb, te) =
                              d == day && r == room &&
-                             fromMaybe True (dTimeIntersect (tb,te) (time,etime))
+                              dTimeIntersect (tb,te) (time,etime)
                            ensureNotIntersects etime =
                              if Set.null $ Set.filter (intersect etime) hist
                                 then let res = (day, room, time, etime)
