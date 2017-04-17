@@ -23,13 +23,14 @@ module CSP.Coherence.Context(
 , ContextRelation(..)
 , SomeContextRelation(..), SomeRelationDetails(..)
 
-, FilteringContext(..)
+, FilteringContext(..), CombiningFilteringContext(..)
 
 -- * Relations
 
 , CtxBinaryRelation(..)
 , CtxWholeRelation(..)
 
+, NoCtxRelations(..), noCtxRelations
 
 -- * Misc
 
@@ -74,6 +75,9 @@ class CtxRelations' rels mode m d a | rels -> mode, rels -> m, rels -> d, rels -
     ctxRelations'  :: rels -> [SomeContextRelation mode m a]
     ctxCombineRels :: rels -> [(a, SomeRelationDetails)] -> (a, d)
 
+
+-----------------------------------------------------------------------------
+
 data CtxRelations mode m d a = forall rels . CtxRelations' rels mode m d a =>
      CtxRelations rels
 
@@ -81,6 +85,16 @@ instance CtxRelations' (CtxRelations mode m d a) mode m d a where
   ctxRelations'  (CtxRelations r) = ctxRelations' r
   ctxCombineRels (CtxRelations r) = ctxCombineRels r
 
+-----------------------------------------------------------------------------
+
+data NoCtxRelations mode (m :: * -> *) d a = NoCtxRelations
+noCtxRelations = CtxRelations NoCtxRelations
+
+instance CtxRelations' (NoCtxRelations mode m d a) mode m d a where
+  ctxRelations'  = const []
+  ctxCombineRels = undefined
+
+-----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 
 -- | A context could be used for filtering coherent information.
@@ -94,6 +108,13 @@ class (Context c a) => FilteringContext c a | c -> a
                       -> CtxFilterM c (Bool, (a, CtxDetails c))
     isCoherentAtCtxIO :: c -> CtxMode c -> Information
                       -> IO (Bool, (a, CtxDetails c))
+
+
+class (Context c a, FilteringContext c b) =>
+  CombiningFilteringContext c a b | c -> a, c -> b
+    where
+      combineCoherence    :: c -> a -> b -> a
+      combinedThresholdIO :: c -> IO a
 
 
 -----------------------------------------------------------------------------

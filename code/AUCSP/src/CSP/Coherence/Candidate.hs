@@ -35,7 +35,7 @@ data Candidate a d = Candidate{ candidateInfo       :: Information
   deriving Typeable
 deriving instance (Show a, Show d) => Show (Candidate a d)
 
-data CtxAssessment a = forall c . (FilteringContext c a, Show (CtxDetails c)) =>
+data CtxAssessment a = forall c . (Context c a, Show (CtxDetails c)) =>
      CtxAssessment c a (CtxDetails c)
   deriving Typeable
 

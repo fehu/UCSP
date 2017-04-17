@@ -13,6 +13,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 
 module CSP.Coherence.Context.Filtering(
@@ -22,6 +23,8 @@ module CSP.Coherence.Context.Filtering(
   FilteringContextPure, newPureFilteringContext
 , FilteringContextDataIO, newDataIOFilteringContext
 , FilteringContextIO, newIOFilteringContext
+
+, CombiningContext(..)
 
 -- * Misc
 
@@ -126,4 +129,50 @@ instance (Typeable a, Show a, Ord a) =>
 
 
 -----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+data CombiningContext mode dm rm details a b = CombiningContext{
+    _combiningCxt  :: GenericContext mode dm rm details b
+  , _combineCtxCoh :: a -> b -> a
+  , _combineThresh :: IO a
+  }
+
+
+type CombiningContextConstraints mode dm rm details b =
+      ( FilteringContext (GenericContext mode dm rm details b) b
+      , CtxThreM (GenericContext mode dm rm details b) ~ dm
+      , CtxFilterM (GenericContext mode dm rm details b) ~ rm
+      )
+
+instance Context (CombiningContext mode dm rm details a b) a where
+  type CtxDataM   (CombiningContext mode dm rm details a b) = dm
+  type CtxRelsM   (CombiningContext mode dm rm details a b) = rm
+  type CtxDetails (CombiningContext mode dm rm details a b) = details
+  type CtxMode    (CombiningContext mode dm rm details a b) = mode
+  ctxName = _ctxName . _combiningCxt
+  ctxData = _ctxData . _combiningCxt
+  ctxRelations = const noCtxRelations
+
+instance Context (CombiningContext mode dm rm details a b) b where
+  type CtxDataM   (CombiningContext mode dm rm details a b) = dm
+  type CtxRelsM   (CombiningContext mode dm rm details a b) = rm
+  type CtxDetails (CombiningContext mode dm rm details a b) = details
+  type CtxMode    (CombiningContext mode dm rm details a b) = mode
+  ctxName = _ctxName . _combiningCxt
+  ctxData = _ctxData . _combiningCxt
+  ctxRelations = _ctxRelations . _combiningCxt
+
+instance (CombiningContextConstraints mode dm rm details b) =>
+  FilteringContext (CombiningContext mode dm rm details a b) b where
+    type CtxThreM   (CombiningContext mode dm rm details a b) = dm
+    type CtxFilterM (CombiningContext mode dm rm details a b) = rm
+    ctxThreshold = ctxThreshold . _combiningCxt
+    isCoherentAtCtx = isCoherentAtCtx . _combiningCxt
+    isCoherentAtCtxIO = isCoherentAtCtxIO . _combiningCxt
+instance (CombiningContextConstraints mode dm rm details b) =>
+  CombiningFilteringContext (CombiningContext mode dm rm details a b) a b
+    where
+      combineCoherence    = _combineCtxCoh
+      combinedThresholdIO =_combineThresh
+
 -----------------------------------------------------------------------------
