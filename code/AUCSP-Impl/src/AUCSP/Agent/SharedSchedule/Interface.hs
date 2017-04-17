@@ -8,26 +8,15 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE ConstraintKinds #-}
 
 module AUCSP.Agent.SharedSchedule.Interface where
 
-import CSP.Coherence
-import AUCSP.Classes
-import AUCSP.NegotiationRoles
-import AUCSP.AgentsInterface
-import AgentSystem.Generic
-
-import Data.Typeable
-import Data.Function (on)
-import Data.Maybe (fromJust)
+import AUCSP.Agent.Messages
 
 import Data.Set (Set)
 import Data.Map.Strict (Map)
@@ -50,8 +39,6 @@ data ScheduleObserver = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
 -----------------------------------------------------------------------------
 -- * Interface
 
-type AgentRef' = AgentRef ()
-
 newtype Schedule = Schedule (Set Class) deriving Typeable
 deriving instance NegotiatorsConstraint => Show Schedule
 
@@ -65,41 +52,6 @@ newtype ScheduleInterface = ScheduleInterface {
 newScheduleInterface :: AgentRef' -> ScheduleInterface
 newScheduleInterface ref = ScheduleInterface $
                          \c -> ref `ask` TryPutCandidate (SomeCandidate c)
-
------------------------------------------------------------------------------
------------------------------------------------------------------------------
-
-data SomeCandidate = forall a d . ( Typeable a, Typeable d
-                                  , Show (Candidate a d)
-                                  ) =>
-    SomeCandidate (Candidate a d)
-
-candidateInfo' :: SomeCandidate -> Information
-candidateInfo' (SomeCandidate c) = candidateInfo c
-
-instance Eq  SomeCandidate where (==)    = (==)    `on` candidateInfo'
-instance Ord SomeCandidate where compare = compare `on` candidateInfo'
-instance Show SomeCandidate where show (SomeCandidate c) = show c
-
------------------------------------------------------------------------------
------------------------------------------------------------------------------
--- * Messages (Public)
-
-newtype TryPutCandidate = TryPutCandidate SomeCandidate deriving (Typeable, Show)
-
-data PutCandidateResult = PutCandidateSuccess
-                        | PutCandidateConflicts (Set SomeCandidate)
-  deriving (Typeable, Show)
-
-type instance ExpectedResponse TryPutCandidate = PutCandidateResult
-
-putCanidadateConflicts :: PutCandidateResult -> Set SomeCandidate
-putCanidadateConflicts (PutCandidateConflicts s) = s
-putCanidadateConflicts _                        = Set.empty
-
------------------------------------------------------------------------------
-
-
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
@@ -242,11 +194,6 @@ groupBy f l = do let kas = (f &&& id) <$> l
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
-
-type NegotiatorsConstraint = ( NegotiatorOfRole Group, NegotiatorOfRole Professor
-                             , RoleRef Group     ~ AgentRefOfRole Group
-                             , RoleRef Professor ~ AgentRefOfRole Professor
-                             )
 
 someCandidateClasses :: (NegotiatorsConstraint) => SomeCandidate -> [Class]
 someCandidateClasses (SomeCandidate c) = collectInformation id $ candidateInfo c

@@ -15,9 +15,9 @@ module AUCSP.Agent.SharedSchedule(
 , SharedSchedule(..), Schedule(..)
 
 , ScheduleInterface(tryPutCandidate) -- , HasCreator(..)
-, PutCandidateResult(..)
+-- , PutCandidateResult(..)
 
-, AgentRef'
+-- , AgentRef'
 
 ) where
 

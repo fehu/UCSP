@@ -26,20 +26,14 @@ module AUCSP.Agent.NegotiatingAgent.NegotiationDefinition(
 
 , negotiatingAgentDescriptor, negotiatingGenericAgentDescriptor
 
-, module Export, AgentRef', ScheduleInterface(..) -- , Schedule
+, module Export
 
 ) where
 
-import AUCSP.NegotiationRoles             as Export
-import AUCSP.Classes                      as Export
-import AUCSP.Contexts                     as Export
+import AUCSP.Agent.Messages               as Export
 import AUCSP.AgentsInterface.RoleData     as Export
 import AUCSP.Agent.NegotiatingAgent.State as Export
-import AUCSP.Agent.SharedSchedule
-
-import AgentSystem.Generic
-
-import Data.Typeable
+import AUCSP.Agent.SharedSchedule         as Export
 
 -----------------------------------------------------------------------------
 

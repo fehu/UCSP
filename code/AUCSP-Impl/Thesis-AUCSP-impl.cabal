@@ -13,6 +13,7 @@ author:         Dmitry K.
 library
     exposed-modules:
         AUCSP.Agent.SharedSchedule
+        AUCSP.Agent.Messages
         AUCSP.Agent.NegotiatingAgent.State
         AUCSP.Agent.NegotiatingAgent.NegotiationDefinition
         AUCSP.Agent.NegotiatingAgent

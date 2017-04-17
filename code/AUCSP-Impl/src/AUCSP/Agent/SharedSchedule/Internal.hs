@@ -16,12 +16,9 @@
 
 module AUCSP.Agent.SharedSchedule.Internal where
 
-import AgentSystem.Generic
-import AUCSP.Classes
-import AUCSP.AgentsInterface.KnownAgents
+import AUCSP.Agent.Messages
 import AUCSP.Agent.SharedSchedule.Interface
 
-import Data.Typeable
 import Data.Maybe (fromJust, isJust, catMaybes)
 
 import Control.Monad (forM)

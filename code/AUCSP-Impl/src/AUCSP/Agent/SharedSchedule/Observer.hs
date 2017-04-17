@@ -16,19 +16,15 @@
 
 module AUCSP.Agent.SharedSchedule.Observer where
 
-import AgentSystem.Generic hiding (AgentOfRole)
-import AUCSP.Classes
-import AUCSP.AgentsInterface.RoleData
+import AUCSP.Agent.Messages
 import AUCSP.Agent.SharedSchedule.Interface
 import AUCSP.Agent.SharedSchedule.Internal
 
-import Data.Typeable
+import Data.Maybe (fromMaybe)
+import Control.Monad ( when )
 
 import Data.Set (Set)
 import Data.Map.Strict (Map)
-
-import Data.Maybe (fromMaybe)
-import Control.Monad ( when )
 
 import qualified Data.Set as Set
 import qualified Data.Map.Strict as Map
