@@ -18,19 +18,16 @@ Send:
 - [x] TryPutClasses
 - [ ] TryPutClassesWithEvidence
 - [x] GetClassesOfGroup
+- [x] CandidatesChanges
 
 ### SharedSchedule: Internal
 
 Receive:
 
-- [ ] ScheduleHolderListAndReset
+- [x] ScheduleHolderListAndReset
 - [x] TryPutClasses
 - [ ] TryPutClassesWithEvidence
-- [ ] GetClassesOfGroup
-
-Send:
-
-- [ ] CandidatesChanges
+- [x] GetClassesOfGroup
 
 ### SharedSchedule: Observer
 

@@ -36,7 +36,7 @@ import Control.Concurrent.STM
 -----------------------------------------------------------------------------
 
 
-data ScheduleObserver  = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
+-- data ScheduleObserver  = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
 
 
 -- newtype Schedule = Schedule (Set Class)
@@ -67,12 +67,12 @@ data ScheduleObserverDemand = DemandReset | DemandBetter
 -----------------------------------------------------------------------------
 -- * Messages Private
 
-data CandidateChange = CandidateAdded | CandidateRemoved
-    deriving (Typeable, Show, Eq)
-newtype CandidatesChanges = CandidatesChanges (Map (AgentRefOfRole Group) CandidateChange)
-    deriving (Typeable, Show)
-
-boolCandidateChange = (==) CandidateAdded
+-- data CandidateChange = CandidateAdded | CandidateRemoved
+--     deriving (Typeable, Show, Eq)
+-- newtype CandidatesChanges = CandidatesChanges (Map (AgentRefOfRole Group) CandidateChange)
+--     deriving (Typeable, Show)
+--
+-- boolCandidateChange = (==) CandidateAdded
 
 -- data ScheduleHolderReset = ScheduleHolderReset deriving (Typeable, Show)
 
@@ -107,7 +107,7 @@ scheduleObserverDescriptor debug =
                                                                $ agentState i
                                         coherence <- totalCoherence gs
                                         when complete $ do
-                                            resetScheduleHolders holders
+                                            -- resetScheduleHolders holders
                                             scheduleObserverDemand $
                                               if applyTotalCoherenceThreshold
                                                   threshold coherence
@@ -135,9 +135,9 @@ isScheduleComplete (ScheduleCompleteness cs) = fmap and .
                                                mapM readTVar $ Map.elems cs
 
 
-resetScheduleHolders :: SharedScheduleHolders -> IO ()
-resetScheduleHolders (SharedScheduleHolders hs) =
-  mapM_ (`send` ScheduleHolderReset) hs
+-- resetScheduleHolders :: SharedScheduleHolders -> IO ()
+-- resetScheduleHolders (SharedScheduleHolders hs) =
+--   mapM_ (`send` ScheduleHolderReset) hs
 
 totalCoherence :: NegotiatingGroups -> IO a
 totalCoherence (NegotiatingGroups gs) = undefined

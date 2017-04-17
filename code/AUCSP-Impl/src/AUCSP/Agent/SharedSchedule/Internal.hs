@@ -11,15 +11,18 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module AUCSP.Agent.SharedSchedule.Internal where
 
 import AgentSystem.Generic
 import AUCSP.Classes
+import AUCSP.AgentsInterface.KnownAgents
 import AUCSP.Agent.SharedSchedule.Interface
 
 import Data.Typeable
-import Data.Maybe (fromJust, isJust)
+import Data.Maybe (fromJust, isJust, catMaybes)
 
 import Control.Monad (forM)
 
@@ -45,11 +48,21 @@ data Timetable = forall td . DiscreteTimeDescriptor td =>
 
 newtype TimeSlot = TimeSlot { timeSlotVar :: TVar (Maybe Class) }
 
+writeSlot c s = timeSlotVar s `writeTVar` Just c
+readSlot s = readTVar $ timeSlotVar s
 
 -----------------------------------------------------------------------------
 -- * Messages
 
-data ScheduleHolderReset = ScheduleHolderReset deriving (Typeable, Show)
+data ScheduleHolderListAndReset = ScheduleHolderListAndReset deriving (Typeable, Show)
+newtype ScheduleHolderClasses = ScheduleHolderClasses
+      { scheduleHolderClasses :: Set Class } deriving Typeable
+
+
+
+deriving instance NegotiatorsConstraint => Show ScheduleHolderClasses
+
+type instance ExpectedResponse ScheduleHolderListAndReset = ScheduleHolderClasses
 
 
 -----------------------------------------------------------------------------
@@ -70,12 +83,14 @@ scheduleHolderDescriptor debug =
       , agDebug = debug
       , initialState = (,) <$> newTimetable td <*> return room
       , messageHandling = MessageHandling{
-            msgHandle = selectMessageHandler [
-              mbHandle $ \i ScheduleHolderReset -> resetTimetable $ agentState i
-            ]
+            msgHandle = selectMessageHandler []
           , msgRespond = selectResponse [
               mbResp $ \i (TryPutClasses cs) -> scheduleHolderTryPutClasses
                                                 (agentState i) cs
+            , mbResp $ \i (GetClassesOfGroup g) -> scheduleHolderGetClassesOfGroup
+                                                   (agentState i) g
+            , mbResp $ \i ScheduleHolderListAndReset -> listAndResetTimetable
+                                                        (agentState i)
             ]
           }
       , action = agentNoAction
@@ -94,10 +109,15 @@ newTimetable (SomeDiscreteTimeDescriptor td) =
      return $ (,) <$> return (day, time) <*> newTimeSlot
 
 
-resetTimetable :: (Timetable, Classroom) -> IO ()
-resetTimetable (Timetable tt, _) = atomically . mapM_ resetTimeSlot $ Map.elems tt
+resetTimetable :: Timetable -> IO ()
+resetTimetable (Timetable tt) = atomically . mapM_ resetTimeSlot $ Map.elems tt
   where resetTimeSlot = (`writeTVar` Nothing) . timeSlotVar
 
+listAndResetTimetable :: NegotiatorsConstraint =>
+                        (Timetable, Classroom) -> IO (MsgResponse ScheduleHolderClasses)
+listAndResetTimetable (tt, _) = do cs <- timetableClasses tt
+                                   resetTimetable tt
+                                   respond $ ScheduleHolderClasses cs
 
 scheduleHolderTryPutClasses :: NegotiatorsConstraint =>
                     (Timetable, Classroom) -> Set Class
@@ -132,10 +152,24 @@ putClassInTimetable (Timetable cmap) c = do
                           $ \(k, TimeSlot var) -> (,) k <$> readTVar var
   let conflicts = Set.fromList . map (fromJust . snd)
                 $ filter (isJust . snd) slotsContents
-      writeClass = atomically . mapM_ writeSlot $ Map.elems slots
-            where writeSlot s = timeSlotVar s `writeTVar` Just c
+      writeClass = atomically . mapM_ (writeSlot c) $ Map.elems slots
+            where writeSlot c s = timeSlotVar s `writeTVar` Just c
       result = if null conflicts then PutClassesSuccess
                                  else PutClassesConflict conflicts
   return (result, writeClass)
+
+timetableClasses :: NegotiatorsConstraint => Timetable -> IO (Set Class)
+timetableClasses (Timetable cmap) = fmap (Set.fromList . catMaybes)
+                                  . atomically . mapM readSlot
+                                  $ Map.elems cmap
+
+scheduleHolderGetClassesOfGroup :: NegotiatorsConstraint =>
+                                   (Timetable, Classroom)
+                                -> AgentRefOfRole Group
+                                -> IO (MsgResponse ClassesOfGroup)
+scheduleHolderGetClassesOfGroup (tt, _) g =
+       respond . ClassesOfGroup
+     . Set.filter ((g ==) . knownRef . classGroup)
+   =<< timetableClasses tt
 
 -----------------------------------------------------------------------------

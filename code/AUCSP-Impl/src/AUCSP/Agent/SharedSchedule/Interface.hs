@@ -37,13 +37,14 @@ import qualified Data.Set as Set
 import qualified Data.List as List
 
 import Control.Monad (forM)
-import Control.Arrow ( (&&&) )
+import Control.Arrow ( (&&&), first )
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- * Role
 
-data SharedSchedule = SharedSchedule deriving (Show, Eq, Ord, Typeable)
+data SharedSchedule   = SharedSchedule   deriving (Show, Eq, Ord, Typeable)
+data ScheduleObserver = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
@@ -132,11 +133,21 @@ deriving instance NegotiatorsConstraint => Show ClassesOfGroup
 type instance ExpectedResponse GetClassesOfGroup = ClassesOfGroup
 
 -----------------------------------------------------------------------------
+
+data CandidateChange = CandidateAdded | CandidateRemoved
+    deriving (Typeable, Show, Eq)
+newtype CandidatesChanges = CandidatesChanges (Map (AgentRefOfRole Group) CandidateChange)
+    deriving (Typeable, Show)
+
+boolCandidateChange = (==) CandidateAdded
+
+-----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 -- * State
 
 -- | Holds references to internal 'ScheduleHolder's
-newtype SharedScheduleState = SharedScheduleState (Map Classroom AgentRef')
+data SharedScheduleState = SharedScheduleState (Map Classroom AgentRef')
+                                               (AgentRefOfRole ScheduleObserver)
 
 -----------------------------------------------------------------------------
 -- * Implementation: SharedSchedule
@@ -145,7 +156,8 @@ instance RoleName SharedSchedule where roleName = show
 instance AgentRole SharedSchedule where
   type RoleResult SharedSchedule = ()
   type RoleState  SharedSchedule = SharedScheduleState
-  type RoleArgs   SharedSchedule = Map Classroom AgentRef'
+  type RoleArgs   SharedSchedule = ( Map Classroom AgentRef'
+                                   , AgentRefOfRole ScheduleObserver)
 
 
 sharedScheduleDescriptor :: NegotiatorsConstraint =>
@@ -154,7 +166,7 @@ sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
   $ \args -> return GenericAgentDescriptor {
       agName = "SharedSchedule-Interface-" ++ show n
     , agDebug = debug
-    , initialState = return $ SharedScheduleState args
+    , initialState = return $ uncurry SharedScheduleState args
     , messageHandling = MessageHandling{
         msgHandle = selectMessageHandler []
       , msgRespond = selectResponse [
@@ -171,7 +183,7 @@ sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
 -- 2. Combine classes into candidate.
 sharedScheduleTryGetCandidate :: NegotiatorsConstraint =>
   SharedScheduleState -> KnownAgent Group -> IO SomeCandidate
-sharedScheduleTryGetCandidate (SharedScheduleState refByRoom) g =
+sharedScheduleTryGetCandidate (SharedScheduleState refByRoom _) g =
   do resps <- forM (Map.elems refByRoom)
             $ \holder -> holder `ask` GetClassesOfGroup (knownRef g)
      mbClasses <- waitResponses resps
@@ -186,9 +198,9 @@ sharedScheduleTryGetCandidate (SharedScheduleState refByRoom) g =
 -- 3. Collect results.
 -- 4. Get conflicting groups.
 -- 5. Get their candidates and return as response.
-sharedScheduleTryPutCandidate :: (NegotiatorsConstraint) =>
+sharedScheduleTryPutCandidate :: NegotiatorsConstraint =>
   SharedScheduleState -> SomeCandidate -> IO PutCandidateResult
-sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom) c =
+sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom o) c =
   do let classesByRoom = groupBy classRoom $ someCandidateClasses c
          err = fail $ "Failed to receive response from some ScheduleHolder(s) "
                    ++ "at `sharedScheduleTryPutCandidate`."
@@ -197,12 +209,14 @@ sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom) c =
                  conflictClasses = foldr (Set.union . putClassesConflicts)
                                          Set.empty results
                  conflictGroups = Set.map classGroup conflictClasses
-
+                 candidateGroup = head . collectInformation classGroup
+                                       . candidateInfo'
              conflictCandidates <- mapM (sharedScheduleTryGetCandidate s)
                                  $ Set.toList conflictGroups
              if Set.null conflictClasses
                then mapM_ respondConfirm respond
-                 >> return   PutCandidateSuccess
+                 >> notifyObserver o [(candidateGroup c, CandidateAdded)]
+                 >> return PutCandidateSuccess
                else mapM_ respondCancel respond
                  >> return (PutCandidateConflicts $ Set.fromList conflictCandidates)
      resps <- forM classesByRoom $
@@ -211,6 +225,13 @@ sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom) c =
      result <- mapM combineResponses =<< waitResponses resps
      maybe err return result
 
+
+notifyObserver :: NegotiatorsConstraint =>
+                  AgentRefOfRole ScheduleObserver
+               -> [(KnownAgent Group, CandidateChange)]
+               -> IO ()
+notifyObserver o = send o . CandidatesChanges . Map.fromList
+                                              . map (first knownRef)
 
 
 -- sharedScheduleRemoveCandidate :: (NegotiatorsConstraint) =>
