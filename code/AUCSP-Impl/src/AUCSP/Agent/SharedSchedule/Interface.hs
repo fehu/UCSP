@@ -114,7 +114,7 @@ data PutClassesResult = PutClassesSuccess | PutClassesConflict (Set Class)
 deriving instance NegotiatorsConstraint => Show TryPutClasses
 deriving instance NegotiatorsConstraint => Show PutClassesResult
 
-type instance ExpectedResponse TryPutClasses = PutClassesResult
+type instance ExpectedResponse TryPutClasses = AwaitingConfirmation PutClassesResult
 
 putClassesConflicts :: PutClassesResult -> Set Class
 putClassesConflicts (PutClassesConflict s) = s
@@ -158,8 +158,8 @@ sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
     , messageHandling = MessageHandling{
         msgHandle = selectMessageHandler []
       , msgRespond = selectResponse [
-            mbResp $ \i (TryPutCandidate c) -> sharedScheduleTryPutCandidate
-                                               (agentState i) c
+            mbResp $ \i (TryPutCandidate c) ->
+                        pure <$> sharedScheduleTryPutCandidate (agentState i) c
           ]
       }
     , action = agentNoAction
@@ -178,7 +178,6 @@ sharedScheduleTryGetCandidate (SharedScheduleState refByRoom) g =
      let classes = maybe Set.empty (Set.unions . map classesOfGroup) mbClasses
      return . SomeCandidate $ Candidate (Set.map SomeInformationPiece classes)
                               Nothing (0 :: Int) NoDetails []
-     undefined
 
 -- | Try to put a candidate into schedule, return conflictng candidates
 --   (not assessed) in case of failure.
@@ -193,15 +192,19 @@ sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom) c =
   do let classesByRoom = groupBy classRoom $ someCandidateClasses c
          err = fail $ "Failed to receive response from some ScheduleHolder(s) "
                    ++ "at `sharedScheduleTryPutCandidate`."
-         combineResponses crs = do
-             let conflictClasses = foldr (Set.union . putClassesConflicts)
-                                         Set.empty crs
+         combineResponses l = do
+             let (results, respond) = unzip l
+                 conflictClasses = foldr (Set.union . putClassesConflicts)
+                                         Set.empty results
                  conflictGroups = Set.map classGroup conflictClasses
-                 respMsg [] = PutCandidateSuccess
-                 respMsg cs = PutCandidateConflicts $ Set.fromList cs
+
              conflictCandidates <- mapM (sharedScheduleTryGetCandidate s)
                                  $ Set.toList conflictGroups
-             return $ respMsg conflictCandidates
+             if Set.null conflictClasses
+               then mapM_ respondConfirm respond
+                 >> return   PutCandidateSuccess
+               else mapM_ respondCancel respond
+                 >> return (PutCandidateConflicts $ Set.fromList conflictCandidates)
      resps <- forM classesByRoom $
               \(r, cs) -> let Just holder = Map.lookup r refByRoom
                           in holder `ask` TryPutClasses (Set.fromList cs)
@@ -210,9 +213,9 @@ sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom) c =
 
 
 
-sharedScheduleRemoveCandidate :: (NegotiatorsConstraint) =>
-  SharedScheduleState -> KnownAgent Group -> IO ()
-sharedScheduleRemoveCandidate = undefined
+-- sharedScheduleRemoveCandidate :: (NegotiatorsConstraint) =>
+--   SharedScheduleState -> KnownAgent Group -> IO ()
+-- sharedScheduleRemoveCandidate = undefined
 
 
 groupBy :: (Ord k) => (a -> k) -> [a] -> [(k, [a])]
@@ -220,6 +223,7 @@ groupBy f l = do let kas = (f &&& id) <$> l
                  k <- List.nub $ fst <$> kas
                  return (k, map snd $ filter ((k ==) . fst) kas)
 
+-----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 
 type NegotiatorsConstraint = ( NegotiatorOfRole Group, NegotiatorOfRole Professor
