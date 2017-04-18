@@ -3,7 +3,43 @@
 
 \section{Introduction}
 
-\todo
+University \emph{class scheduling} problem (UCSP) is faced each academic term
+by many institutes throughout the world. A sufficient number of classes must
+be created and then assigned to the students and professors in such a way,
+that persons' schedules don't intersect and the persons are (rather) satisfied
+with the assignment. It is usually done manually.
+
+While UCSP research has already started by 1960s \red{put cites?},
+no accessible computational equipment had the resources to handle the problem
+in general and/or for entire universities until the recent times.
+With rapid computer performance growth in the 1990s, computationally
+difficult problems could be researched with minor expenses and many
+solution search methods were developed for various kinds of promlems.
+Class scheduling is a \emph{constraint satisfaction problem} (CSP) ---
+a large kind of problems, that is properly discussed in section \ref{sec:csp}.
+
+\red{
+  A number of UCSP solutions were proposed recently [find cites], but \dots
+}
+
+\medskip
+
+\noindent
+This \thisdoc proposes an extendable UCSP solution with support for
+\emph{schedule personalization}. The latter is achieved by using agent
+negotiations between the representatives of each \emph{students/groups} and
+\emph{professors}. The representing agents permit defining
+\emph{personal preferences} and \emph{restrictions}, that are used to optimize
+the schedules.
+
+\medskip
+
+\noindent
+A solution for general UCSP problem
+(formalized in section \ref{sec:ProblemFormal}) \red{was implemented}
+(see section \ref{sec:solution}) \red{and tested} (see section \ref{sec:test}).
+Possible improvements are discussed in section \ref{sec:improve}.
+
 
 
 \end{document}
