@@ -11,7 +11,6 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
--- {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE ConstraintKinds #-}
 
@@ -22,9 +21,19 @@ module AUCSP.Agent.NegotiatingAgent.NegotiationDefinition(
   newKnownGroup, newKnownProfessor
 
 , SystemIntegration(..), RoleSystemIntegration
-, NegotiatorOfRole(..), NegotiationRole, NegotiatorCreation
+, NegotiatorOfRole(..), NegotiationRole
 
-, negotiatingAgentDescriptor, negotiatingGenericAgentDescriptor
+-- * Discipline Priorities
+, DisciplinePriorities(priorityDisciplines), assessDisciplinePriorities
+
+
+-- * Negotiator Descriptor
+, RequiredData(..), negotiatingAgentDescriptor
+, negotiatingGenericAgentDescriptor
+
+-- , GroupExtraState(..)
+
+-- * Re-export
 
 , module Export
 
@@ -35,6 +44,14 @@ import AUCSP.AgentsInterface.RoleData     as Export
 import AUCSP.Agent.NegotiatingAgent.State as Export
 import AUCSP.Agent.SharedSchedule         as Export
 
+import Data.Maybe (mapMaybe)
+
+import Data.Map.Strict (Map)
+import Data.Set (Set)
+
+import qualified Data.Map.Strict as Map
+import qualified Data.Set as Set
+
 -----------------------------------------------------------------------------
 
 
@@ -42,14 +59,14 @@ instance RoleName Group where roleName = show
 instance AgentRole (RoleT Group a) where
   type RoleResult (RoleT Group a) = ()
   type RoleState  (RoleT Group a) = AgentState Group a
-  type RoleArgs   (RoleT Group a) = RequitedData Group a
+  type RoleArgs   (RoleT Group a) = RequiredData Group a
 
 
 instance RoleName Professor where roleName = show
 instance AgentRole (RoleT Professor a) where
   type RoleResult (RoleT Professor a) = ()
   type RoleState  (RoleT Professor a) = AgentState Professor a
-  type RoleArgs   (RoleT Professor a) = RequitedData Professor a
+  type RoleArgs   (RoleT Professor a) = RequiredData Professor a
 
 -----------------------------------------------------------------------------
 
@@ -82,6 +99,22 @@ instance Show (KnownAgent Professor) where
 newKnownGroup = KnownGroup
 newKnownProfessor = KnownProfessor
 
+
+-----------------------------------------------------------------------------
+
+-- type instance StateExtra (RoleT Group a) a = GroupExtraState a
+--
+-- data GroupExtraState a = GroupExtraState {
+--     classroomSet          :: Set Classroom
+--   , timeDescriptor        :: SomeDiscreteTimeDescriptor
+--   , groupRoleData         :: RoleData' Group
+--   , disiciplinePriorities :: DisciplinePriorities
+--   }
+
+-----------------------------------------------------------------------------
+
+-- type instance StateExtra (RoleT Professor a) a = ()
+
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 
@@ -90,37 +123,37 @@ class SystemIntegration s res where
 
 type RoleSystemIntegration r = SystemIntegration (RoleState r) (RoleResult r)
 
-class NegotiatorOfRole r => NegotiatorOfRoleCreation r where
-  data RequitedData r :: * -> *
 
-  uniqueAgentName   :: RequitedData r a -> String
-  debugAgent        :: RequitedData r a -> Bool
-  handleNegotiation :: RequitedData r a -> MessageHandling (RoleState r) (RoleResult r)
-  proaction         :: RequitedData r a -> AgentAction (RoleState r) (RoleResult r)
-  initialContexts   :: RequitedData r a -> IO (Contexts a)
-  roleRequiredData  :: RequitedData r a -> RoleData r
-  initialExtraState :: RequitedData r a -> IO (StateExtra r a)
-
+data RequiredData r a = RequiredData {
+    uniqueAgentName   :: String
+  , debugAgent        :: Bool
+  , handleNegotiation :: MessageHandling (RoleState (RoleT r a)) (RoleResult (RoleT r a))
+  , proaction         :: AgentAction (RoleState (RoleT r a)) (RoleResult (RoleT r a))
+  , initialContexts   :: IO (Contexts a)
+  , roleRequiredData  :: RoleData (RoleT r a)
+  , initialExtraState :: IO (StateExtra (RoleT r a) a)
+  }
 
 -----------------------------------------------------------------------------
 
 
-type NegotiationRole r a =  ( RoleResult r ~ ()
-                            , RoleState r ~ AgentState r a
-                            , RoleArgs r ~ RequitedData r a )
+type NegotiationRole r a =  ( RoleResult (RoleT r a)   ~ ()
+                            , RoleState (RoleT r a)    ~ AgentState r a
+                            , RoleArgs (RoleT r a)     ~ RequiredData r a
+                            , StateExtra (RoleT r a) a ~ StateExtra r a
+                            , RoleSystemIntegration (RoleT r a)
+                            , Typeable r, Typeable a, Num a
+                            )
 
-type NegotiatorCreation r a = ( NegotiationRole r a, Typeable r, Typeable a
-                              , NegotiatorOfRoleCreation r
-                              , RoleSystemIntegration r)
-
-negotiatingAgentDescriptor :: ( NegotiatorCreation r a, Num a ) =>
-                              r -> GenericRoleDescriptor r
+negotiatingAgentDescriptor :: NegotiationRole r a =>
+                              r -> GenericRoleDescriptor (RoleT r a)
 negotiatingAgentDescriptor r =
-  AgentRoleDescriptor r (return . negotiatingGenericAgentDescriptor)
+  genericRoleDescriptor (RoleT r) (return . negotiatingGenericAgentDescriptor)
 
 
-negotiatingGenericAgentDescriptor :: ( NegotiatorCreation r a, Num a ) =>
-                            RequitedData r a -> GenericAgentOfRoleDescriptor r
+negotiatingGenericAgentDescriptor :: NegotiationRole r a =>
+                               RequiredData r a
+                            -> GenericAgentOfRoleDescriptor (RoleT r a)
 negotiatingGenericAgentDescriptor d = GenericAgentDescriptor{
     agName  = uniqueAgentName d
   , agDebug = debugAgent d
@@ -133,5 +166,27 @@ negotiatingGenericAgentDescriptor d = GenericAgentDescriptor{
                       newAgentState extra ctxs
   }
 
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+
+-- | Discipline priority is ratio: #groups inscribed / #profs can teach.
+newtype DisciplinePriorities = DisciplinePriorities
+      { priorityDisciplines :: Map Discipline Rational }
+
+assessDisciplinePriorities :: Set Discipline
+                           -> Map group (Set Discipline)
+                           -> Map prof  (Set Discipline)
+                           -> Rational
+                           -> DisciplinePriorities
+assessDisciplinePriorities disciplines groupsNeed profsTeach priorityThreshold =
+  DisciplinePriorities . Map.fromList . mapMaybe priority
+                       $ Set.toList disciplines
+  where count d = length . filter (elem d) . Map.elems
+        priority d = let cgroup = count d groupsNeed
+                         cprof  = count d profsTeach
+                         ratio  = toRational cgroup / toRational cprof
+                     in if ratio >= priorityThreshold
+                        then Just (d, ratio) else Nothing
 
 -----------------------------------------------------------------------------

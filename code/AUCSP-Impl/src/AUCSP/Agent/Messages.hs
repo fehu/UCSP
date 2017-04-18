@@ -8,7 +8,7 @@
 --
 -----------------------------------------------------------------------------
 
-{-# LANGUAGE StandaloneDeriving #-}
+-- {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -22,22 +22,23 @@ module AUCSP.Agent.Messages (
   AgentRef', NegotiatorsConstraint
 , SomeCandidate(..), candidateInfo'
 
-, module Export, Typeable
+, module Export, Typeable, SomeCoherence(..), getSomeCoherence
 
 -- * Messages
 
-, OpinionRequest(..), OpinionResponse(..)
+, OpinionRequest(..), OpinionRequestType(..), OpinionResponse(..)
 , TryPutCandidate(..), PutCandidateResult(..), putCanidadateConflicts
 
 ) where
 
 import CSP.Coherence          as Export
 import AUCSP.Classes          as Export
+import AUCSP.Context          as Export
 import AUCSP.NegotiationRoles as Export
 import AUCSP.AgentsInterface  as Export
 import AgentSystem.Generic    as Export
 
-import AUCSP.Context.External (SomeCoherence(..))
+import AUCSP.Context.External (SomeCoherence(..), getSomeCoherence)
 import Data.Typeable (Typeable)
 import Data.Function (on)
 
@@ -70,8 +71,13 @@ instance Show SomeCandidate where show (SomeCandidate c) = show c
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
 
-newtype OpinionRequest = OpinionRequest (Set Class) deriving Typeable
-deriving instance NegotiatorsConstraint => Show OpinionRequest
+data OpinionRequestType = OpinionRequestInternal | OpinionRequestExternal
+
+data OpinionRequest = OpinionRequest {
+    opinionType   :: OpinionRequestType
+  , opinionMode   :: ContextMode
+  , opinionAssume :: Set Class
+  } deriving Typeable
 
 newtype OpinionResponse = OpinionResponse SomeCoherence deriving (Typeable, Show)
 
