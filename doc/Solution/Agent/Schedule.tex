@@ -7,6 +7,7 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Schedule Holder Agents}
+\label{sec:solution-schedule-var}
 
 These agents hold \emph{common schedule variable} --- a fixed 3-dimensional table
 \emph{Day} $\times$ \emph{Time} $\times$ \emph{Room} with variable
@@ -20,8 +21,8 @@ In any case, the holder must provide following capabilities through messages:
   \item Put candidate into the schedule. Results in either success or conflict.
         In latter case, the conflicting candidates are attached to the response.
   \item Put a candidate, removing conflicting candidates and notifying their
-        creators. Requires a \emph{proof of superiority} (see section \ref{solution-compare})
-        for each atomic conflict.
+        creators. Requires a \emph{proof of superiority} for each atomic conflict.
+        % (see section \ref{solution-compare})
 \end{itemize}
 
 \medskip
@@ -48,14 +49,12 @@ Group agents are ``sleeping'' after successfully placing the candidates.
 They are awoken by \emph{continuation demand}. On such demand, an agent
 must guard its latest candidate's \emph{internal coherence} and use it as part
 of candidates assessment process.
-\red{Internal coherence of new candidates should be higher than of the previous.}
+Internal coherence of new candidates should be no less than of the previous.
 
 Professor agents also receive continuation message. They use internal coherence
 of current candidate's projection as \emph{best coherence value}.
 The comparison is performed only in \emph{final} mode.
 
-
-\red{Require the same of total coherence?}
 
 
 \end{document}
