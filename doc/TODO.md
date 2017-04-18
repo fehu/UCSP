@@ -2,11 +2,23 @@
 
 - [ ] there are now 3 roles, with 'Schedule Controller(s)'
 
-## From comments
+#### Abstract
+
+- [ ]
+
+#### Introduction
+
+- [ ]
+
+
+#### CSP
+
 - [ ] Graph coloring/n-queen problem diagrams.
-- [ ] Drivel written in Agents section (III)
+- [ ] Write something about one of the techniques.
+- [ ] Distributed: rewrite or delete.
+
 
 
 ## From comments: lexical
-- [ ] better synonym for 'inscribed'.
+- [x] better synonym for 'enrolled' => 'enrolled'.
 - [ ] usage of 'constraint' and 'restriction'

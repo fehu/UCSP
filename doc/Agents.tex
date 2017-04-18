@@ -2,12 +2,12 @@
 \begin{document}
 
 \section{Agents}
-\green{Explicar qué son los agentes}
-\medskip
+% \green{Explicar qué son los agentes}
+% \medskip
 
 
-\green{Poner algunas definiciones}
-\medskip
+% \green{Poner algunas definiciones}
+% \medskip
 
 An \emph{agent} has no generally accepted definition, but the idea is traced back
 to the antique times. The survey of \cite[sec.~2.2]{PNoriega} gives several
@@ -52,31 +52,20 @@ The most notable agent theory is the \emph{Beliefs-Desires-Intentions} (BDI) one
 that deduces agent's intentions (and the following sequence of actions)
 from its desires (goals) and an uncertain image of the environment (beliefs).
 
-\red{All this is taken from \cite[sec.~2.2]{PNoriega}, as mentioned before.
-    In the original ,the information is taken from many different references,
-    ¿should I put these specific references, or can I just leave the reference to
-    the survey? }
 
-The \cite{UAB-Thesis} and \cite{PNoriega} propose layered architecture,
-capable of hosting different \emph{context logics}.
-The logics are connected using \emph{bridge rules} and act as one.
-The BDI theory can be implemented by creating the three contexts
-(beliefs, intentions and desires) and the bridge rules.
+Some works (for example \cite{UAB-Thesis} and \cite{PNoriega}) propose
+layered architectures, where each layer (for example: \emph{Beliefs} or \emph{Intentions})
+has its own logic. The ``logics'' are then united using \emph{bridge rules}.
 
-\todo\red{: add another source.}
+% \todo\red{: add another source.}
 
 
-\bigskip
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\green{ Explicar qué es lo que tú entiendes por agente.}
 \medskip
 
 \noindent
 One could summarize that an agent is primarily a computational entity (software),
-where the hardware restriction is only be adequate for hosting the software
-``consciousness''. In the rest, there is not much difference if an agent has
-an actual physical body (\emph{mobile}), if it is emulated or was never intended.
-The BDI theory, for example, allows to abstract existence of a body,
+but it might have a (robotic) ``body''.
+The BDI theory, for example, allows to abstract existence of a ``body'',
 by seeing it as an actuator withing the environment, that \emph{tries} to
 implement agent's current \emph{intention}.
 The actual results of an interaction should not be taken as predefined, but rather
@@ -100,12 +89,12 @@ An agent should be capable of:
   \item communication with other agents (including humans).
 \end{enumerate}
 
-\todo\red{: this is basically a repetition}
+% \todo\red{: this is basically a repetition}
 
 \subsection{Solving CSPs with Multiagent Systems}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\green{Explicar cómo se pueden resolver los CSP con agentes}
-\medskip
+% \green{Explicar cómo se pueden resolver los CSP con agentes}
+% \medskip
 
 Multiagent Systems (MAS) have been successfully used to solve
 different \emph{constraints satisfaction problems} \cite{MAS, MAS-Survey}.
@@ -276,8 +265,8 @@ problems is
 \subsection{Negotiating Agents}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:NegotiatingAgents}
-\green{ Explicar qué es lo que tú entiendes por agente.}
-\medskip
+% \green{ Explicar qué es lo que tú entiendes por agente.}
+% \medskip
 
 A \emph{negotiation} is a process of communication between heterogeneous agents with a
 goal of finding such a configuration of variables assignations, that all the

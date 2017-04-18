@@ -2,20 +2,20 @@
 \begin{document}
 
 
-\green{Explicar que son los CSP}
+% \green{Explicar que son los CSP}
 \section{Constraint Satisfaction Problems}
 \label{sec:csp}
 
-\green{Poner una definición no formal}
-\medskip
+% \green{Poner una definición no formal}
+% \medskip
 
 There are many problems that require positioning or assigning something,
 respecting established \emph{restrictions}. \emph{Graph coloring} and
 \emph{n-queen} chess problem are classical constraint satisfaction problems (CSPs).
 
-\medskip
-\green{Poner algunos ejemplos}
-\medskip
+% \medskip
+% \green{Poner algunos ejemplos}
+% \medskip
 
 The graph coloring problem comes from cartography, where it was needed to color
 countries on political maps, in such a way that no country had a land border with
@@ -103,7 +103,6 @@ $$\xi_2(\left<x_1,y_1\right>, \left<x_2,y_2\right>) =
     \end{cases}
 $$
 
-\todo\red{: needs to be rewritten after the introduction is done}
 
   In our \emph{university classes scheduling} problem (UCSP) the variables
 are personal schedules, called \emph{timetables} in this thesis,
@@ -117,7 +116,7 @@ the beginning--end \emph{time}.
   \item \underline{Class constraints}: a class should be a productive event, so
     a professor should be able to \emph{teach} the class, the classroom should
     have the \emph{capacity} to hold all the students and be properly \emph{equipped},
-    and the group should be \emph{inscribed} to class subject
+    and the group should be \emph{enrolled} to class subject
     (further called \emph{discipline}).
   \item \underline{Time constraints}: no participant can have two classes
     at the same time (or intersecting in time), as mentioned before.
@@ -134,7 +133,7 @@ the beginning--end \emph{time}.
 \bigskip
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Until now we were speaking about restrictions satisfactions, but the problem can
+  Until now we were speaking about restrictions satisfaction, but the problem can
 be extended to an \emph{optimization} one by defining an
 \emph{objective function} over the values configurations.
 
@@ -155,10 +154,10 @@ contradictory for different persons.
 
 \subsection{Solution Methods}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\green{Explicar por qué son importantes computacionalmente}\\
-\medskip
+% \green{Explicar por qué son importantes computacionalmente}\\
+% \medskip
 
-\noindent
+% \noindent
   Solving these problems usually presents difficulties due to the amount of
 possible combinations to consider for a solution. Let's have a look at
 some university schedule.
@@ -166,13 +165,13 @@ some university schedule.
 (every hour from 8:00 to 20:00), would yield $6 \times 12 = 72$ options
 to place each class.
   Given that each group needs, for example, five different disciplines to be assigned,
-there would be  $\multibinom{72}{5} = \num[group-separator={,}]{18474840}$
+there would be $\multibinom{72}{5} = \num[group-separator={,}]{18474840}$
 possible classes assignments for each group,
 even without considering professors and classrooms.
 
-\bigskip
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\green{Explicar formas de resolver los CSP} \todo
+% \bigskip
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \green{Explicar formas de resolver los CSP} \todo
 \medskip
 \noindent
 
@@ -197,11 +196,11 @@ computing resources.
 
 \bigskip
 
-\todo \red{: write something about one of the techniques}
+% \todo \red{: write something about one of the techniques}
 
 
 
-\subsection{Distributed problems}
+\subsection{\red{Distributed problems}}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Agents approach allows solving CSPs in a distributed manner, also distributing
 the problem knowledge and constraints
