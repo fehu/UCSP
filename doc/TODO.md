@@ -15,7 +15,7 @@
 
 - [ ] Graph coloring/n-queen problem diagrams.
 - [ ] Write something about one of the techniques.
-- [ ] Distributed: rewrite or delete.
+- [x] Distributed: rewrite or delete.
 
 #### Solution
 

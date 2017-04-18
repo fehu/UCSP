@@ -200,9 +200,9 @@ computing resources.
 
 
 
-\subsection{\red{Distributed problems}}
+\subsection{Distributed problems}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-Agents approach allows solving CSPs in a distributed manner, also distributing
+Agents approach allows solving CSPs in a distributed manner by distributing
 the problem knowledge and constraints
 \cite{DCSPagent1998, DCSP2013, CSPagent2014, MAS, MAS-Survey}.
 
@@ -225,34 +225,21 @@ Such problems are \emph{Distributed Constraints Satisfaction Problems} (DCSPs).
   constraint graph.
 \end{displayquote}
 
-  The constrains are distributed alongside the variables: an agent knows only the
-constrains over the variable it owns. A DCSP can also have objective functions for
-optimization.
 
-  The UCSP fits perfectly into a the DCSP class: timetable variables,
-strong restrictions and personal preferences are determined by agent's creator
-and his interests. The class and time constraints apply to all the agents and
-represent common behavior base.
+University class scheduling problem fits into a the DCSP class:
+\begin{itemize}
+  \item Some constraints are agent-specific: strong restrictions and
+        personal preferences.
+  \item Classes assignments in form of \emph{candidates} are distributed between
+        the negotiating agents (representing groups and professors).
+\end{itemize}
 
-  The original UCSP is decomposed in a set of sub-problems, one for each participant.
-A sub-problem consist in resolving constraints over a \emph{timetable} variable.
-Some sub-problems are interdependent through \emph{classes connections}. In this
-case, the timetable configurations of the connected agents must be negotiated
-until consensus is reached. If some agents cannot reach it, they could change the
-class, searching for another participant.
+The original UCSP is decomposed in a set of sub-problems, represented by some
+participants. A sub-problem consist in resolving constraints over an agent's
+\emph{candidate}, while considering the \emph{opinions} of \emph{neighboring}
+agents.
 
-  The solution to the original problem is a list of participants with the corresponding
-timetables. The last ones are gathered, after all sub-problems have been resolved.
-
-% At the figure \ref{fig:ScheduleSpace} the university schedule is
-% shown as a 3-dimentional table; horizontal rectangles represent individual
-% schedules for the corresponding participants.
-
-% \begin{figure}
-%   \input{Introduction/ScheduleSpace.tikz}
-%   \caption{Distributed university schedule.}
-%   \label{fig:ScheduleSpace}
-% \end{figure}
-
+The sub-problems are then recomposed into a schedule, resolving any conflicts
+between the sub-solutions with the established rules.
 
 \end{document}
