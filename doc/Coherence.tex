@@ -106,7 +106,7 @@ It's value is $\frac{|1| \cdot 3 + |-1| \cdot 5}{17} \approx 0.47$.
 
 \subsection{Coherence and Contexts}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\label{sec:coherence}
+\label{sec:Coherence-Cxts}
 
 In PHD thesis \cite{UAB-Thesis}, the author establishes concrete
 \emph{coherence functions}, based on the properties, proposed by Thagard for
@@ -139,7 +139,7 @@ and the result is compared against context-specific threshold.
 If passing threshold test,
 the candidate is sent to the next context, otherwise it is marked as failed
 (providing a reason) and is propagated no further. In both cases the coherence
-value is guarded alongside the candidate.
+value and some context defined \emph{details} are guarded alongside the candidate.
 
 Thus a context in this thesis serves as \emph{candidates} filter. This approach
 \textbf{allows to avoid}:
@@ -147,12 +147,15 @@ Thus a context in this thesis serves as \emph{candidates} filter. This approach
   \item Usage of \emph{bridge rules}. It permits more flexibility for
     the \emph{internal rules}. Changes in contexts' logic do not affect the way
     the results are combined, even if the changes are incompatible.
-  \item Huge graph partitioning. Such graph would have to unite all the
-    candidates and every context's internal knowledge. Then the entire graph
+  \item Huge graph partitioning. Such graph would have to unite \emph{all the
+    candidates} and every context's internal knowledge. Then the entire graph
     needs to be stored, until the best partition is found.
 
     In the proposed approach, both \emph{candidates generation} and
-    \emph{filtering} can be done sequentially and lazily,
+    \emph{filtering} can be done sequentially and
+    lazily\footnote{Instead of storing value(s), \emph{lazy} evaluation
+                    strategy stores \emph{how to create} them.
+                    Evaluation is performed only when a value is needed.},
     thereby reducing memory usage.
 
 \end{enumerate}

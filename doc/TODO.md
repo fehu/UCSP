@@ -36,4 +36,4 @@
 
 ## Misc
 
-- [ ] Fix Real symbol
+- [x] Fix Real symbol
