@@ -11,16 +11,29 @@
 
 A \emph{context} represents an aspect for optimization/restriction, considered
 by an agent. It defines context-specific information and relations over the
-information graph, with the corresponding combination functions. There are
-two types of relations: \emph{binary} and over the \emph{whole graph}.
+information graph, with the corresponding combination functions.
+Each context defines some \emph{Details}, that describe coherence evaluation.
+There are two types of relations: \emph{binary} and over the \emph{whole graph}.
 The former ones are applied to every pair of nodes and the results are combined
-by a \emph{binary fold function} $f^\cup_2$ (for each relation).
+by folding\footnote{
+  In functional programming, fold (or reduce) is a family of higher order
+  functions that process a data structure in some order and build a return value.
+  Typically, a fold deals with two things: a combining
+  function\textsuperscript{\ref{footnote:binary-operation}},
+  and a data structure, typically a list of elements.
+  The fold then proceeds to combine elements of the data structure using
+  the function in some systematic way. (\url{https://wiki.haskell.org/Fold})
+} using an \emph{associative binary operation}\footnote{%
+  Operator $\bullet$ is associative
+  $\Leftrightarrow (a \bullet b) \bullet c = a \bullet (b \bullet c)$
+    \label{footnote:binary-operation}
+} $f^\cup_2$ (for each relation).
 The latter, as follows from the name, are defined over whole information graph,
 thus permitting more flexible evaluation.
 
 Coherence values, assessed by all the relations, are combined using another
-\emph{binary fold function} $f^\cup$, that yields \emph{coherence at the context}.
-Each context defines some \emph{Details}, that describe coherence evaluation.
+\emph{associative binary function} $f^\cup$.
+The result is \emph{coherence at the context}.
 
 \begin{align}
 \begin{split}
@@ -42,10 +55,11 @@ Each context defines some \emph{Details}, that describe coherence evaluation.
                           & \textbf{if } \rel \text{ is \emph{binary}}
                      \end{cases}
 \end{align*}
-\begin{align*}
+\begin{flalign*}
   f^\cup, f^\cup_2 &: (\Re \times \mathit{Details}) \times (\Re \times \mathit{Details})
                       \mapsto \Re \times \mathit{Details} & &
-  \\ \\
+\end{flalign*}
+\begin{align*}
   \rel &:\lbrace \mathit{Information\,piece} \rbrace
               \mapsto \Re \times \mathit{Details}
        & \textbf{if } & \rel \text{ is \emph{over whole graph}}
@@ -73,7 +87,7 @@ corresponding agents to immediately reject propositions, that don't have enough
 professor's classes, without considering a possibility of joining them to achieve
 full constraints compliance.
 
-Coherence assessment \emph{modes} are introduced to counter the problem.
+Coherence \textbf{assessment \emph{modes}} are introduced to counter the problem.
 All coherence assessment functions should provide \emph{mode} argument, that
 \begin{enumerate}
   \item Is \underline{passed to each context}, when filtering candidates.
@@ -81,6 +95,8 @@ All coherence assessment functions should provide \emph{mode} argument, that
   \item Can \underline{change relation evaluation}, weakening or disabling the
         restriction described.
 \end{enumerate}
+
+\bigskip
 
 \noindent
 The contexts stand for different constraints and can be divided into

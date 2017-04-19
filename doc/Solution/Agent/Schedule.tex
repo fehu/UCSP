@@ -29,13 +29,14 @@ In any case, the holder must provide following capabilities through messages:
 \noindent
 In the same time, holder agent(s) must monitor schedule's state and report
 possible solutions. A solution is considered \emph{complete} when
-\begin{enumerate*}
+\begin{enumerate*}[1)]
   \item it contains candidates of all groups and
   \item is positively assessed in \emph{final} mode.
 \end{enumerate*}
 
-Complete solution can be assessed with \emph{total coherence}, by applying
-set of agents' internal coherence values to \emph{common goal} function $\Gamma$.
+Complete solution can be assessed with \emph{total coherence}, by
+evaluating \underline{all} agents' internal coherence values in \underline{final}
+mode, and then applying the values to \emph{common goal} function $\Gamma$.
 
 \subsubsection{Solution improvement}
 \label{sec:solution-better}

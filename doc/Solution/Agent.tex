@@ -11,8 +11,8 @@
 
 As it says in section \ref{sec:NegotiatingAgents}, an agent is defined by its
 \emph{behavior}, that is composed from \emph{proactive} and \emph{reactive}
-behavior functions. Both functions use agent's \emph{state} (that should include
-agent's \emph{contexts}).
+behavior functions. Both functions use agent's \emph{state}, that should include
+agent's \emph{contexts}.
 
 Current agent implementation extends the definition above by adding:
 \begin{enumerate*}[1)]
@@ -23,7 +23,7 @@ Current agent implementation extends the definition above by adding:
 
 $$ a = \left< \mathit{name},
               \behaviour^a,
-              \state,
+              \state^a,
               \state_\mathit{exec},
               \state_\mathit{result},
        \right> $$

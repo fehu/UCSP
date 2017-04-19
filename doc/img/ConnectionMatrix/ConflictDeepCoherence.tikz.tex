@@ -1,0 +1,127 @@
+\documentclass[../../ThesisDoc]{subfiles}
+
+\providecommand{\rootdir}{../..}
+\input{\rootdir/img/ConnectionMatrix.tikz}
+
+\begin{document}
+\newcommand*{\drawMatrix}[2][]{
+  \def\d{#2}
+  \connectionsMatrix[
+      % row 5/.style={nodes={text=\Green}},
+      row 6/.style={nodes={text=red}},
+      #1]{m\d};
+  \node[draw, color=blue, circle, thick, inner sep=5pt] at (m\d-5-1) {};
+  \fith[dashed]{m\d}{6}{red}
+  \usedh{m\d}{6}{red}
+}
+
+\newcommand{\cohs}{}
+
+\newcommand*{\showExtCoh}[5][]{
+  \def\m{#2}
+  \def\a{#3}
+  \def\d{#4}
+  \def\pss{#5}
+
+  \gdef\cohs{}
+  \gdef\first{1}
+  \foreach \ps in \pss
+    { \ifthenelse{\first=1}
+          {\numgdef\first{0}}
+          {\xappto\cohs{\noexpand\\[-4pt]}}
+      \foreach \x in \ps {\xappto\cohs{, coh[\x]}}
+     }
+  \node[below=1em of \m, text width=9cm, align=center, #1]
+      {External coherence of depth \d\ by $\a$:
+       \begin{gather*}
+         \Gamma\big( coh[\a] \cohs \big)
+       \end{gather*}
+       };
+}
+
+\begin{tikzpicture}[trim left,
+  col-color/.style args = {#1=#2}{column #1/.style={nodes={text=#2}}},
+  row-color/.style args = {#1=#2}{row #1/.style={nodes={text=#2}}}
+  ]
+
+\begin{scope}
+  \drawMatrix[col-color/.list={2=blue,4=blue,5=blue},
+              row-color/.list={5=blue}]{0};
+  \fith{m0}{5}{blue}
+  \fitv[dashed]{m0}{2}{blue}
+  \fitv[dashed]{m0}{4}{blue}
+  \fitv[dashed]{m0}{5}{blue}
+  \showExtCoh{m0}{g_i}{0}{{p_1, p_*, p_k}}
+\end{scope}
+
+\begin{scope}
+  \drawMatrix[right=2cm of m0,
+              col-color/.list={2=blue,4=blue,5=blue},
+              row-color/.list={5=blue,3=blue,7=blue}]{1};
+  \fith[dotted]{m1}{5}{blue}
+  \fitv{m1}{2}{blue}
+  \fitv{m1}{4}{blue}
+  \fitv{m1}{5}{blue}
+  \fith[dashed]{m1}{3}{blue}
+  \fith[dashed]{m1}{7}{blue}
+  \showExtCoh{m1}{g_i}{1}{{p_1, p_*, p_k, g_2, g_n}}
+\end{scope}
+
+
+\begin{scope}
+  \drawMatrix[below=2cm of m0,
+              col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue},
+              row-color/.list={5=blue,3=blue,7=blue}]{2};
+  \fith[dotted]{m2}{5}{blue}
+  \fitv[dotted]{m2}{2}{blue}
+  \fitv[dotted]{m2}{4}{blue}
+  \fitv[dotted]{m2}{5}{blue}
+  \fith{m2}{3}{blue}
+  \fith{m2}{7}{blue}
+  \fitv[dashed]{m2}{6}{blue}
+  \fitv[dashed]{m2}{7}{blue}
+  \fitv[dashed]{m2}{8}{blue}
+  \showExtCoh{m2}{g_i}{2}{{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m}}
+\end{scope}
+
+\begin{scope}
+  \drawMatrix[below=2cm of m1,
+              col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue},
+              row-color/.list={5=blue,3=blue,7=blue,2=blue,4=blue}]{3};
+  \fith[dotted]{m3}{5}{blue}
+  \fitv[dotted]{m3}{2}{blue}
+  \fitv[dotted]{m3}{4}{blue}
+  \fitv[dotted]{m3}{5}{blue}
+  \fith[dotted]{m3}{3}{blue}
+  \fith[dotted]{m3}{7}{blue}
+  \fitv{m3}{6}{blue}
+  \fitv{m3}{7}{blue}
+  \fitv{m3}{8}{blue}
+  \fith[dashed]{m3}{2}{blue}
+  \fith[dashed]{m3}{4}{blue}
+  \showExtCoh{m3}{g_i}{3}{{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m, g_1, g_*}}
+\end{scope}
+
+\begin{scope}
+  \drawMatrix[below=2cm of m2,
+              col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue,3=blue},
+              row-color/.list={5=blue,3=blue,7=blue,2=blue,4=blue}]{4};
+  \fith[dotted]{m4}{5}{blue}
+  \fitv[dotted]{m4}{2}{blue}
+  \fitv[dotted]{m4}{4}{blue}
+  \fitv[dotted]{m4}{5}{blue}
+  \fith[dotted]{m4}{3}{blue}
+  \fith[dotted]{m4}{7}{blue}
+  \fitv[dotted]{m4}{6}{blue}
+  \fitv[dotted]{m4}{7}{blue}
+  \fitv[dotted]{m4}{8}{blue}
+  \fith{m4}{2}{blue}
+  \fith{m4}{4}{blue}
+  \fitv[dashed]{m4}{3}{blue}
+  \showExtCoh{m4}{g_i}{4 (max)}
+    {{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m, g_1, g_*, p_2}}
+\end{scope}
+
+
+\end{tikzpicture}
+\end{document}

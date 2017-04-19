@@ -25,15 +25,19 @@
 
 #### Solution: Group
 
-- [ ] replace fig:candidates-alone diagram
-- [ ] add solution and deep coherence diagrams
-- [ ] extend deep coherence diagram
-- [ ] Messaging
+- [x] replace fig:candidates-alone diagram
+- [ ] add solution diagram
+- [x] add deep coherence diagram
+- [x] extend deep coherence diagram
 
 ## From comments: lexical
 - [x] better synonym for 'enrolled' => 'enrolled'.
-- [ ] usage of 'constraint' and 'restriction'
 
 ## Misc
 
 - [x] Fix Real symbol
+
+## Describe assumptions/simplifications --- possible improvement
+- [ ] No part/full time professor separation: assumed to be handled by 'rareness'.
+- [ ] Classes splitting. Now a single class is created for each discipline,
+      it can be improved by modifying 'Day – Time – Room' assignment strategy.

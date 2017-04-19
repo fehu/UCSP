@@ -15,11 +15,15 @@
 \usepackage{accents} % provides \accentset, used in Problem Formalization.
 \usepackage{tabularx}
 \usepackage{hyperref}
+\usepackage{mdframed}
+\usepackage{float}
+
+% \usepackage{showframe}
 
 
 \usepackage{tikz, pgfplots}
-\usetikzlibrary{fit, shapes.geometric}
-%\usetikzlibrary{ fit, calc, arrows, shapes }
+\usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
+                shapes.geometric }
 
 % from http://tex.stackexchange.com/questions/157389/how-to-center-column-values-in-a-table
 \usepackage{array}
@@ -28,8 +32,21 @@
 \newcommand{\red}[1]{{\color{red} #1}}
 \newcommand{\green}[1]{{\color{green} #1}}
 \newcommand{\yellow}[1]{{\color{yellow} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
 
 \def\todo{\red{TODO}}
+
+
+\newenvironment{note}
+    {\begin{mdframed}[% leftmargin=1cm,
+                 %skipabove=1em,
+                 %skipbelow=1em,
+                 rightline=false,
+                 topline=false,
+                 bottomline=false,
+                 linewidth=2pt]}
+    {\end{mdframed}}
+
 
 \newcommand{\multibinom}[2]{
   \left(\!\middle(\genfrac{}{}{0pt}{}{#1}{#2}\middle)\!\right)

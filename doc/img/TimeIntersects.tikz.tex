@@ -1,13 +1,13 @@
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.7]
 
 \newcommand{\plotTimeI}[3]{
-  \node [label=above:{#3 begins}] at (#1,0) {\textbf{[}};
-  \node [label=above:{#3 ends}]   at (#2,0) {\textbf{]}};
+  \node [label=above:{\scriptsize #3 begins}] at (#1,0) {\textbf{[}};
+  \node [label=above:{\scriptsize #3 ends}]   at (#2,0) {\textbf{]}};
 }
 
 \newcommand{\plotTimeIL}[3]{
-  \node [label=below:{#3 begins}] at (#1,0) {\textbf{\Large [}};
-  \node [label=below:{#3 ends}]   at (#2,0) {\textbf{\Large ]}};
+  \node [label=below:{\scriptsize #3 begins}] at (#1,0) {\textbf{\Large [}};
+  \node [label=below:{\scriptsize #3 ends}]   at (#2,0) {\textbf{\Large ]}};
 }
 
 

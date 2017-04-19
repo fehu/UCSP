@@ -29,3 +29,30 @@
 
 \def\mmin{\mminh}
 \def\mmax{\mmaxh}
+
+% matrix, row, color
+\newcommand*{\fith}[4][]{
+  \def\m{#2}
+  \def\i{#3}
+  \def\color{#4}
+  \node[fit=(\m-\i-\mmin) (\m-\i-\mmax), inner sep=-5pt, draw, color=\color, #1] {};
+}
+
+% matrix, column, color
+\newcommand*{\fitv}[4][]{
+  \def\m{#2}
+  \def\j{#3}
+  \def\color{#4}
+  \node[fit=(\m-\mminv-\j) (\m-\mmaxv-\j), inner sep=-5pt, draw, color=\color, #1] {};
+}
+
+
+\newcommand{\used}[4]{
+  \def\m{#1}
+  \def\r{#2}
+  \def\c{#3}
+  \def\color{#4}
+  \node[draw, cross out, color=\color, inner sep=5pt, thick] at (\m-\r-\c) {};
+}
+\newcommand{\usedv}[3]{\used{#1}{1}{#2}{#3}}
+\newcommand{\usedh}[3]{\used{#1}{#2}{1}{#3}}
