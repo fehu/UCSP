@@ -136,12 +136,26 @@ The biggest assumption made in this \thisdoc\ is that the groups are preformed
 and \emph{each student belongs strictly to one group}. This permits to handle
 groups completely ignoring the underlying students, thus simplifying schedule
 negotiation.
-
 The assumption makes it impossible to resolve a large subclass of UCSPs, where
 the groups are not fixed, but formed for each discipline from the students
 that need it.
 
+Basing the negotiation on \emph{students} would require a new preceding stage:
+\underline{group formation}.
 
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\textwidth}{!}{
+    \subfile{\rootdir/img/ScheduleHypercube/SGRPT.tikz}
+  }
+  \caption{Schedule space with \emph{students}. Group space consists of
+           sets of students that perform coherence evaluation. }
+  \label{fig:ScheduleHypercube-S}
+\end{figure}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

@@ -1,11 +1,13 @@
 
 \newcommand{\mkInnerSide}[4][]{
-  \shade[top color=gray!10, bottom color=black!50] (0,0) rectangle +(5,5);
+  \shade[top color=gray!10, bottom color=black!50, #1] (0,0) rectangle +(5,5);
   % grid
   \draw (0,0) grid (5,5);
   % header
   \foreach \i/\x in {1/#2_1,2/\dots,3/#2_#3,4/\dots,5/#2_#4}
-    { \node[#1] at (\i-0.5, 4.5) {$\x$}; }
+    { \node (#2-header-\i) at (\i-0.5, 4.5) {$\x$}; }
+  % center
+  \node[inner sep=0pt] (#2-center) at (2.5,2.5) {};
   % corners
   \node[inner sep=0pt] (#2-bottom-left)  at (0,0) {};
   \node[inner sep=0pt] (#2-bottom-right) at (5,0) {};
