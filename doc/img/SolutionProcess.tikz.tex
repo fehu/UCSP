@@ -1,18 +1,10 @@
-\documentclass[tikz]{standalone}
-
-
-\usepackage{xcolor}
-% \usepackage[inline,shortlabels]{enumitem}
-
-\usepackage{tikz}
-\usetikzlibrary{chains, shapes, arrows, calc, fit}
-
-\newcommand{\red}[1]{{\color{red} #1}}
-\def\todo{\red{TODO}}
+\documentclass[../ThesisDoc]{subfiles}
 
 \begin{document}
 
-\begin{tikzpicture}[
+\colorlet{darkgreen}{green!50!black}
+
+\begin{tikzpicture}[trim left,
   start chain=0 going below,
   gact/.style={on chain=0, text width=5cm, minimum height=30pt, align=center},
   start chain=1 going below,
@@ -72,7 +64,7 @@
     {\underline{Conflict} with candidates $\{\tilde{c}_j\}$};
 
 
-\node[below=20pt of G-put-succ, draw, double, green] (G-sleep) {\Large \textbf{Sleep}};
+\node[below=20pt of G-put-succ, draw, double, color=darkgreen] (G-sleep) {\Large \textbf{Sleep}};
 
 
 \def\rshift{1.5cm}
@@ -219,7 +211,7 @@
 
 \node[hact, ifshape, right=of H-total] (H-coherent)
     {Is \underline{coherent}?};
-\node[above=of H-coherent, draw, double, green, text width=3cm,
+\node[above=of H-coherent, draw, double, color=darkgreen, text width=3cm,
       minimum height=25pt, center] (H-notify)
 {\color{black} \underline{Notify listeners} };
 
@@ -242,6 +234,9 @@
 \draw[flow2] (H-coherent) -- node[above, xshift=-5pt] {\large \textbf{No}}
              (H-d-other);
 \draw[flow] (H-notify) -- (H-d-better);
+
+\draw[msg, color=darkgreen, dotted] (H-d-other) edge[bend right] (G-sleep);
+\draw[msg, color=darkgreen, dotted] (H-d-better) edge[bend right] (G-sleep);
 
 \end{scope}
 

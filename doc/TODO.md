@@ -1,6 +1,6 @@
-### TODO
+TODO
+====
 
-- [ ] there are now 3 roles, with 'Schedule Controller(s)'
 
 #### Abstract
 
@@ -19,14 +19,14 @@
 
 #### Solution
 
-- [ ] Describe what is _fold function_
+- [x] Describe what is _fold function_
 - [x] Describe _Details_
 
 
 #### Solution: Group
 
 - [x] replace fig:candidates-alone diagram
-- [ ] add solution diagram
+- [x] add solution diagram
 - [x] add deep coherence diagram
 - [x] extend deep coherence diagram
 
