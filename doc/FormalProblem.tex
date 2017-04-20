@@ -1,6 +1,8 @@
 \documentclass[ThesisDoc]{subfiles}
 \begin{document}
 
+\providecommand{\rootdir}{.}
+
 \input{MathDefs}
 
 \section{Problem Formalization}
@@ -74,5 +76,18 @@ is a set of classes $\{c_a^*\}$, that:
 
 \noindent
 A solution to the scheduling problem is a valid union of \emph{all} partial solutions.
+
+
+
+\begin{figure}[h]
+  \centering
+  \resizebox{\textwidth}{!}{
+    \subfile{\rootdir/img/ScheduleHypercube/GRPT.tikz}
+  }
+  \caption{Schedule 4-dimensions space. Each \emph{group} $G_i$,
+          \emph{professor} $P_k$ and \emph{classroom} $R_j$ has a
+          \underline{timetable} (Day $\times$ Time) of its own.}
+  \label{fig:ScheduleHypercube}
+\end{figure}
 
 \end{document}
