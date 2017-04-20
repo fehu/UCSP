@@ -129,6 +129,26 @@ If other behavior is needed when dealing with \emph{part-time} professors, then
 it can be achieved by extending \texttt{Professor} role constructor and matching
 concrete role in agents' behavior functions.
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsection{Students Representation}
 
+The biggest assumption made in this \thisdoc\ is that the groups are preformed
+and \emph{each student belongs strictly to one group}. This permits to handle
+groups completely ignoring the underlying students, thus simplifying schedule
+negotiation.
+
+The assumption makes it impossible to resolve a large subclass of UCSPs, where
+the groups are not fixed, but formed for each discipline from the students
+that need it.
+
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsection{Classrooms Representation}
+It is possible to make the classrooms a represented entity, by creating
+corresponding agent \emph{role} and changing the \emph{class-cores}.
+Then the classrooms can have internal contexts of their own, and their
+\emph{opinions} would be included by external coherence evaluation.
 
 \end{document}
