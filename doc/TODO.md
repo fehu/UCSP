@@ -38,6 +38,9 @@ TODO
 - [x] Fix Real symbol
 
 ## Describe assumptions/simplifications --- possible improvement
-- [ ] No part/full time professor separation: assumed to be handled by 'rareness'.
-- [ ] Classes splitting. Now a single class is created for each discipline,
+- [x] Timetable.
+- [x] No part/full time professor separation: assumed to be handled by 'rareness'.
+- [x] Classes splitting. Now a single class is created for each discipline,
       it can be improved by modifying 'Day – Time – Room' assignment strategy.
+- [ ] Students.
+- [ ] Rooms representation.
