@@ -1,0 +1,36 @@
+\documentclass[../../ThesisDoc]{subfiles}
+
+\begin{document}
+
+
+
+\begin{tikzpicture}[
+  cArr/.style={<-, thick, =<stealth}
+  ]
+
+\def\x{$\bullet$}
+\matrix (m) [matrix of nodes, nodes in empty cells,
+  column sep=0pt, row sep=0pt, inner sep=0pt,
+  nodes={ draw, color=lightgray, text=black, minimum size=1cm, anchor=center },
+  column 1/.style={nodes={draw=none}},
+  row 1/.style={nodes={draw=none}},
+  ]{
+       & $p_1$ & \dots & $p_k$ & \dots & $p_m$ \\
+$g_1$  &       &   \x  &       &   \x  &   \x  \\
+\vdots &   \x  &       &       &   \x  &       \\
+$g_i$  &   \x  &   \x  &   \x  &       &       \\
+\vdots &       &   \x  &       &   \x  &   \x  \\
+$g_n$  &   \x  &       &   \x  &       &   \x  \\
+};
+
+\draw[cArr] (m-4-6) -- node[text width=2cm, align=center]
+                           {Classes of\\group $g_i$}
+          ++(2cm,0);
+
+\draw[cArr] (m-6-4) -- node[right, yshift=-2pt] {Classes of professor $p_k$}
+          ++(0,-1cm);
+
+\node[below=1cm of m] {$\bullet$ --- set of classes};
+
+\end{tikzpicture}
+\end{document}

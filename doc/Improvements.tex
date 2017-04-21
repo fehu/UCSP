@@ -141,13 +141,64 @@ the groups are not fixed, but formed for each discipline from the students
 that need it.
 
 Basing the negotiation on \emph{students} would require a new preceding stage:
-\underline{group formation}.
+\underline{group formation}. Groups should be formed dynamically by students in
+order to represent them in negotiation with professors. Different strategies
+could be used for groups creation, that would depend on group size limits.
+In general, initially a minimal set of groups (with maximum students possible)
+should be created for each discipline, possibly by students negotiation.
+More groups can be created later to separate some students, causing conflicts;
+of course all group size restrictions must be respected by newly created
+group and its ``donors''. A less radical way to change groups composition is
+student transfer.
 
+A group is formed by students to study specific discipline (or a set of
+explicitly linked ones). All the classes of a group would have the same professor.
+In this negotiation scheme, a group would have no more constraints of its own.
+All coherence assessment is passed down to the underlying students and then
+combined. On figures \ref{fig:ScheduleHypercube-S} and
+\ref{fig:ConnectionMatrixDiff} the differences in agents connection organization
+are presented.
+
+As in the original negotiation, a group should be responsible for candidate
+creation and placement, representing the underlying students in \underline{all}
+the communications. Therefore the negotiation scheme would remain unchanged
+(see section \ref{sec:solution} and figure \ref{fig:solution-flow}).
+The modification would only affect group proactive behavior:
+\begin{enumerate}
+  \item Internal coherence assessment would interrogate student agents.
+  \item A group could not only change the candidate, but also request changes
+        to groups compositions.
+\end{enumerate}
+
+\medskip\noindent
+Proxying would complicate the resulting relations between the agents, so
+some tests are needed to make further implementation suggestions.
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
 \begin{figure}[h]
+  \begin{subfigure}{0.36\textwidth}
+    \resizebox{\linewidth}{!}{
+      \subfile{\rootdir/img/ConnectionMatrix2/WithComments.tikz}
+    }
+    \caption{Originally, the connections between groups and classes are
+             defined by classes (class-cores).}
+  \end{subfigure}
+  ~
+  \begin{subfigure}{0.64\textwidth}
+    \resizebox{\linewidth}{!}{
+      \subfile{\rootdir/img/ConnectionMatrix2/WithStudents.tikz}
+    }
+    \caption{In the new model, each group connects with strictly one professor
+             and a set of underlying students.}
+    \label{}
+  \end{subfigure}
+  \caption{}
+  \label{fig:ConnectionMatrixDiff}
+\end{figure}
+
+
+\begin{figure}[b]
   \centering
   \resizebox{\textwidth}{!}{
     \subfile{\rootdir/img/ScheduleHypercube/SGRPT.tikz}
@@ -164,5 +215,14 @@ It is possible to make the classrooms a represented entity, by creating
 corresponding agent \emph{role} and changing the \emph{class-cores}.
 Then the classrooms can have internal contexts of their own, and their
 \emph{opinions} would be included by external coherence evaluation.
+Agents connections in case of students and classrooms representation are shown
+on figure \ref{fig:ConnectionMatrixAll}.
+\begin{figure}[h]
+  \resizebox{\textwidth}{!}{
+    \subfile{\rootdir/img/ConnectionMatrix2/WithStudentsAndRooms.tikz}
+  }
+  \caption{Agents connections in case of full representation.}
+  \label{fig:ConnectionMatrixAll}
+\end{figure}
 
 \end{document}

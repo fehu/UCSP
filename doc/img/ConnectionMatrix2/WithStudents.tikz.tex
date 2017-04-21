@@ -1,0 +1,46 @@
+\documentclass[../../ThesisDoc]{subfiles}
+
+\begin{document}
+
+
+
+\begin{tikzpicture}[
+  cArr/.style={<-, thick, =<stealth}
+  ]
+
+\def\x{$\bullet$}
+\matrix (m) [matrix of nodes, nodes in empty cells,
+  column sep=0pt, row sep=0pt, inner sep=0pt,
+  nodes={ draw, color=lightgray, text=black, minimum size=1cm, anchor=center },
+  column 6/.style={nodes={draw=none}},
+  row 1/.style={nodes={draw=none}},
+  ]{
+ $s_1$ & \dots & $s_i$ & \dots & $s_n$ &        & $p_1$ & \dots & $p_k$ & \dots & $p_m$ \\
+  \x   &  \x   &  \x   &       &       & $g_1$  &       &  \x   &       &       &       \\
+       &  \x   &  \x   &  \x   &       & \vdots &       &       &  \x   &       &       \\
+       &       &  \x   &  \x   &  \x   & $g_t$  &       &       &       &       &  \x   \\
+  \x   &       &       &       &  \x   & \vdots &       &       &  \x   &       &       \\
+  \x   &  \x   &       &  \x   &       & $g_*$  &  \x   &       &       &       &       \\
+};
+
+\draw[cArr] (m-4-11) -- node[text width=2cm, align=center, xshift=2pt]
+                           {Classes of\\group $g_t$\\with unique professor $p_m$ }
+          ++(2cm,0);
+\draw[cArr] (m-6-9) -- node[right, yshift=-2pt] {Classes of professor $p_k$}
+          ++(0,-1cm);
+\draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=4pt}]
+      ($(m-6-6)+(1em,-3em)$) -- node[below=12pt]{$\bullet$ --- set of classes}
+      ++(5.4,0);
+
+\draw[cArr] (m-4-1) -- node[text width=2cm, align=center]
+                           {Students in group $g_t$}
+          ++(-2cm,0);
+\draw[cArr] (m-6-3) -- node[ yshift=-2pt] {Groups of student $s_i$}
+          ++(0,-1cm);
+\draw [decorate,decoration={brace,amplitude=10pt,raise=4pt}]
+      ($(m-6-6)+(-1em,-3em)$) -- node[below=12pt]
+                                 {$\bullet$ --- student belongs to group}
+      ++(-5.4,0);
+
+\end{tikzpicture}
+\end{document}
