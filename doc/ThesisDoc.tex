@@ -7,7 +7,6 @@
 \usepackage{times} %%  This is the font that the document is to use. This is a must!!!
 
 \usepackage[english]{babel}
-% \usepackage[utf8]{inputenc}
 
 % \usepackage{url}
 % \usepackage{amsfonts}
@@ -22,7 +21,7 @@
 \usepackage{xcolor, ifthen}
 \usepackage{siunitx} % represent numbers with separators
 \usepackage{csquotes}
-% \usepackage[pdftex]{graphicx}
+\usepackage[pdftex]{graphicx}
 \usepackage{graphicx,multirow}
 \usepackage{subcaption}
 \usepackage{accents} % provides \accentset, used in Problem Formalization.
@@ -134,7 +133,13 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %% From ITESM-MIT-MasterThesis
 
-\ifthenelse{\isundefined{\docComplete}}{}{
+\ifthenelse{\isundefined{\docComplete}}
+{
+  \Abstract
+  \newpage
+  \tableofcontents
+}
+{
   % The following commands are not to be changed as they prepare the initial pages of the document. Also, they set up the environment for the real content.  Do not move them or erase them; they are needed for a proper presentation of your dissertation
   \MainTitle
   \ThesisCommittee
@@ -151,14 +156,14 @@
 \newcommand{\rootdir}{.}
 \input{MathDefs}
 
-\insertChapter{Introduction}
-\insertChapter{CSP}
-\insertChapter{Agents}
-\insertChapter{Coherence}
-\insertChapter{FormalProblem}
-\insertChapter{Solution}
-\insertChapter{TestResults}
-\insertChapter{Improvements}
+\insertChapter{1-Introduction}
+\insertChapter{2-CSP}
+\insertChapter{3-Agents}
+\insertChapter{4-Coherence}
+\insertChapter{5-FormalProblem}
+\insertChapter{6-Solution}
+\insertChapter{7-TestResults}
+\insertChapter{8-Improvements}
 
 % \appendix        									%%  This command is needed before you start inserting your
 % 																	%%	appendices for proper formatting.
@@ -166,5 +171,6 @@
 
 % These two last commands are not to be changed either. The first one prepares the bibliography and sets its style while the second inserts the author's vita.
 \insertBibliography
-\insertVita{vitaFile}
+\ifthenelse{\isundefined{\docComplete}}{}
+           {\insertVita{vitaFile}}
 \end{document}
