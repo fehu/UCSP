@@ -2,7 +2,13 @@
 
 \documentclass[english,12pt,oneside,openright]{report}
 
-\usepackage{phdThesisFormat}
+%% from https://tex.stackexchange.com/questions/15862/only-usepackage-if-the-package-can-be-found
+\newcommand*\usepackageifpresent[2][]{%
+    \IfFileExists{#2.sty}{\usepackage[#1]{#2}}{}%
+}
+
+
+\usepackageifpresent{phdThesisFormat}
 									 %%	This line is a must!!!
 \usepackage{times} %%  This is the font that the document is to use. This is a must!!!
 
@@ -71,37 +77,14 @@
     {\begin{center}\rule{#2\textwidth}{#1}\end{center}}
 
 
-\newcommand{\secpartc}[1]{%
-  \bigskip
-  \begin{center}%
-  \textbf{\underline{#1}}%
-  \end{center}%
-  \medskip
-}
-\newcommand{\secpartl}[1]{%
-  \bigskip
-
-  \noindent
-  \textbf{#1}%
-
-  \medskip
-}
-
 \def\thisdoc{thesis}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-%% Change some 'phdThesisFormat' commands
-
-% 'insertChapter' should use 'subfiles' package.
-\renewcommand{\insertChapter}[1]{\subfile{#1}} % twoside case ignored
-
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 %% From ITESM-MIT-MasterThesis
 
-%% Definition of new commands
-\newcommand{\field}[1]{\mathbb{#1}}
-\renewcommand{\thefootnote}{\alph{footnote}}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\begin{document}
 
 %%  Here you set up the variables according to your work
 \advisor{Dr. Name-Last-Name}                             			%%  Your advisor's name
@@ -123,15 +106,22 @@
 \dedicationFile{dedicationFile}                                 	%%  This is a plain tex file that holds your dedication
 \bibliographyFile{References}                                 		%%  This is a bib file with te bibliography for your dissertation
 
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% Change some 'phdThesisFormat' commands
+
+% 'insertChapter' should use 'subfiles' package.
+\renewcommand{\insertChapter}[1]{\subfile{#1}} % twoside case ignored
+
+%% Definition of new commands
+\newcommand{\field}[1]{\mathbb{#1}}
+\renewcommand{\thefootnote}{\alph{footnote}}
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\begin{document}
+\def\docComplete{}
 
-% \def\docComplete{}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-%% From ITESM-MIT-MasterThesis
 
 \ifthenelse{\isundefined{\docComplete}}
 {
@@ -151,6 +141,7 @@
   \startContent
 }
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \newcommand{\rootdir}{.}

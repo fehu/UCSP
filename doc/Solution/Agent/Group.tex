@@ -5,10 +5,8 @@
 \providecommand{\rootdir}{../..}
 \input{\rootdir/MathDefs}
 
-\providecommand{\seccmd}[1]{\secpartc{#1}}
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsection{Group Agents}
+\section{Group Agents}
 
 \emph{Group agents} play active role in the negotiation.
 Initially, each group generates a \emph{random candidate}.
@@ -31,7 +29,7 @@ it into the \emph{common schedule variable} or generates a new one.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Class-Cores}
+\subsection{Class-Cores}
 \label{sec:solution-CC}
 
 A class core is considered to be the immutable part of a class, that doesn't
@@ -63,7 +61,7 @@ the disciplines, that the represented person can teach.
 \end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Day -- Time -- Room}
+\subsection{Day -- Time -- Room}
 \label{sec:solution-DTR}
 
 In order to obtain concrete classes, the cores must be completed with day, room,
@@ -99,7 +97,7 @@ the history variable is reset.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Candidate placement}
+\subsection{Candidate placement}
 \begin{itemize}
   \item If generated candidate was found coherent by all contexts,
         then the agent must try to put it in the \emph{common schedule}
@@ -145,7 +143,7 @@ $\tilde{c}_i$ is ``better'' than any conflicting candidate.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Placement Conflicts Resolution --- Candidates Comparison}
+\subsection{Placement Conflicts Resolution --- Candidates Comparison}
 \label{sec:solution-compare}
 
 A conflict over placing a candidate $\tilde{c}_i$ into the schedule arises
@@ -184,7 +182,7 @@ corresponding creators with \emph{yield demand}.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\seccmd{External coherence}
+\subsubsection{External coherence}
 Is used for preliminary/default assessment of the candidates.
 Evaluation is done with ``preliminary'' context assessment \emph{mode}, that
 disables certain relations; it is intended primarily to be used by professor agents.
@@ -195,7 +193,7 @@ considered.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\seccmd{Deep external coherence}
+\subsubsection{Deep external coherence}
 External coherence of depth $N$. Can be assessed in either \emph{preliminary}
 or \emph{final} context assessment mode. Deep coherence has higher priority if
 assessed in the latter mode.
@@ -237,9 +235,9 @@ in conflict with the candidate marked \red{red}.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\begin{figure}[H]
+\begin{figure}[h]
   \centering
-  \resizebox{\textwidth}{!}{
+  \resizebox{0.7\textwidth}{!}{
     \subfile{\rootdir/img/ConnectionMatrix/ConflictDeepCoherence.tikz}
     }
   \caption{Example of deep coherence evaluation by agent $g_i$.}
@@ -249,7 +247,7 @@ in conflict with the candidate marked \red{red}.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-\seccmd{Candidate ``rareness''}
+\subsubsection{Candidate ``rareness''}
 Sum of ``rare'' disciplines' priorities. Discipline's ``rarity'' (or
 \emph{priority}) is ratio
 \begin{itemize}
@@ -276,7 +274,7 @@ Candidate's ``rareness'' $\rho_{\tilde{c}}$ therefore is
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Change of a candidate}
+\subsection{Change of a candidate}
 \label{sec:solution-change}
 
 Triggered either when a candidate was found \emph{not sufficiently coherent}

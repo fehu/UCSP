@@ -5,7 +5,7 @@
 \providecommand{\rootdir}{..}
 \input{\rootdir/MathDefs}
 
-\subsection{Agent Implementation}
+\section{Agent Implementation}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -73,7 +73,7 @@ They are executed in two computational threads:
 one for message handling and another for proactive action.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{References}
+\subsection{References}
 As agent's internal state must be private, an agent should not be accessible directly.
 In order to hide both the state and behavior implementation, \emph{agent reference}
 is used instead. It provides four ways to interact with an agent:
@@ -95,7 +95,7 @@ of the underlying agents match.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Roles}
+\subsection{Roles}
 
 As it is stated in section \ref{sec:NegotiatingAgents}, an \emph{agent role}
 generalizes agents behavior and serves as a template for new agents.
@@ -114,7 +114,7 @@ given the corresponding \emph{template argument}.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\subsubsection{Agent System}
+\subsection{Agent System}
 
 \emph{Agent system} controls agents creation, execution and termination
 (both successful and not).
