@@ -31,3 +31,7 @@ tex-build/
 
 # Emacs
 **/auto/*.el
+
+
+# Ignore private
+private_data.tex
