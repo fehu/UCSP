@@ -4,7 +4,7 @@ TODO
 
 #### Abstract
 
-- [ ]
+- [x]
 
 #### Introduction
 
@@ -13,9 +13,21 @@ TODO
 
 #### CSP
 
-- [ ] Graph coloring/n-queen problem diagrams.
+- [x] Graph coloring/n-queen problem diagrams.
 - [ ] Write something about one of the techniques.
 - [x] Distributed: rewrite or delete.
+- [x] N-Queens lacks second diagonal constraint.
+
+- [ ] Solutions: here or in Agents?
+
+#### Agents
+
+- [ ] Graph coloring resolution method(s).
+- [ ] N-queen problem resolution method(s).
+
+#### Coherence
+
+- [ ]
 
 #### Solution
 

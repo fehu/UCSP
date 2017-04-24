@@ -1,6 +1,9 @@
 \documentclass[ThesisDoc]{subfiles}
-\begin{document}
 
+\providecommand{\rootdir}{.}
+\input{MathDefs}
+
+\begin{document}
 
 % \green{Explicar que son los CSP}
 \chapter{Constraint Satisfaction Problems}
@@ -97,12 +100,39 @@ $$\xi_2(\left<x_1,y_1\right>, \left<x_2,y_2\right>) =
       0 & \mbox{if } \begin{cases}
                         &      x_1 = x_2  \lor y_1 = y_2 \\
                         \lor~& x_1 = y_2 \land x_2 = y_1 \\
-                        \lor~& |x_1-y_1| = |x_2-y_2|
+                        \lor~& x_1-y_1 = x_2-y_2\\
+                        \lor~& x_1+y_1 = x_2+y_2
                      \end{cases} \\
      1 & \text{otherwise}
     \end{cases}
 $$
 
+\begin{figure}
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+  	\subfile{\rootdir/img/NQueens/Restrictions.tikz}
+  	\caption{Queen moves/attacks.}
+  	\label{fig:QueenMoves}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+    \centering
+  	\includegraphics[trim=100 260 370 370, clip] % width=\textwidth
+               {\rootdir/img/easteuro}
+  	\caption{Central Europe map (part).
+            %  (\url{http://www.un.org/Depts/Cartographic/map/profile/easteuro.pdf})
+            }
+  	\label{}
+  \end{subfigure}
+  \hfill
+  \begin{subfigure}[b]{0.3\textwidth}
+  	\centering
+    \subfile{\rootdir/img/ColorMap/CEUMapGraph.tikz}
+  	\caption{Graph coloring problem.}
+  	\label{fig:ColoringGraph}
+  \end{subfigure}
+  \caption{CSP examples.}
+\end{figure}
 
   In our \emph{university classes scheduling} problem (UCSP) the variables
 are personal schedules, called \emph{timetables} in this thesis,
@@ -195,6 +225,9 @@ Those methods do not seek for the optimal solutions, focusing instead on
 computing resources.
 
 \bigskip
+
+\noindent
+Some agent solution methods are presented in section \ref{sec:CSP-Agents}.
 
 % \todo \red{: write something about one of the techniques}
 
