@@ -56,3 +56,8 @@ TODO
       it can be improved by modifying 'Day – Time – Room' assignment strategy.
 - [x] Students.
 - [x] Rooms representation.
+
+
+### Style
+
+- [ ] Line spacing.
