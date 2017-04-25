@@ -22,8 +22,7 @@ TODO
 
 #### Agents
 
-- [ ] Graph coloring resolution method(s).
-- [ ] N-queen problem resolution method(s).
+- [ ] Describe some N-queen problem resolution method (Weak Commitment Search).
 
 #### Coherence
 
@@ -33,7 +32,8 @@ TODO
 
 - [x] Describe what is _fold function_
 - [x] Describe _Details_
-
+- [ ] Edit for easier reading, add lacking details.
+- [ ] Merge with Formal Problem Definition.
 
 #### Solution: Group
 
