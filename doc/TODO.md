@@ -35,6 +35,12 @@ TODO
 - [ ] Edit for easier reading, add lacking details.
 - [x] Merge with Formal Problem Definition.
 
+- [ ] Discrete time.
+- [ ] What's "mentions"?
+- [ ] External context needs access to previous coherence value in order to
+      apply Gamma.
+
+
 #### Solution: Group
 
 - [x] replace fig:candidates-alone diagram

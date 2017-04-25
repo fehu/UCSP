@@ -10,73 +10,82 @@
 
 
 A \emph{context} represents an aspect for optimization/restriction, considered
-by an agent. It defines context-specific information and relations over the
-information graph, with the corresponding combination functions.
-Each context defines some \emph{Details}, that describe coherence evaluation.
-There are two types of relations: \emph{binary} and over the \emph{whole graph}.
-The former ones are applied to every pair of nodes and the results are combined
-by folding\footnote{
-  In functional programming, fold (or reduce) is a family of higher order
-  functions that process a data structure in some order and build a return value.
-  Typically, a fold deals with two things: a combining
-  function\textsuperscript{\ref{footnote:binary-operation}},
-  and a data structure, typically a list of elements.
-  The fold then proceeds to combine elements of the data structure using
-  the function in some systematic way. (\url{https://wiki.haskell.org/Fold})
-} using an \emph{associative binary operation}\footnote{%
-  Operator $\bullet$ is associative
-  $\Leftrightarrow (a \bullet b) \bullet c = a \bullet (b \bullet c)$
-    \label{footnote:binary-operation}
-} $f^\cup_2$ (for each relation).
-The latter, as follows from the name, are defined over whole information graph,
-thus permitting more flexible evaluation.
+by an agent. It defines:
+\begin{enumerate}
+  \item Context-specific information --- set of \emph{information pieces}
+        (see section \ref{sec:CoherenceTheory}), that depends on context logic.
+        Might be empty if all the information needed is held inside the relations.
+  \item Relations over the information graph $\{\rel\}$
+        (with the corresponding combination functions $\{f^\cup_2\}$, if applies).
 
-Coherence values, assessed by all the relations, are combined using another
-\emph{associative binary function} $f^\cup$.
-The result is \emph{coherence at the context}.
+        There are two types of relations: \emph{binary} and over the \emph{whole graph}.
+        The former ones are applied to every pair of nodes and the results are combined
+        by folding\footnote{
+          In functional programming, fold (or reduce) is a family of higher order
+          functions that process a data structure in some order and build a return value.
+          Typically, a fold deals with two things: a combining
+          function, and a data structure, typically a list of elements.
+          The fold then proceeds to combine elements of the data structure using
+          the function in some systematic way. (\url{https://wiki.haskell.org/Fold})
+        } using an \emph{associative binary operation}\footnote{%
+          Operator $\bullet$ is associative
+          $\Leftrightarrow (a \bullet b) \bullet c = a \bullet (b \bullet c)$
+            \label{footnote:binary-operation}
+        } $f^\cup_2$ (for each relation).
+        The latter, as follows from the name, are defined over whole information graph,
+        thus permitting more flexible evaluation.
+        \begin{itemize}
+          \item \emph{Over whole graph}.
+            \begin{align*}
+              & \rel: \lbrace I \rbrace \mapsto \Re \times \Details \\
+              & \coh[\rel](\tilde{c}) = rel(\tilde{c})
+            \end{align*}
+          \item \emph{Binary}.
+            \begin{align*}
+              & \rel: I \times I \mapsto \Re \times \Details \\
+              & f^\cup_2: (\Re \times \Details) \times
+                          (\Re \times \Details)
+                   \mapsto \Re \times \Details \\[0.3em]
+              & \coh[\rel](\tilde{c}) = \fold (f^\cup_2[\rel]) ~
+                  \left(\lbrace \rel(c_a,c_b) ~|~ \forall\, c_a,c_b \in \tilde{c}
+                                          , ~ a \not= b \rbrace\right)
+            \end{align*}
+          \item[\emph{where}] $I$ --- \emph{information piece}. \\\noindent
+                              $\tilde{c} \sim \{c\}$ --- \emph{candidate}
+                              (set of \emph{classes}).
+                              \underline{Class $c$ is an \emph{information piece}.}
 
-\begin{align}
-\begin{split}
-  \coh[\mathrm{context}] &: \mathit{Candidate} \mapsto \Re \times \mathit{Details} \\
-  \coh[\mathrm{context}] &= \fold(f^\cup) \circ \mathrm{assess}
-\end{split}
-\end{align}
-\emph{where}
+        \end{itemize}
+  \item Relations combination associative\textsuperscript{\ref{footnote:binary-operation}}
+        function $f^\cup$, that is used to combine coherence values, assessed by
+        individual relations. The result is \emph{coherence} at the \emph{context}.
+        \begin{align*}
+          & f^\cup: (\Re \times \Details) \times
+                    (\Re \times \Details)
+             \mapsto \Re \times \Details \\
+          & \mathrm{assess}[\mathrm{context}]: \Candidate \mapsto
+                                               \Re \times \Details
+          \\[0.3em]
+          & \mathrm{assess}[\mathrm{context}](\tilde{c}) =
+            \fold (f^\cup) ~ \left(
+            \lbrace \coh[\rel](\tilde{c}) ~|~
+                    \forall\, \rel \in \mathrm{relations}(\mathrm{context})
+            \rbrace\right)
+        \end{align*}
+
+  \item Context-specific \emph{Details}, that describe coherence evaluation process.
+  \item Context-specific threshold $\Theta$, that separates \emph{context-coherent} values.
+\end{enumerate}
+
 \begin{align*}
-    \mathrm{assess}(c) &=
-      \lbrace \coh[\rel](c) ~|~ \rel \in \mathrm{relations}(\mathrm{context})
-      \rbrace\\
-    \coh[\rel](c) &= \begin{cases}
-                       \rel(c) & \textbf{if } \rel \text{ is \emph{over whole graph}}
-                       \\
-                       \fold (f^\cup_2[\rel]) ~
-                                (\lbrace \rel(x,y) ~|~ x,y \in c, ~ x \not= y
-                                 \rbrace)
-                          & \textbf{if } \rel \text{ is \emph{binary}}
-                     \end{cases}
-\end{align*}
-\begin{flalign*}
-  f^\cup, f^\cup_2 &: (\Re \times \mathit{Details}) \times (\Re \times \mathit{Details})
-                      \mapsto \Re \times \mathit{Details} & &
-\end{flalign*}
-\begin{align*}
-  \rel &:\lbrace \mathit{Information\,piece} \rbrace
-              \mapsto \Re \times \mathit{Details}
-       & \textbf{if } & \rel \text{ is \emph{over whole graph}}
-  \\
-  \rel &:\mathit{Information\,piece} \times \mathit{Information\,piece}
-              \mapsto \Re \times \mathit{Details}
-       & \textbf{if } & \rel \text{ is \emph{binary}}
+  & \coh[\mathrm{context}]: \Candidate \mapsto \Re \times
+                            \Bool \times \Details
+  \\[0.3em]
+  & \coh[\mathrm{context}](\tilde{c}) =
+      \letIn{ \left<x,d\right> = \mathrm{assess}[\mathrm{context}](\tilde{c}) }
+            {\left<x, x \geq \Theta, d\right>}
 \end{align*}
 
-% \begin{figure}[h]
-%   \centering
-%   \fbox{ \input{../code/AUCSP/src/Document/tikz/ContextAssess} }
-%   \caption{Binary relations within an information graph. One can
-%            distinguish the relations between the assessed information pieces
-%            and the relations between assessed and the known ones.
-%           }
-% \end{figure}
 
 \medskip
 \noindent
@@ -96,7 +105,7 @@ All coherence assessment functions should provide \emph{mode} argument, that
         restriction described.
 \end{enumerate}
 
-\bigskip
+\crule{0.5}
 
 \noindent
 The contexts stand for different constraints and can be divided into

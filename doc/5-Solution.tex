@@ -37,7 +37,30 @@ It continues until all the context have been assessed or the candidate couldn't
 ``pass'' some context because its local coherence estimation was found less then
 the corresponding context-specific threshold. Estimated coherence value,
 context threshold satisfaction and estimation \emph{details}
-are attached to the candidate.
+are attached to the candidate. The contexts are held by an agent.
+Coherence estimation by agent $a$:
+
+\begin{align*}
+  & \coh_a: \Candidate \mapsto \Re \times \Bool \times \{\left<\Re,\Details\right>\}
+  \\[.3em]
+  & \coh_a(\tilde{c}) = \coh'_a(\bar{c}, \mathrm{contexts}(a), \{\}),
+    \mathrm{where}~ \bar{c} = \{c ~|~ \forall\, c \in \tilde{c} \land
+                                           c~ \mathrm{mentions}~ a \}
+  \\\\
+  & \coh'_a: \Candidate \mapsto \{\Context\}
+             \mapsto \{\left<\Re,\Details\right>\}
+             \mapsto \Re \times \Bool \times \{\left<\Re,\Details\right>\}
+  \\[.3em]
+  & \coh'_a(\bar{c}, \{ \ctx, \ctx_{\dots} \}, \acc) =
+    \letIn{\left<x,b,d\right> = \coh[\ctx](\bar{c})}
+      {\begin{cases}
+          \coh'_a(\bar{c}, \ctx_{\dots}, \{\acc, \left<x,d\right>\}) & \mathbf{if}\, b \\
+          \left<x,\false, \{\acc, \left<x,d\right>\}\right>          & \mathbf{otherwise}
+        \end{cases}}\\
+  & \coh'_a(\bar{c}, \{\}, \acc) =
+    \letIn{ \left<x,d\right> = \mathrm{last}(\acc)}
+          { \left<x,\true,\acc\right> }
+\end{align*}
 
  % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 

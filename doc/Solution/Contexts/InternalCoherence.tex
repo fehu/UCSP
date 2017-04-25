@@ -12,8 +12,8 @@ The combined coherence of all the internal contexts is called
 \subsubsection{Obligations}
 
 The obligations determine custom \emph{strong restrictions} over the classes.
-As in the case of \emph{capabilities}, the obligation relations must yield
-boolean result and make use of \emph{mode} relation argument.
+Obligation relations must yield boolean result and make use of
+\emph{mode} relation argument.
 
 In order to be coherent, a candidate must comply with \emph{all} the restrictions.
 
@@ -22,6 +22,11 @@ In order to be coherent, a candidate must comply with \emph{all} the restriction
 Possible \emph{obligation relations} examples:
 maximum and minimum classes per week, maximum classes per day,
 lunch recess time, lower/upper class time limit, two classes must/cannot follow etc.
+
+``\emph{Minimum classes}'' relations might over-restrict initial candidates, that
+don't have enough classes. The required classes quantity/length might be reached later,
+when the candidates are put together.
+Therefore such restrictions \underline{must} support \emph{assessment modes}.
 
 % \red{At the moment there are no obligations used (but they are supported).}
 

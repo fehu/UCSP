@@ -22,9 +22,24 @@
 \def\restrS{\accentset{S}{\xi}^p_i}
 \def\restrW{\accentset{W}{\xi}^p_i}
 
-\def\ctx{\mathit{ctx}}
-\def\codom{\mathrm{codomain}}
-\def\maybe{\mathrm{Maybe\,}}
+% \def\ctx{\mathit{ctx}}
+% \def\codom{\mathrm{codomain}}
+% \def\maybe{\mathrm{Maybe\,}}
 
 \def\true{\mathit{true}}
 \def\false{\mathit{false}}
+
+\def\Bool{\mathrm{Bool}}
+\def\Candidate{\mathit{Candidate}}
+\def\Details{\mathit{Details}}
+\def\Context{\mathit{Context}}
+
+\def\acc{\mathit{acc}}
+\def\ctx{\mathit{ctx}}
+
+\providecommand{\letIn}[2]{
+  \begin{aligned}[t]%
+    & \mathit{let}\, #1 \\%
+    & \mathit{in}~ #2%
+  \end{aligned}%
+}

@@ -39,13 +39,13 @@ Let \begin{itemize}
       be a \emph{class} --- an ``instance'' of some \emph{class core}, that has
       certain day, time (beginning \& end) and room assigned.
 \item $\{\restrC\}$ be the restrictions over the classes.
-      $\restrC : c \mapsto \mathrm{Bool}$
+      $\restrC : c \mapsto \Bool$
 \item $\restrT$ be the \emph{time-consistency} restriction, that ensures
   classes non-intersection for each participant.
-      $\restrT : c \mapsto c \mapsto \mathrm{Bool}$
+      $\restrT : c \mapsto c \mapsto \Bool$
 \item $\{\restrS\}$ be the rest of strong restrictions, or \emph{obligations},
       of participant $p$.
-      $\restrS : \{c\} \mapsto \mathrm{Bool}$
+      $\restrS : \{c\} \mapsto \Bool$
 \item $\{\restrW\}$ be the weak restrictions, or \emph{preferences}, of participant $p$.
       In order to avoid overrestrictions, the preferences should weaken with time.
       $\restrW : \tau \mapsto \{c\} \mapsto (0,1]$
