@@ -18,11 +18,14 @@ TODO
 - [x] Distributed: rewrite or delete.
 - [x] N-Queens lacks second diagonal constraint.
 
-- [ ] Solutions: here or in Agents?
+- [ ] Graph coloring with normal GA. Define genes and fitness, give examples of
+      chromosomes. And immediately a possible solution, without details.
 
 #### Agents
 
 - [ ] Describe some N-queen problem resolution method (Weak Commitment Search).
+- [ ] N-Queens solution with Weak Commitment Search. Complete, but for a
+      4x4 board, possibly with a 'magic' initial state.
 
 #### Coherence
 
