@@ -14,7 +14,7 @@ TODO
 #### CSP
 
 - [x] Graph coloring/n-queen problem diagrams.
-- [ ] Write something about one of the techniques.
+- [x] Write something about one of the techniques.
 - [x] Distributed: rewrite or delete.
 - [x] N-Queens lacks second diagonal constraint.
 
