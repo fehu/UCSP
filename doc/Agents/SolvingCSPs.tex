@@ -1,0 +1,176 @@
+\documentclass[../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+
+\section{Solving CSPs with Multiagent Systems}
+\label{sec:CSP-Agents}
+
+Multiagent Systems (MAS) have been successfully used to solve
+different \emph{constraints satisfaction problems} \cite{MAS, MAS-Survey}.
+Each problem variable is given to an agent, that would try to set its value,
+avoiding contradictions with the values of its ``neighbouring'' agents.
+There are different methods and techniques for implementing agents behavior.
+
+One of the simplest methods consists in taking all possible variable domain values
+and eliminating the values, that are in contradiction with the neighbors.
+The process results in a solution if when all the agents have exactly one
+possible value; or it fails if any of the agents runs out of the possible
+values to propose. A natural question arises: in what order should the agents
+prune their domains?
+It can be resolved by assigning a distinct comparable priority value to each agents.
+In such case a value should be excluded only if neighbor's priority exceeds own priority.
+Combined with \emph{backtracking} technique, it guarantees finding a solution,
+if it exists.
+
+\noindent
+An agent $a_i$
+\begin{enumerate}
+  \item controls variable $v_i$ with a finite $\domain~v_i =
+        \{{\dot v}^i_j\}_{j=1}^{N_i}$, can set it's value ${\dot V}_i$,
+  \item has sets of possible ${\tilde V}_i$ and excluded ${\tilde V}_i^-$ values,
+  \item has priority $p$.
+\end{enumerate}
+
+\noindent
+In the beginning each agent assigns
+\begin{align*}
+  &{\tilde V}_i   &&\leftarrow \domain~v_i       && \textit{(any domain value is possible)} & \\
+  &{\tilde V}_i^- &&\leftarrow \{\}              && \textit{(no excluded values at start)}  &\\
+  &{\dot V}_i     &&\leftarrow \pop~{\tilde V}_i && \textit{(pop first possible value and assign it to the variable)} &\\
+\end{align*}
+
+Every time current value ${\dot V}_i$ is assigned, an agent must notify its
+neighbors about it with a \emph{proposal} message, containing the value.
+The interactions between agents are heavily based on their priority and are
+defined for pairs, where one of the agents always has a higher priority.
+
+Agents communications can be divided in two groups, each depending on the relative
+priorities.
+\begin{enumerate}
+  \item Testing constraints of the \textbf{lower priority} agents by the
+    \textbf{higher priority} ones.
+    Each agent must notify its neighbors on every value assignment and wait
+    for a confirmation from the higher priority ones. If any of them responds
+    negatively, the agent must try next \emph{possible} value from ${\tilde V}_i$.
+    In case that possible values have ended (${\tilde V}_i = \emptyset$), the agent
+    must notify its direct superior (the neighbor with the next highest priority)
+    about it, starting the \emph{backtracking}.
+  \item Backtracking permits to exit dead-end solution branches, thus allowing
+    to check \emph{every possible values combination} with limited resources.
+
+    As written in previous item, the backtracking process starts when an agent
+    finds itself without possible values to assign. It has searched all of its
+    domain, but no solution to its part of a problem exists. Therefore it is
+    necessary that a higher priority agent changes its value. It is better to
+    keep the process ordered and the next priority agent is a rational choice
+    for a supervisor.
+
+    Upon a notification about solution incoherence, the supervisor
+    must try to change its value ${\tilde V}_s$ and add the old one to the
+    excluded set ${\tilde V}_i^-$.
+    If neither this agent has more possible values to assign, it should propagate
+    backtracking request to its own supervisor, and so on. Otherwise, it should
+    demand its subordinates to reset their ${\tilde V}_*$ and ${\dot V}_*$ states
+    before changing its value. New \emph{possible values} sets are formed, considering
+    the excluded values: ${\tilde V}_* = \domain~v_* \setminus {\tilde V}_*^-$.
+    Backtracking request by the \emph{top priority} agent means that no solution
+    could be found.
+\end{enumerate}
+
+The \textbf{stop criteria} is the lack of negotiation activity, that signalizes
+that all the values assignations have been confirmed, thus a solution, satisfying
+the constraints, was found.
+
+\bigskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\noindent
+There are various extensions of the method that improve its speed.
+
+One of such techniques is \emph{Weak-commitment Search}\cite{Weak-commitment}.
+It can be used when the agents control several variables. It consists in
+aggregating variables into negotiation one-by-one, finding \emph{partial solutions}
+at each step, until all the variables are aggregated and the final solution
+is found. When a (partial) solution cannot be found for a newly aggregated
+variable, a process, similar to backtracking, is used to change previous
+partial solutions.
+
+A good example of a problem, that is solved much faster this way, is
+\emph{n-queen} problem. If one considers the position variable
+$\left< x,y \right>$ as two variables, owned by the same agent, the queens
+can be positioned first by rows and then by columns, or vice versa. Anyway,
+the number of combinations to consider is reduced greatly, thus accelerating
+solution search.
+
+There is, for example, a technique, that manipulates agents priorities,
+decreasing the priorities of the agents that have fallen back in the backtracking
+procedure and rising the priorities of their subordinates. It reduces the
+the negotiation time, by shortening the subordinates chains, that are
+revised on every backtrack event, of frequently changing agents.
+
+\bigskip
+
+\noindent
+In \cite{MAS-Survey} the MAS are classified by two properties of the agents,
+that form the system: heterogeneity and communications.
+The classification is presented in table \ref{table:MAS-Table}. It denotes
+that CSPs are usually solved by \emph{heterogeneous communicating} agents.
+
+\begin{table}
+  \centering
+  \begin{tabular}{P{0.1\textwidth} P{0.3\textwidth}|P{0.4\textwidth}}
+    & \centering Homogeneous & Heterogeneous \\
+    \begin{minipage}{0.1\textwidth}
+      \rotatebox[origin=tr]{90}{Non-Communicating}
+    \end{minipage}
+                      & \begin{minipage}{0.3\textwidth}
+                        \footnotesize \begin{itemize}[leftmargin=5px, rightmargin=0px]
+                          \item Reactive vs. deliberative agents
+                          \item Local or global perspective
+                          \item Modeling of other agents' states
+                          \item How to affect others
+                        \end{itemize}\end{minipage}
+                      & \begin{minipage}{0.4\textwidth}
+                        \footnotesize\begin{itemize}[leftmargin=10px, rightmargin=0px]
+                          \item[]
+                          \item Benevolence vs. competitiveness
+                          \item Fixed vs. learning agents (arms race, credit assignment)
+                          \item Modeling of others’ goals, actions, and knowledge
+                          \item Resource management (interdependent actions)
+                          \item Social conventions
+                          \item Roles
+                          \item[]
+                        \end{itemize}\end{minipage}
+                      \\\hline
+    \begin{minipage}{0.1\textwidth}
+      \rotatebox[origin=tr]{90}{Communicating}
+    \end{minipage}
+                      & \begin{minipage}{0.3\textwidth}
+                        \footnotesize\begin{itemize}[leftmargin=5px, rightmargin=0px]
+                          \item Distributed sensing
+                          \item Communication content
+                        \end{itemize}\end{minipage}
+                      & \begin{minipage}{0.4\textwidth}
+                        \footnotesize\begin{itemize}[leftmargin=10px, rightmargin=0px]
+                          \item[]
+                          \item Understanding each other
+                          \item Planning communicative acts
+                          \item Benevolence vs. competitiveness
+                          \item Negotiation
+                          \item Resource management (schedule coordination)
+                          \item Commitment/decommitment
+                          \item Collaborative localization
+                          \item Changing shape and size
+                        \end{itemize}\end{minipage}
+  \end{tabular}
+  \caption[Issues arising in the various scenarios as reflected in the literature]
+          {Issues arising in the various scenarios as reflected in the literature
+          \cite[Table~2]{MAS-Survey}.}
+  \label{table:MAS-Table}
+\end{table}
+
+\end{document}
