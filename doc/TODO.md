@@ -18,7 +18,7 @@ TODO
 - [x] Distributed: rewrite or delete.
 - [x] N-Queens lacks second diagonal constraint.
 
-- [ ] Graph coloring with normal GA. Define genes and fitness, give examples of
+- [x] Graph coloring with normal GA. Define genes and fitness, give examples of
       chromosomes. And immediately a possible solution, without details.
 
 #### Agents

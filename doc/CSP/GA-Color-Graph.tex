@@ -1,0 +1,59 @@
+\documentclass[../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+\input{\rootdir/img/ColorMap/CEUMapGraph.tikz.lib}
+
+\subsubsection{Solving Graph Coloring Problem with Genetic Algorithm}
+% Define genes and fitness, give examples of chromosomes.
+% And immediately a possible solution, without details.
+
+Graph coloring problem was described in section \ref{sec:CSP-definition}
+and graph example can be found on figure \ref{fig:ColoringGraph}.
+In order to solve the problem with GA, we would need to encode variables
+with \emph{genes} and solutions with \emph{chromosomes}.
+
+All the genes represent same type of variable --- color, with domain of 4 values.
+The chromosomes (sequences of genes) represent the colors of graph's nodes.
+It's common to use \texttt{Strings} (sequences of characters) as chromosomes.
+An example of possible colors assignations is presented on figure
+\ref{fig:ColoringGraph-ValsExample}.
+
+\emph{Fitness} function for the problem would be
+$\dfrac{1}{1 + \mathrm{broken\,constraints}}$. % with codomain $(0,1]$
+
+
+
+% For the graph on figure \ref{fig:ColoringGraph}, one of possible colors
+% assignations is:
+
+\begin{figure}
+  \centering
+  \begin{subfigure}{0.6\textwidth}
+    \centering
+    \begin{tabular}{l||c|c|c|c|c|c|c|c|c|}
+      Node  & IT & SN & CR & H & A & SK & CZ & G & P \\
+      Color &  r &  y &  b & r & b &  g &  y & g & r
+    \end{tabular}
+    \\ (\textbf{r}ed, \textbf{g}reen, \textbf{b}lue, \textbf{y}ellow)
+    \\[1em] The corresponding chromosome would be \\ {\large ``rrbrrgyyr''}
+  \end{subfigure}
+  \qquad
+  \begin{subfigure}{0.3\textwidth}
+    \mkCEUMapGraph[node IT/.style={red},
+                   node SN/.style={yellow!70!black},
+                   node CR/.style={blue},
+                   node H/.style ={red},
+                   node A/.style ={blue},
+                   node SK/.style={green!50!black},
+                   node CZ/.style={yellow!70!black},
+                   node G/.style ={green!50!black},
+                   node P/.style ={red},]
+  \end{subfigure}
+  \caption{Possible graph coloring problem solution}
+  \label{fig:ColoringGraph-ValsExample}
+\end{figure}
+
+\end{document}
