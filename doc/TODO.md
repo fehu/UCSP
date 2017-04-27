@@ -23,8 +23,8 @@ TODO
 
 #### Agents
 
-- [ ] Describe some N-queen problem resolution method (Weak Commitment Search).
-- [ ] N-Queens solution with Weak Commitment Search. Complete, but for a
+- [x] Describe some N-queen problem resolution method (Weak Commitment Search).
+- [x] N-Queens solution with Weak Commitment Search. Complete, but for a
       4x4 board, possibly with a 'magic' initial state.
 
 #### Coherence
