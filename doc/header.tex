@@ -1,0 +1,127 @@
+%% Configuration for the document, using ITESM-MIT-MasterThesis.
+
+\documentclass[english,12pt,oneside,openright]{report}
+
+%% from https://tex.stackexchange.com/questions/15862/only-usepackage-if-the-package-can-be-found
+\newcommand*\usepackageifpresent[2][]{%
+    \IfFileExists{#2.sty}{\usepackage[#1]{#2}}{}%
+}
+
+
+\usepackageifpresent{phdThesisFormat}
+									 %%	This line is a must!!!
+\usepackage{times} %%  This is the font that the document is to use. This is a must!!!
+
+\usepackage[english]{babel}
+
+% \usepackage{url}
+% \usepackage{amsfonts}
+% \usepackage{graphics}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\usepackage{subfiles}
+
+\usepackage[inline,shortlabels]{enumitem}
+\usepackage{amsmath, amssymb, relsize}
+\usepackage{xcolor, ifthen}
+\usepackage{siunitx} % represent numbers with separators
+\usepackage{csquotes}
+\usepackage[pdftex]{graphicx}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{accents} % provides \accentset, used in Problem Formalization.
+\usepackage{tabularx}
+\usepackage{hyperref}
+\usepackage{mdframed}
+\usepackage{float}
+\usepackage{hhline}
+\usepackage{alphalph}
+
+% \usepackage{showframe}
+
+
+\usepackage{tikz, pgfplots, skak}
+\usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
+                shapes.geometric, chains, arrows, calc }
+
+
+% from http://tex.stackexchange.com/questions/157389/how-to-center-column-values-in-a-table
+\usepackage{array}
+\newcolumntype{P}[1]{>{\centering\arraybackslash}p{#1}}
+
+\newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\green}[1]{{\color{green} #1}}
+\newcommand{\yellow}[1]{{\color{yellow} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
+
+\def\todo{\red{TODO}}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\newenvironment{note}
+    {\begin{mdframed}[% leftmargin=1cm,
+                 %skipabove=1em,
+                 %skipbelow=1em,
+                 rightline=false,
+                 topline=false,
+                 bottomline=false,
+                 linewidth=2pt]}
+    {\end{mdframed}}
+
+
+\newcommand{\multibinom}[2]{
+  \left(\!\middle(\genfrac{}{}{0pt}{}{#1}{#2}\middle)\!\right)
+}
+
+\newcommand{\crule}[2][1pt]
+    {\begin{center}\rule{#2\textwidth}{#1}\end{center}}
+
+
+\def\thisdoc{thesis}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% From ITESM-MIT-MasterThesis
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+%% Definition of new commands
+\newcommand{\field}[1]{\mathbb{#1}}
+\renewcommand{\thefootnote}{\alph{footnote}}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% Change some 'phdThesisFormat' commands
+
+% 'insertChapter' should use 'subfiles' package.
+\renewcommand{\insertChapter}[1]{\subfile{#1}} % twoside case ignored
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+\newcommand{\whenCompleteOrElse}[2]{\ifthenelse{\isundefined{\docComplete}}{#2}{#1}}
+\newcommand{\whenComplete}[1]{\whenCompleteOrElse{#1}{}}
+
+\newcommand{\setupPrivateDataOrElse}[1]{%
+  \ifthenelse{\isundefined{\docPrivateData}}%
+             {#1}{\input{\docPrivateData}}%
+}
+
+\newcommand{\rootDependentImports}{
+  \input{\rootdir/MathDefs}
+}
+
+\newcommand{\rootDependentDefinitions}{
+  \usepackage{\rootdir/phdThesisFormat}
+  \rootDependentImports
+}
+
+\newcommand{\setupRootDirAndImport}[1]{
+  \providecommand{\rootdir}{#1}
+  \rootDependentImports
+}
+
+\newcommand{\setupRootDefinitions}[1]{
+  \providecommand{\rootdir}{#1}
+  \rootDependentDefinitions
+}
