@@ -35,7 +35,11 @@ why \underline{agents negotiation} was chosen as solution method.
 \section{Problem Statement and Context}
 Solving \textbf{U}niversity \textbf{C}lass \textbf{S}cheduling \textbf{P}roblem (UCSP)
 consists not only in finding some valid schedule, but also in providing certain
-grade of \emph{mean subjective fitness}, determined by living people.
+grade of \emph{mean subjective fitness}\footnote{%
+  \emph{subjective fitness} is schedule assessment, from the point of
+  view of a person; different persons' opinions are combined into
+  \emph{mean subjective fitness}.%
+}, determined by living people.
 The formal properties of a schedule \emph{validness} are
 \begin{enumerate*}[1)]
   \item class internal consistency, that stands for class formation logic;
@@ -67,7 +71,7 @@ and \emph{professors} in certain \emph{classroom} at given \emph{day} and
 \begin{itemize}
   \item Generic problem doesn't take into account the \emph{students}.
         Is is assumed that groups are preformed and \emph{fixed}, so that
-        no students belongs to more than one group.
+        no student belongs to more than one group.
   \item All the professors are treated in the same manner, without concern for
         administrative details. Nevertheless, any participant can have
         \emph{time restrictions} established, that should be sufficient to
@@ -75,13 +79,21 @@ and \emph{professors} in certain \emph{classroom} at given \emph{day} and
         such as part-time job position.
 \end{itemize}
 
+\noindent
+In chapter \ref{chapter:improvements} some extensions of the generic problem
+are provided, including, most importantly, \emph{students representation}
+(section \ref{sec:improvements-students}). This extension adds a preliminary
+stage --- group formation, and bases coherence estimation, performed by groups,
+on the coherence of underlying students.
+
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \section{Solution Overview}
 The proposed solution is based on \underline{agents negotiation}.
 This method was chosen because agent paradigm is well suited for concurrent
 execution. Each agent, as autonomous entity, can be executed in its own
 isolated thread without any modification. The threads are connected by acts of
-\emph{communication}, that is the base of agents negotiation.
+\emph{communication} (see chapter \ref{chapter:agents}), that is the base of
+agents negotiation.
 
 Internal agents behavior is based on the \emph{coherence} of the classes,
 proposed by it and other agents. Coherence evaluation is divided in \emph{contexts},
