@@ -16,7 +16,7 @@
 \newcommand{\showSteps}[4][]{
   \gdef\acc{}
   \gdef\first{1}
-  \pgfmathsetmacro{\w}{(1/#2) - 0.04}
+  \def\w{#2}
   \def\showBoard{\agentsBoard[#1]}
   \foreach \i in {#3}
     {
@@ -43,248 +43,165 @@ using \emph{Weak-commitment search}, is \emph{n-queen} problem.
 In the problem description, given in chapter \ref{chapter:csp}, queens' positions
 are defined by a pairs $\left<x,y\right>$, that are single variables. In order to
 use Weak-commitment search, the position variables should be separated.
+On figure \ref{fig:4-Queens} is presented a step-by-step solution of
+4-Queens problem.
 
-Here is presented an example of problem solution, using modified Weak-commitment
-search. The modification consists in distribution of the variables between
-queen-representing agents. Each queen agent would now control two separated
-variables: $x$ and $y$ with domains $\overline{1,N}$, where $N$ is chessboard size.
-Each queen would also receive \emph{priority}, that establishes its relations
-with other agents.
-
-The agents assign variables (one-by-one) in the order, established by their
-priorities. When an agent cannot find valid variable assignation:
-\begin{enumerate}
-  \item The agent notifies its \emph{supervisor}: the agent with the following priory.
-        If the notification is sent by \emph{root} agent (with highest priority),
-        then it means that no solution exists.
-  \item Bad \emph{partial solution} is guarded in \emph{generic manner} and then
-        avoided by all the agents. The guarded bad solution ignores what agents
-        have assigned the values: such positions configurations must be avoided,
-        it is irrelevant which agents occupy the positions.
-\end{enumerate}
-The solution is found when all the agents managed to assign values to their
-variables.
-
-\medskip\noindent
-On figure \ref{fig:4-Queens} is presented a step-by-step solution of 4-Queens problem,
-using the method described.
-
-
-
-
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \input{\rootdir/img/NQueens/Solve-4-Queens.tikz.lib}
 
+\newcounter{subfiguregroup}
+\setcounter{subfiguregroup}{0}
+\renewcommand\thesubfigure{\Roman{subfiguregroup}-\arabic{subfigure}}
+\def\nextSubfigGroup{%
+  \stepcounter{subfiguregroup}%
+  \setcounter{subfigure}{0}%
+}
 
+% \crule{0.9}
+\bigskip
+\begin{figure}[H]
+  \captionsetup{singlelinecheck=off,indention=10pt, parskip=10pt}
+  \caption[Step-by-step solution of 4-Queens]
+    {
+      Example of 4-Queens problem solution, using modified Weak-commitment search.
 
-% \def\foo#1{
-%     \edef\a{#1}
-%     \queensImg[]{
-%       \expandafter\agentsBoard\expandafter{\a}
-%     }
-% }
+    The modification consists in distribution of the variables between
+    queen-representing agents. Each queen agent would now control two separated
+    variables: $x$ and $y$ with domains $\overline{1,N}$, where $N$ is chessboard size.
+    Each queen would also receive \emph{priority}, that establishes its relations
+    with other agents.
 
-% \def\showSteps[#1]#2{
-%   \gdef\acc{}
-%   \gdef\first{1}
-%   \def\showBoard{\agentsBoard[#1]}
-%   \foreach \i in {#2}
-%     {
-%       \ifthenelse{\first=1}
-%                  {\numgdef\first{0}}
-%                  {\xappto\acc{,}}
-%       \xappto\acc{\i}
-%       \begin{subfigure}[t]{0.25\textwidth}
-%         \caption{}
-%         \queensImg[]{
-%           \expandafter\showBoard\expandafter{\acc}
-%         }
-%       \end{subfigure}~
-%     }
-% }
-
-
-\begin{figure}
-  \centering
-  \showSteps[column 4/.style={text opacity=0}]
-    {4}
-    {Q1/boldText/4/false/1/1,
-     Q2/boldText/3/false/2/1,
-     Q3/boldText/2/false/3/1,
-     Q4/boldText/1/false/4/1}{}
-  % \rule{.9\textwidth}{1pt}
+    The agents assign variables (one-by-one) in the order, established by their
+    priorities. When an agent cannot find valid variable assignation:
+    \begin{enumerate}
+      \item The agent notifies its \emph{supervisor}: the agent with the following priory.
+            If the notification is sent by \emph{root} agent (with highest priority),
+            then it means that no solution exists.
+      \item Bad \emph{partial solution} is guarded in \emph{generic manner} and then
+            avoided by all the agents. The guarded bad solution ignores what agents
+            have assigned the values: such positions configurations must be avoided,
+            it is irrelevant which agents occupy the positions.
+    \end{enumerate}
+    The solution is found when all the agents managed to assign values to their
+    variables.
+    }
+  \label{fig:4-Queens}
 \end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \centering
-  \showSteps{3}
-    {Q1/boldText/4/true/1/1,
-     Q2/boldText/3/true/2/3}{}
-  \queensSubfig{0.29}{
-    \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
-      {Q1/boldText/4/true/1/1,
-       Q2/boldText/3/true/2/3,
-       Q3/boldText/2//3/x}
-    \selectRow[red, thick]{3}{\textbf{Q3}}
-    \newBadPosition(2,3)
-    \badPartialSolution{3}
-  }
-  % \rule{.9\textwidth}{1pt}
-\end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \centering
-  \showSteps{4}
-    {Q1/boldText/4/true/1/1,
-     Q2/boldText/3/true/2/4,
-     Q3/boldText/2/true/3/2}
-    {\badPosition(2,3)}
-  \queensSubfig{0.21}{
-    \agentsBoard[row 5 column 4/.style={nodes={color=red}}]
-      {Q1/boldText/4/true/1/1,
-       Q2/boldText/3/true/2/4,
-       Q3/boldText/2/true/3/2,
-       Q4/boldText/1//4/x}
-    \badPosition(2,3)
-    \selectRow[red, thick]{4}{\textbf{Q4}}
-    \newBadPosition(3,2)
-    \badPartialSolution{4}
-  }
-\end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \centering
-  \showSteps{3}
-    {Q1/boldText/4/true/1/1,
-     Q2/boldText/3/true/2/4}
-    {\badPosition(2,3)
-     \badPosition(3,2)}
-  \queensSubfig{0.29}{
-    \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
-      {Q1/boldText/4/true/1/1,
-       Q2/boldText/3/true/2/4,
-       Q3/boldText/2/false/3/x}
-    \badPosition(2,3)
-    \badPosition(3,2)
-    \selectRow[red, thick]{3}{}
-    \newBadPosition(2,4)
-    \badPartialSolution{3}
-  }
-\end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \centering
-  \queensSubfig{0.29}{\agentsBoard{Q1/boldText/4/true/1/1}
-                      \badPosition(2,3) \badPosition(2,4)}
-  \queensSubfig{0.29}{
-    \agentsBoard[row 3 column 4/.style={nodes={color=red}}]
-      {Q1/boldText/4/true/1/1,
-       Q2/boldText/3/true/2/x}
-    \badPosition(2,3)
-    \badPosition(2,4)
-    \selectRow[red, thick]{2}{}
-    \newBadPosition(1,1)
-    \badPartialSolution{2}
-  }
-\end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \showSteps{4}
-    {Q1/boldText/4/true/1/2,
-     Q2/boldText/3/true/2/4,
-     Q3/boldText/2/true/3/1}
-    {\badPosition(1,1)}
-  \queensSubfig{0.21}{
-    \agentsBoard
-      {Q1/boldText/4/true/1/2,
-       Q2/boldText/3/true/2/4,
-       Q3/boldText/2/true/3/1,
-       Q4/boldText/1/true/4/3}
-    \badPosition(1,1)
-    \selectPartialSolution[draw, thick, myGreen, inner sep=0pt]{5}
-  }
-\end{figure}
-
-
-\begin{figure}\ContinuedFloat
-  \caption{}
-  \label{}
-\end{figure}
-
-
-
-
-% \begin{figure}[h]
-%   \centering
-%   %%% Step 1
-%   \begin{subfigure}[t]{0.25\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[column 4/.style={text opacity=0}]
-%         {Q1/boldText/4/false/1/1}
-%     }
-%   \end{subfigure}~
-%   \begin{subfigure}[t]{0.25\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[column 4/.style={text opacity=0}]
-%         {Q1/boldText/4/false/1/1,
-%          Q2/boldText/3/false/2/1}
-%     }
-%   \end{subfigure}~
-%   \begin{subfigure}[t]{0.25\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[column 4/.style={text opacity=0}]
-%         {Q1/boldText/4/false/1/1,
-%          Q2/boldText/3/false/2/1,
-%          Q3/boldText/2/false/3/1}
-%     }
-%   \end{subfigure}~
-%   \begin{subfigure}[t]{0.25\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[column 4/.style={text opacity=0}]
-%         {Q1/boldText/4/false/1/1,
-%          Q2/boldText/3/false/2/1,
-%          Q3/boldText/2/false/3/1,
-%          Q4/boldText/1/false/4/1}
-%     }
-%   \end{subfigure}\\
-%   %%% Step 2
-%   \begin{subfigure}[t]{0.33\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[badY=4]
-%         {Q1/boldText/4/true/1/1}
-%     }
-%   \end{subfigure}~
-%   \begin{subfigure}[t]{0.33\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[badY=4]
-%         {Q1/boldText/4/true/1/1,
-%          Q2/boldText/3/true/2/3}
-%     }
-%   \end{subfigure}~
-%   \begin{subfigure}[t]{0.33\textwidth}
-%     \caption{}
-%     \queensImg[]{
-%       \agentsBoard[badY=4]
-%         {Q1/boldText/4/true/1/1,
-%          Q2/boldText/3/true/2/3,
-%          Q3/boldText/2//3/x}
-%       \selectRow[red, thick]{3}{\textbf{Q3}}
-%       \newBadPosition(2,3)
-%       \badPartialSolution{3}
-%     }
-%   \end{subfigure}
-%   \caption{}
-% \end{figure}
+\begin{enumerate}[I]
+  % % % % % Step I % % % % %
+  \item Agents set values of the first variable $x$ (ignoring all restrictions
+        that make use of $y$) in the order of priority and fix it.
+    \begin{figure}[H]\ContinuedFloat\nextSubfigGroup
+      \centering
+      \showSteps[column 4/.style={text opacity=0}]{0.21}
+        {Q1/boldText/4/false/1/1,
+         Q2/boldText/3/false/2/1,
+         Q3/boldText/2/false/3/1,
+         Q4/boldText/1/false/4/1}{}
+    \end{figure}
+  % % % % % Step II % % % % %
+  \item Agents set values of the second variable $y$ in the order of priority.
+        First two agents manage to find position assignation, but there is no
+        value assignment for $Q3$. Therefore, current positions of $Q1$ and $Q2$
+        (current \emph{partial solution}) are guarded as \emph{bad} and are avoided
+        in the future.
+    \begin{figure}[H]\ContinuedFloat\nextSubfigGroup
+      \centering
+      \showSteps{0.21}
+        {Q1/boldText/4/true/1/1,
+         Q2/boldText/3/true/2/3}{}
+      \queensSubfig{0.21}{
+        \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
+          {Q1/boldText/4/true/1/1,
+           Q2/boldText/3/true/2/3,
+           Q3/boldText/2//3/x}
+        \selectRow[red, thick]{3}{\textbf{Q3}}
+        \newBadPosition(2,3)
+        \badPartialSolution{3}
+      }
+    \end{figure}
+  % % % % % Step III % % % % %
+  \item $Q2$ is forced to move, because it's direct subordinate $Q3$ failed to
+        assign any value. After that $Q3$ manages to find a place for it, but
+        not $Q4$. Bad configuration is guarded.
+    \begin{figure}[H]\ContinuedFloat\nextSubfigGroup
+      \centering
+      \showSteps{0.21}
+        {Q1/boldText/4/true/1/1,
+         Q2/boldText/3/true/2/4,
+         Q3/boldText/2/true/3/2}
+        {\badPosition(2,3)}
+      \queensSubfig{0.21}{
+        \agentsBoard[row 5 column 4/.style={nodes={color=red}}]
+          {Q1/boldText/4/true/1/1,
+           Q2/boldText/3/true/2/4,
+           Q3/boldText/2/true/3/2,
+           Q4/boldText/1//4/x}
+        \badPosition(2,3)
+        \selectRow[red, thick]{4}{\textbf{Q4}}
+        \newBadPosition(3,2)
+        \badPartialSolution{4}
+      }
+    \end{figure}
+  % % % % % Step IV % % % % %
+  \item $Q3$ is forced to move, but there is no valid $y$ coordinate for it.
+  % % % % % Step V % % % % %
+  \item $Q2$ is forced to move, but there is no place for it neither.
+    \begin{figure}[H]\ContinuedFloat\nextSubfigGroup
+      \centering
+      \queensSubfig{0.21}{
+        \agentsBoard{Q1/boldText/4/true/1/1,
+                     Q2/boldText/3/true/2/4}
+        \badPosition(2,3)
+        \badPosition(3,2)
+      }
+      \queensSubfig{0.21}{
+        \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
+          {Q1/boldText/4/true/1/1,
+           Q2/boldText/3/true/2/4,
+           Q3/boldText/2/false/3/x}
+        \badPosition(2,3)
+        \badPosition(3,2)
+        \selectRow[red, thick]{3}{}
+        \newBadPosition(2,4)
+        \badPartialSolution{3}
+      }
+    \nextSubfigGroup
+      \queensSubfig{0.21}{\agentsBoard{Q1/boldText/4/true/1/1}
+                          \badPosition(2,3) \badPosition(2,4)}
+      \queensSubfig{0.21}{
+        \agentsBoard[row 3 column 4/.style={nodes={color=red}}]
+          {Q1/boldText/4/true/1/1,
+           Q2/boldText/3/true/2/x}
+        \badPosition(2,3)
+        \badPosition(2,4)
+        \selectRow[red, thick]{2}{}
+        \newBadPosition(1,1)
+        \badPartialSolution{2}
+      }
+    \end{figure}
+  % % % % % Step VI % % % % %
+  \item $Q1$ is forced to move on the next tile.
+        Then $Q2$, $Q3$ and $Q4$ occupy the only valid $y$ positions sequentially.
+        Now when all the agents managed to assign all the
+        variables, the solution is found.
+    \begin{figure}[H]\ContinuedFloat\nextSubfigGroup
+      \showSteps{0.21}
+        {Q1/boldText/4/true/1/2,
+         Q2/boldText/3/true/2/4,
+         Q3/boldText/2/true/3/1}
+        {\badPosition(1,1)}
+      \queensSubfig{0.21}{
+        \agentsBoard
+          {Q1/boldText/4/true/1/2,
+           Q2/boldText/3/true/2/4,
+           Q3/boldText/2/true/3/1,
+           Q4/boldText/1/true/4/3}
+        \badPosition(1,1)
+        \selectPartialSolution[draw, thick, myGreen, inner sep=0pt]{5}
+      }
+    \end{figure}
+\end{enumerate}
 
 \end{document}
