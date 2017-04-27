@@ -3,21 +3,138 @@
 
 \chapter{Introduction}
 
-\todo
+% \todo
+%
+% \medskip
+%
+% Class scheduling is a \emph{constraint satisfaction problem} (CSP) ---
+% a large kind of problems, that is properly discussed in chapter \ref{chapter:csp}.
+%
+% \medskip
+%
+% \noindent
+% A solution for general UCSP problem
+% (formalized in chapter \ref{sec:ProblemFormal}) \red{was implemented}
+% (see chapter \ref{chapter:solution}) \red{and tested} (see chapter \ref{chapter:test}).
+% Possible improvements are discussed in chapter \ref{chapter:improvements}.
 
-\medskip
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Motivation}
+Creating coherent schedule for a university is a painstaking manual work, that
+the administrative staff has to repeat every term, using its experience and
+intuition. In general, class assignment problem has a great number of possible
+solutions, that are only limited by schedule consistence. The simplest way to
+represent complete university schedule, is using \emph{timetables} to represent
+each person's schedule for a week. Such personal schedule might be found adequate
+by a person, or not, regardless of schedule formal consistence.
 
-Class scheduling is a \emph{constraint satisfaction problem} (CSP) ---
-a large kind of problems, that is properly discussed in chapter \ref{chapter:csp}.
+Second motivation is research in \emph{concurrent} problem solving, that is
+why \underline{agents negotiation} was chosen as solution method.
 
-\medskip
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Problem Statement and Context}
+Solving \textbf{U}niversity \textbf{C}lass \textbf{S}cheduling \textbf{P}roblem (UCSP)
+consists not only in finding some valid schedule, but also in providing certain
+grade of \emph{mean subjective fitness}, determined by living people.
+The formal properties of a schedule \emph{validness} are
+\begin{enumerate*}[1)]
+  \item class internal consistency, that stands for class formation logic;
+  \item class consistency, that ensures classes non-intersection;
+  \item time restraints
+    \begin{enumerate*}[(a)]
+      \item over the whole schedule,
+      \item for some specific participants.
+    \end{enumerate*}
+\end{enumerate*}
+The informal, \emph{subjective}, opinions about schedules should be provided by
+the interested parties in form of \emph{preference} functions. Such functions
+should provide the attitude of their creators to the selected aspects of
+\underline{personal} schedules. Attitude values should lie within unit interval
+$(0,1]$, where $1$ stands for total approval.
 
-\noindent
-A solution for general UCSP problem
-(formalized in chapter \ref{sec:ProblemFormal}) \red{was implemented}
-(see chapter \ref{chapter:solution}) \red{and tested} (see chapter \ref{chapter:test}).
-Possible improvements are discussed in chapter \ref{chapter:improvements}.
+While the essential part of all UCSPs is the same, actual classes assignment
+policies, timetables used and scheduling participants might vary from institution
+to institution. In this \thisdoc\ \underline{a general} problem is researched
+first and then possible improvements are described.
 
+\bigskip
+Generic \underline{university class scheduling problem} consists in finding a
+\emph{university schedule}, that is formed of all participants' (and some entities')
+\emph{personal schedules}, by assigning \emph{classes} between \emph{student groups}
+and \emph{professors} in certain \emph{classroom} at given \emph{day} and
+\emph{time}. It is a \emph{Constraint Satisfaction Problem}.
+
+\begin{itemize}
+  \item Generic problem doesn't take into account the \emph{students}.
+        Is is assumed that groups are preformed and \emph{fixed}, so that
+        no students belongs to more than one group.
+  \item All the professors are treated in the same manner, without concern for
+        administrative details. Nevertheless, any participant can have
+        \emph{time restrictions} established, that should be sufficient to
+        represent, at least, the restrictions, caused by special cases,
+        such as part-time job position.
+\end{itemize}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Solution Overview}
+The proposed solution is based on \underline{agents negotiation}.
+This method was chosen because agent paradigm is well suited for concurrent
+execution. Each agent, as autonomous entity, can be executed in its own
+isolated thread without any modification. The threads are connected by acts of
+\emph{communication}, that is the base of agents negotiation.
+
+Internal agents behavior is based on the \emph{coherence} of the classes,
+proposed by it and other agents. Coherence evaluation is divided in \emph{contexts},
+that stand for different types of \emph{constraints}. The contexts can be divided
+in \emph{internal} and \emph{external}. The former evaluate the underlying
+constraints using only agent's own knowledge, while the latter, external context,
+works towards the \emph{common goal}, by combining internal coherence of several
+agents.
+During internal coherence evaluation, an agents considers only the
+classes that \emph{mention it} (that the agent is part of). In the same manner,
+an agent proposes only the classes that it needs --- \emph{personal schedules}.
+The schedules are then united and any arising conflict is resolved by comparing
+\emph{total} schedule coherence, assuming the contesting proposal is accepted.
+When all the agents agree on classes assignment (the classes for all the agents
+are successfully united), the schedule is considered \emph{ready} and is reported.
+After that the agents guard their respective internal coherence of the solution
+to be used as a threshold, reset their proposals and begin to negotiate a better
+solution, until explicitly stopped.
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Further Document Structure}
+
+\def\inChapter#1{In chapter \ref{chapter:#1}}
+\def\showChapter#1{Chapter \ref{chapter:#1}}
+
+\begin{itemize}[leftmargin=2.5cm]
+  \item[\inChapter{csp}]
+        Constraint Satisfaction Problems (CSP) are described and defined.
+        Examples of such problems are given and various solution methods are
+        listed. Some of the methods are described.
+  \item[\inChapter{agents}]
+        different definitions of agents are displayed. Negotiating agents are
+        defined. Some CSP solving methods are presented, including an example.
+  \item[\inChapter{Coherence}]
+        the notion of coherence is discussed and some possible usages are given.
+  \item[\showChapter{solution}]
+        describes the proposed solution. Compact solution scheme can be found
+        on figure \ref{fig:solution-flow}.
+  \item[\inChapter{test}] test results are presented and discussed.
+  \item[\showChapter{improvements}]
+        describes what improvements can be made for the proposed solution and
+        how.
+
+\end{itemize}
+
+% \noindent
+% This \thisdoc\ proposes an extendable UCSP solution with support for
+% \emph{schedule personalization}. The latter is achieved by using agent
+% negotiations between the representatives of each \emph{students/groups} and
+% \emph{professors}. The representing agents permit defining
+% \emph{personal preferences} and \emph{restrictions}, that are used to optimize
+% the schedules.
 
 
 \end{document}
