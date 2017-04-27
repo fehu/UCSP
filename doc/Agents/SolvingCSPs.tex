@@ -14,119 +14,6 @@ different \emph{constraints satisfaction problems} \cite{MAS, MAS-Survey}.
 Each problem variable is given to an agent, that would try to set its value,
 avoiding contradictions with the values of its ``neighbouring'' agents.
 There are different methods and techniques for implementing agents behavior.
-
-One of the simplest methods consists in taking all possible variable domain values
-and eliminating the values, that are in contradiction with the neighbors.
-The process results in a solution when all the agents have exactly one
-possible value; or it fails if any of the agents runs out of the possible
-values to propose. A natural question arises: in what order should the agents
-prune their domains?
-It can be resolved by assigning a distinct comparable priority value to each agents.
-In such case a value should be excluded only if neighbor's priority exceeds own priority.
-Combined with \emph{backtracking} technique, it guarantees finding a solution,
-if it exists.
-
-\noindent
-An agent $a_i$
-\begin{enumerate}
-  \item controls variable $V_i$ with a finite $\domain~V_i =
-        \{{\dot v}^i_j\}_{j=1}^{N_i}$.
-  \item has sets of possible ${\tilde V}_i$ and excluded ${\tilde V}_i^-$ values,
-  \item has priority $p$.
-\end{enumerate}
-
-\noindent
-In the beginning each agent assigns
-\begin{align*}
-  &{\tilde V}_i   &&\leftarrow \domain~v_i       && \textit{(any domain value is possible)} & \\
-  &{\tilde V}_i^- &&\leftarrow \{\}              && \textit{(no excluded values at start)}  &\\
-  &V_i            &&\leftarrow \pop~{\tilde V}_i && \textit{(pop first possible value and assign it to the variable)} &\\
-\end{align*}
-
-Every time current value $V_i$ is assigned, an agent must notify its
-neighbors about it with a \emph{proposal} message, containing the value.
-The interactions between agents are heavily based on their priority and are
-defined for pairs, where one of the agents always has a higher priority.
-
-Agents communications can be divided in two groups, each depending on the relative
-priorities.
-\begin{enumerate}
-  \item Testing constraints of the \textbf{lower priority} agents by the
-    \textbf{higher priority} ones.
-    Each agent must notify its neighbors on every value assignment and wait
-    for a confirmation from the higher priority ones. If any of them responds
-    negatively, the agent must try next \emph{possible} value from ${\tilde V}_i$.
-    In case that possible values have ended (${\tilde V}_i = \emptyset$), the agent
-    must notify its direct superior (the neighbor with the next highest priority)
-    about it, starting the \emph{backtracking}.
-  \item Backtracking permits to exit dead-end solution branches, thus allowing
-    to check \emph{every possible values combination} with limited resources.
-
-    As written in previous item, the backtracking process starts when an agent
-    finds itself without possible values to assign. It has searched all of its
-    domain, but no solution to its part of a problem exists. Therefore it is
-    necessary that a higher priority agent changes its value. It is better to
-    keep the process ordered and the next priority agent is a rational choice
-    for a supervisor.
-
-    Upon a notification about solution incoherence, the supervisor
-    must try to change its value $V_i$ and add the old one to the
-    excluded set ${\tilde V}_i^-$.
-    If neither this agent has more possible values to assign, it should propagate
-    backtracking request to its own supervisor, and so on. Otherwise, it should
-    demand its subordinates to reset their ${\tilde V}_*$ and $V_*$ states
-    before changing its value. New \emph{possible values} sets are formed, considering
-    the excluded values: ${\tilde V}_i = \domain~v_i \setminus {\tilde V}_i^-$.
-    Backtracking request by the \emph{top priority} agent means that no solution
-    could be found.
-\end{enumerate}
-
-The \textbf{stop criteria} is the lack of negotiation activity, that signalizes
-that all the values assignations have been confirmed, thus a solution, satisfying
-the constraints, was found.
-
-Any set of \underline{consistent} (that are not in conflict)
- variables assignations is called \emph{partial solution}.
-$$ \lbrace\left<V_i,{\dot v}^i_*\right>\rbrace_{i \in I} $$
-
-A \underline{complete solution} is a partial solution,
-that contains assignations for all the problem variables.
-
-\bigskip
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\noindent
-There are various extensions of the method that improve its speed.
-
-\medskip
-
-One of such techniques is \emph{Weak-commitment Search}\cite{Weak-commitment},
-that removes the drawbacks of backtracking algorithms. It utilizes a min-conflict
-heuristic, and therefore is compared by the authors with min-conflict backtracking.
-Both algorithms \underline{add variables} to the \emph{partial solution} one by one.
-The difference is in algorithms' \emph{commitment} to current partial solution.
-Backtracking never abandons its p. solution until proven \emph{hopeless}:
-it tries every possible combination of variables assignations from ${\tilde V}_i$
-for each variable $V_i$, that isn't within the solution yet.
-
-\emph{Weak commitment}, as it follows from the name, commits \emph{weakly}:
-whole partial solution is abandoned if even one variable $V_i$ has no valid
-assignment. Furthermore, any failed partial solution is guarded and avoided in
-the future. The resulting difference is that Weak-commitment algorithm revises
-bad decision (as backtracking does) without exhaustive search, that speeds it up
-and still guarantees algorithm completeness (if any solution exists, it would be found).
-
-\medskip
-
-There is, for example, a technique, that manipulates agents priorities,
-decreasing the priorities of the agents that have fallen back in the backtracking
-procedure and rising the priorities of their subordinates. It reduces the
-the negotiation time, by shortening the subordinates chains, that are
-revised on every backtrack event, of frequently changing agents.
-
-\bigskip
-
-\noindent
 In \cite{MAS-Survey} the MAS are classified by two properties of the agents,
 that form the system: heterogeneity and communications.
 The classification is presented in table \ref{table:MAS-Table}. It denotes
@@ -184,5 +71,109 @@ that CSPs are usually solved by \emph{heterogeneous communicating} agents.
           \cite[Table~2]{MAS-Survey}.}
   \label{table:MAS-Table}
 \end{table}
+
+
+
+
+\bigskip
+One of the simplest methods consists in taking all possible variable domain values
+and eliminating the values, that are in contradiction with the neighbors.
+The process results in a solution when all the agents have exactly one
+possible value; or it fails if any of the agents runs out of the possible
+values to propose. A natural question arises: in what order should the agents
+prune their domains?
+It can be resolved by assigning a distinct comparable priority value to each agents.
+In such case a value should be excluded only if neighbor's priority exceeds own priority.
+Combined with \emph{backtracking} technique, it guarantees finding a solution,
+if it exists.
+
+\noindent
+An agent $a_i$
+\begin{enumerate}
+  \item controls variable $V_i$ with a finite $\domain~V_i =
+        \{{\dot v}^i_j\}_{j=1}^{N_i}$.
+  \item has sets of possible ${\tilde V}_i$ and excluded ${\tilde V}_i^-$ values,
+  \item has priority $p$.
+\end{enumerate}
+
+\noindent
+In the beginning each agent assigns
+\begin{align*}
+  &{\tilde V}_i   &&\leftarrow \domain~v_i       && \textit{(any domain value is possible)} & \\
+  &{\tilde V}_i^- &&\leftarrow \{\}              && \textit{(no excluded values at start)}  &\\
+  &V_i            &&\leftarrow \pop~{\tilde V}_i && \textit{(pop first possible value and assign it to the variable)} &\\
+\end{align*}
+
+Every time current value $V_i$ is assigned, an agent must notify its
+neighbors about it with a \emph{proposal} message, containing the value.
+The interactions between agents are heavily based on their priority and are
+defined for pairs, where one of the agents always has a higher priority.
+
+\bigskip\noindent
+Agents communications can be divided in two groups, each depending on the relative
+priorities.
+\begin{enumerate}
+  \item Testing constraints of the \textbf{lower priority} agents by the
+    \textbf{higher priority} ones.
+    Each agent must notify its neighbors on every value assignment and wait
+    for a confirmation from the higher priority ones. If any of them responds
+    negatively, the agent must try next \emph{possible} value from ${\tilde V}_i$.
+    In case that possible values have ended (${\tilde V}_i = \emptyset$), the agent
+    must notify its direct superior (the neighbor with the next highest priority)
+    about it, starting the \emph{backtracking}.
+  \item Backtracking permits to exit dead-end solution branches, thus allowing
+    to check \emph{every possible values combination} with limited resources.
+
+    As written in previous item, the backtracking process starts when an agent
+    finds itself without possible values to assign. It has searched all of its
+    domain, but no solution to its part of a problem exists. Therefore it is
+    necessary that a higher priority agent changes its value. It is better to
+    keep the process ordered and the next priority agent is a rational choice
+    for a supervisor.
+
+    Upon a notification about solution incoherence, the supervisor
+    must try to change its value $V_i$ and add the old one to the
+    excluded set ${\tilde V}_i^-$.
+    If neither this agent has more possible values to assign, it should propagate
+    backtracking request to its own supervisor, and so on. Otherwise, it should
+    demand its subordinates to reset their ${\tilde V}_*$ and $V_*$ states
+    before changing its value. New \emph{possible values} sets are formed, considering
+    the excluded values: ${\tilde V}_i = \domain~v_i \setminus {\tilde V}_i^-$.
+    Backtracking request by the \emph{top priority} agent means that no solution
+    could be found.
+\end{enumerate}
+
+\medskip\noindent
+The \textbf{stop criteria} is the lack of negotiation activity, that signalizes
+that all the values assignations have been confirmed, thus a solution, satisfying
+the constraints, was found.
+
+\medskip\noindent
+Any set of \underline{consistent} (that are not in conflict)
+ variables assignations is called \emph{partial solution}.
+$$ \lbrace\left<V_i,{\dot v}^i_*\right>\rbrace_{i \in I} $$
+
+\medskip\noindent
+A \underline{complete solution} is a partial solution,
+that contains assignations for all the problem variables.
+
+\bigskip
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+There are various extensions of the method that improve its speed.
+One of such techniques is \emph{Weak-commitment Search}\cite{Weak-commitment},
+that removes the drawbacks of backtracking algorithms. It utilizes a min-conflict
+heuristic, and therefore is compared by the authors with min-conflict backtracking.
+Both algorithms \underline{add variables} to the \emph{partial solution} one by one.
+The difference is in algorithms' \emph{commitment} to current partial solution.
+Backtracking never abandons its p. solution until proven \emph{hopeless}:
+it tries every possible combination of variables assignations from ${\tilde V}_i$
+for each variable $V_i$, that isn't within the solution yet.
+\emph{Weak commitment}, as it follows from the name, commits \emph{weakly}:
+whole partial solution is abandoned if even one variable $V_i$ has no valid
+assignment. Furthermore, any failed partial solution is guarded and avoided in
+the future. The resulting difference is that Weak-commitment algorithm revises
+bad decision (as backtracking does) without exhaustive search, that speeds it up
+and still guarantees algorithm completeness (if any solution exists, it would be found).
+
 
 \end{document}
