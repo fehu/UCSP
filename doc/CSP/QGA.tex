@@ -1,0 +1,70 @@
+\documentclass[../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+
+\subsection{Quantum-inspired Genetic Algorithm}
+An interesting modification of Genetic Algorithm (GA), based on the concept and
+principles of \emph{quantum computing} --- QGA, was proposed in article
+\cite{QuantumGeneticAlgorithm}.
+Instead of being represented by a list of \emph{genes}, as in classical GAs,
+in QGA a chromosome is represented by a \emph{Q-bit individual}.
+
+\emph{Q-bit} is the quantum counterpart of the classic bit --- the smallest
+unit of information. While a normal \emph{bit} can take either 0 or 1 values,
+a \emph{Q-bit} can take any \emph{superposition} of the tho states, including
+margin values: states 0 and 1. The main difference is that such ``bit'' can be
+0 and 1 at the same time, just like famous Schrodinger's cat, that is both dead
+and alive. The state of a Q-bit can be represented by two complex numbers
+$\alpha$ and $\beta$, that denote the probabilities of a Q-bit being found in
+states 0 and 1 respectively.
+The values must be normalized: $|\alpha|^2 + |\beta|^2 = 1$.
+
+A \emph{Q-bit individual} of $m$ Q-bits is defined as
+\begin{equation}
+\left[
+  \begin{array}{cccc}
+  \alpha_1 & \alpha_2 & \dots & \alpha_m \\
+  \beta_1  & \beta_2  & \dots & \beta_m  \\
+  \end{array}
+\right]
+\end{equation}
+
+One of the practical advantages, claimed my the article, is:
+\begin{displayquote}
+  Evolutionary computing with Q­-bit representation has a better characteristic
+  of population diversity than other representations, since it can represent
+  linear superposition of states probabilistically.
+\end{displayquote}
+It presents an example of a three-Q-bit individual, and shows its equivalence
+to 8 classical chromosomes of 3 genes at once.
+
+\medskip\noindent
+Major differences are found in the \emph{genetic operators} applied:
+neither crossover or mutations are used. Instead, tournament selection strategy
+with elite retaining model is used to generate new populations.
+It works as follows:
+\begin{enumerate}
+  \item Tournament set --- a set $K$ individuals, is randomly selected from
+        the population.
+  \item A random number $r$ (between 0 and 1) is selected.
+  \item If $r < 0.8$ (empirically established by the authors), then the fittest
+        individual in the tournament set is chosen for reproduction.
+        Otherwise, any chromosome is chosen from the tournament set.
+\end{enumerate}
+\noindent
+After selecting intermediate population of the same size, \emph{quantum rotation gate}
+is applied to each individual's Q-bits, creating new population.
+The angle used is selected from a table, provided by the authors.
+
+While not providing explicitly any stop criteria for the proposed algorithm,
+the authors have compared their method with classical GA, using same number
+of generation as stop criterion in both.
+University classes scheduling problem was selected for the tests.
+The presented results show better final fitness and faster convergence rate for
+the proposed QGA.
+
+\end{document}

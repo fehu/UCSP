@@ -1,0 +1,65 @@
+\documentclass[../ThesisDoc]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+
+\subsection{Genetic Algorithm}
+GA is an evolutionary computational method for solving optimization problems,
+including constraints satisfaction. The method is inspired by \emph{evolution
+theory}, its genetic part to be concrete. It is known that living organisms
+store information about themselves and transmit (part of) it to its offspring.
+In case of sexual reproduction, each participating sex gives its share of
+genetic information, thus ``mixing'' parents properties in the offspring.
+It's called \emph{crossover}.
+Crossover can create combinations of the parents, but not create something new.
+The latter is provided by \emph{mutations} --- random changes in the genome, due
+to copying errors. Because of mutation's randomness, the results cannot be known
+in advance, and such event might both better or worsen the ``victim''. Mutations
+are relatively rare in the nature, thus maintaining species populations more or
+less alike.
+
+But if the mutations are rare, then how are the new properties fixed within
+populations? The response to this isn't found in the genetics, but rather in
+organism's \emph{adaptation} to the environment. A property that gives an
+\emph{advantage} before the rest of the population
+\begin{enumerate*}[1)]
+  \item raises organism's chances of survival, extending mean life length and
+        potential number of children within its lifetime;
+  \item raises organism's ``value'' in the eyes of potential mate, thus further
+        increasing potential size of its offspring.
+\end{enumerate*}
+With time, the property is spread throughout the population, because of the
+advantages it gives.
+
+\bigskip\noindent
+Genetic algorithms search for better \emph{adopted} ``organisms'', described
+by their genetic code --- chromosomes, using \emph{crossover} and \emph{mutations}
+as its \emph{genetic operations}.
+The chromosomes are \underline{lists of \emph{genes}} --- variables with finite
+domains. The degree of \emph{adaptation} is calculated by
+\underline{\emph{fitness function}}.
+
+GAs are iterative algorithms, working with \emph{populations}, that consist of
+\emph{chromosomes}, representing possible solutions. The algorithms search
+for better \emph{fitted} solutions, trying to maximize mean population
+\emph{fitness} on each iteration.
+Notable advantage of genetic algorithms is that they are capable of
+``getting out'' \underline{local} maximums due to the mutations, thus finding
+the \underline{global} maximum, provided adequate configuration.
+
+\begin{enumerate}[start=0]
+  \item Create initial population (randomly).
+  \item\label{list:GA:start} Evaluate \emph{fitness} of each chromosome in the population.
+  \item If \emph{stop criterion} applies, return best chromosomes and terminate.
+  \item\label{list:GA:xover} Select best chromosomes and apply \emph{crossover}.
+  \item\label{list:GA:mutate} Select chromosomes for mutation and \emph{mutate} them.
+  \item Create new population from the crossover children (\ref{list:GA:xover}),
+        mutated chromosomes (\ref{list:GA:mutate}) and the original population
+        (\ref{list:GA:start}).
+        Go to \ref{list:GA:start}.
+\end{enumerate}
+
+\end{document}

@@ -5,20 +5,13 @@
 
 \begin{document}
 
-% \green{Explicar que son los CSP}
 \chapter{Constraint Satisfaction Problems}
 \label{chapter:csp}
-
-% \green{Poner una definición no formal}
-% \medskip
 
 There are many problems that require positioning or assigning something,
 respecting established \emph{restrictions}. \emph{Graph coloring} and
 \emph{n-queen} chess problem are classical constraint satisfaction problems (CSPs).
 
-% \medskip
-% \green{Poner algunos ejemplos}
-% \medskip
 
 The graph coloring problem comes from cartography, where it was needed to color
 countries on political maps, in such a way that no country had a land border with
@@ -37,155 +30,11 @@ Constraint satisfaction problems are found in many areas:
 machine vision, natural language processing, theorem proving,
 planning and in our problem --- scheduling \cite{MAS}.
 
-
-\section{Formal definition}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\noindent
-Formally speaking, a CSP is defined by its \emph{variables} $V$ with the
-corresponding \emph{domains} and the \emph{constraints} $\{\xi\}$
-over values assignation \cite{MAS}.
-
-\begin{align*}
-  V                &= \{v_i\}_{i=1}^N
-& \{{\dot v}^i_j\} &= \domain(v_i)
-& \xi              &: \{{\dot v}^i_\ast\}_{i=1}^N \mapsto [0,1]
-\end{align*}
-
-
-A variable defines a ``slot'' that can hold a value from the corresponding domain.
-A solution to CSP is an assignation of the values ${\dot v}^i_\ast$
-to the variables $V$, such that all the restriction hold.
-\begin{equation}
-  {\dot V} = \{{\dot v}^i_\ast\}_{i=1}^N \text{is a solution}
-   \iff \forall \xi \in \{\xi\} \Rightarrow \xi({\dot V}) = 1
-\end{equation}
-
-The constraints above are defined in the most generalized form,
-over the entire solution. There is a particular case, that is found in many problems
---- \emph{binary constraints}, imposed on \emph{pairs} of values:
-$$\xi_2 : \left< {\dot v}^i_\ast, {\dot v}^j_\ast \right> \mapsto \{0,1\}$$
-
-If all constrains are binary, than the satisfaction condition is
-$$\forall \xi_2     \in \{\xi\},~
-  \forall v_i, v_j  \in V | v_i \not= v_j
-~ \Rightarrow ~ \xi_2(v_i, v_j) = 1
-$$
-
-\medskip
-
-In the graph coloring problem, the variables are the \emph{colors to be assigned}
-for each graph node $\{n_i\}_{i=1}^N$. In this case, all the variables have
-the same domain values: four colors, for example \textit{Red}, \textit{Green},
-\textit{Blue} and \textit{Yellow}. The constraint is binary and depends on graph
-structure:
-$$ \xi_2(x,y)= \begin{cases}
-  0 & \mbox{if } \exists \text{~edge~} x \leftrightarrow y
-                ~\land \text{~color~} x = \text{color~} y \\
-  1 & \text{otherwise}
-\end{cases}
-$$
-
-% For the n-queens problem, there are two ways of representing the variables.One
-% can see queens' positions as a single variable --- pairs $\left< x,y \right>$.
-% But it's better to handle them separately, as it would be shown in \ref{TODO}.
-% In this case each queen would have two variables:
-% horizontal and vertical positions $x$ and $y$.
-
-For the n-queens problem, the variables are queens' positions ---
-pairs $\left< x,y \right>$, where $x$ is queen's horizontal position and
-$y$ is the vertical one. The restrictions can be gathered within a single
-constraint function:
-$$\xi_2(\left<x_1,y_1\right>, \left<x_2,y_2\right>) =
-    \begin{cases}
-      0 & \mbox{if } \begin{cases}
-                        &      x_1 = x_2  \lor y_1 = y_2 \\
-                        \lor~& x_1 = y_2 \land x_2 = y_1 \\
-                        \lor~& x_1-y_1 = x_2-y_2\\
-                        \lor~& x_1+y_1 = x_2+y_2
-                     \end{cases} \\
-     1 & \text{otherwise}
-    \end{cases}
-$$
-
-\begin{figure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-  	\subfile{\rootdir/img/NQueens/Restrictions.tikz}
-  	\caption{Queen moves/attacks.}
-  	\label{fig:QueenMoves}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.3\textwidth}
-    \centering
-  	\includegraphics[trim=100 260 370 370, clip] % width=\textwidth
-               {\rootdir/img/easteuro}
-  	\caption{Part of Central Europe \cite{UN-CEU-Map}.}
-  	\label{}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}[b]{0.3\textwidth}
-  	\centering
-    \subfile{\rootdir/img/ColorMap/CEUMapGraph.tikz}
-  	\caption{Graph coloring problem.}
-  	\label{fig:ColoringGraph}
-  \end{subfigure}
-  \caption{CSP examples}
-\end{figure}
-
-  In our \emph{university classes scheduling} problem (UCSP) the variables
-are personal schedules, called \emph{timetables} in this thesis,
-for each \emph{participant}: professor and group/student.
-  A timetable consists of the day-time slots, where classes can be put.
-  A \emph{class} is formed for teaching a group a specific \emph{subject},
-connecting the participants (of each kind) and establishing a classroom and
-the beginning--end \emph{time}.
-  Problem \emph{constraints} can be divided into:
-\begin{enumerate}
-  \item \underline{Class constraints}: a class should be a productive event, so
-    a professor should be able to \emph{teach} the class, the classroom should
-    have the \emph{capacity} to hold all the students and be properly \emph{equipped},
-    and the group should be \emph{enrolled} to class subject
-    (further called \emph{discipline}).
-  \item \underline{Time constraints}: no participant can have two classes
-    at the same time (or intersecting in time), as mentioned before.
-  \item \underline{Strong restrictions}: the restrictions, put on a participant, that
-    \emph{must} be respected. May include working hours, fixed lunch recess time,
-    and any other institution or person specific \emph{obligations}.
-  % \item \red{\underline{Weak restrictions} (MOVE)}: the restrictions, that \emph{should} be respected,
-  %   but are not critical to the solution. Compliance with these restrictions
-  %   raises \emph{solution quality}, but it is assumed that the all of them
-  %   cannot be fully met for all the participants --- they are intended to
-  %   represent personal \emph{preferences}.
-\end{enumerate}
-
-\bigskip
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  Until now we were speaking about restrictions satisfaction, but the problem can
-be extended to an \emph{optimization} one by defining an
-\emph{objective function} over the values configurations.
-
-  Unlike the restrictions (that yield boolean result), the objective functions
-should have continuous codomains:
-$$\tilde\xi : \{{\dot v}^i_\ast\}_{i=1}^N \mapsto \Re$$
-  In order to facilitate the calculations and erase the internal differences of
-the objectives, it's often required that the functions must be normalized:
-the co-domains are restricted to $[-1,1]$ or $[0,1]$ intervals.
-
-  For example, in case of our UCSP,
-one can add \underline{personal preferences} or some institution criteria as
-optimization parameters.
-  Compliance with the preferences raises \emph{solution quality},
-but it is assumed that the all of them cannot be fully met for all the
-participants, because \emph{personal} preferences are often
-contradictory for different persons.
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subfile{CSP/Formal}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \section{Solution Methods}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \green{Explicar por qué son importantes computacionalmente}\\
-% \medskip
-
-% \noindent
   Solving these problems usually presents difficulties due to the amount of
 possible combinations to consider for a solution. Let's have a look at
 some university schedule.
@@ -197,16 +46,11 @@ there would be $\multibinom{72}{5} = \num[group-separator={,}]{18474840}$
 possible classes assignments for each group,
 even without considering professors and classrooms.
 
-% \bigskip
-% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% \green{Explicar formas de resolver los CSP} \todo
 \medskip
 \noindent
-
-  The researchers have been looking for means of solving such
-problems within reasonable time.
-  During the last years different algorithms and techniques where developed,
-such as
+The researchers have been looking for means of solving such problems within
+reasonable time. During the last years different algorithms and techniques where
+developed, such as
 \emph{dynamic constraint satisfaction based on extension particle swarm
       optimization algorithm} \cite{CSPswarm},
 \emph{dynamic state bounding} \cite{CSPdynStateBound},
@@ -229,126 +73,11 @@ computing resources.
 Some agent solution methods are presented in section \ref{sec:CSP-Agents}.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\subsection{Genetic Algorithm}
-GA is an evolutionary computational method for solving optimization problems,
-including constraints satisfaction. The method is inspired by \emph{evolution
-theory}, its genetic part to be concrete. It is known that living organisms
-store information about themselves and transmit (part of) it to its offspring.
-In case of sexual reproduction, each participating sex gives its share of
-genetic information, thus ``mixing'' parents properties in the offspring.
-It's called \emph{crossover}.
-Crossover can create combinations of the parents, but not create something new.
-The latter is provided by \emph{mutations} --- random changes in the genome, due
-to copying errors. Because of mutation's randomness, the results cannot be known
-in advance, and such event might both better or worsen the ``victim''. Mutations
-are relatively rare in the nature, thus maintaining species populations more or
-less alike.
-
-But if the mutations are rare, then how are the new properties fixed within
-populations? The response to this isn't found in the genetics, but rather in
-organism's \emph{adaptation} to the environment. A property that gives an
-\emph{advantage} before the rest of the population
-\begin{enumerate*}[1)]
-  \item raises organism's chances of survival, extending mean life length and
-        potential number of children within its lifetime;
-  \item raises organism's ``value'' in the eyes of potential mate, thus further
-        increasing potential size of its offspring.
-\end{enumerate*}
-With time, the property is spread throughout the population, because of the
-advantages it gives.
-
-\bigskip\noindent
-Genetic algorithms search for better \emph{adopted} ``organisms'', described
-by their genetic code --- chromosomes, using \emph{crossover} and \emph{mutations}
-as its \emph{genetic operations}.
-The chromosomes are \underline{lists of \emph{genes}} --- variables with finite
-domains. The degree of \emph{adaptation} is calculated by
-\underline{\emph{fitness function}}.
-
-GAs are iterative algorithms, working with \emph{populations}, that consist of
-\emph{chromosomes}, representing possible solutions. The algorithms search
-for better \emph{fitted} solutions, trying to maximize mean population
-\emph{fitness} on each iteration.
-Notable advantage of genetic algorithms is that they are capable of
-``getting out'' \underline{local} maximums due to the mutations, thus finding
-the \underline{global} maximum, provided adequate configuration.
-
-\begin{enumerate}[start=0]
-  \item Create initial population (randomly).
-  \item\label{list:GA:start} Evaluate \emph{fitness} of each chromosome in the population.
-  \item If \emph{stop criterion} applies, return best chromosomes and terminate.
-  \item\label{list:GA:xover} Select best chromosomes and apply \emph{crossover}.
-  \item\label{list:GA:mutate} Select chromosomes for mutation and \emph{mutate} them.
-  \item Create new population from the crossover children (\ref{list:GA:xover}),
-        mutated chromosomes (\ref{list:GA:mutate}) and the original population
-        (\ref{list:GA:start}).
-        Go to \ref{list:GA:start}.
-\end{enumerate}
-
-\subsection{Quantum-inspired Genetic Algorithm}
-An interesting modification of Genetic Algorithm (GA), based on the concept and
-principles of \emph{quantum computing} --- QGA, was proposed in article
-\cite{QuantumGeneticAlgorithm}.
-Instead of being represented by a list of \emph{genes}, as in classical GAs,
-in QGA a chromosome is represented by a \emph{Q-bit individual}.
-
-\emph{Q-bit} is the quantum counterpart of the classic bit --- the smallest
-unit of information. While a normal \emph{bit} can take either 0 or 1 values,
-a \emph{Q-bit} can take any \emph{superposition} of the tho states, including
-margin values: states 0 and 1. The main difference is that such ``bit'' can be
-0 and 1 at the same time, just like famous Schrodinger's cat, that is both dead
-and alive. The state of a Q-bit can be represented by two complex numbers
-$\alpha$ and $\beta$, that denote the probabilities of a Q-bit being found in
-states 0 and 1 respectively.
-The values must be normalized: $|\alpha|^2 + |\beta|^2 = 1$.
-
-A \emph{Q-bit individual} of $m$ Q-bits is defined as
-\begin{equation}
-\left[
-  \begin{array}{cccc}
-  \alpha_1 & \alpha_2 & \dots & \alpha_m \\
-  \beta_1  & \beta_2  & \dots & \beta_m  \\
-  \end{array}
-\right]
-\end{equation}
-
-One of the practical advantages, claimed my the article, is:
-\begin{displayquote}
-  Evolutionary computing with Q­-bit representation has a better characteristic
-  of population diversity than other representations, since it can represent
-  linear superposition of states probabilistically.
-\end{displayquote}
-It presents an example of a three-Q-bit individual, and shows its equivalence
-to 8 classical chromosomes of 3 genes at once.
-
-\medskip\noindent
-Major differences are found in the \emph{genetic operators} applied:
-neither crossover or mutations are used. Instead, tournament selection strategy
-with elite retaining model is used to generate new populations.
-It works as follows:
-\begin{enumerate}
-  \item Tournament set --- a set $K$ individuals, is randomly selected from
-        the population.
-  \item A random number $r$ (between 0 and 1) is selected.
-  \item If $r < 0.8$ (empirically established by the authors), then the fittest
-        individual in the tournament set is chosen for reproduction.
-        Otherwise, any chromosome is chosen from the tournament set.
-\end{enumerate}
-\noindent
-After selecting intermediate population of the same size, \emph{quantum rotation gate}
-is applied to each individual's Q-bits, creating new population.
-The angle used is selected from a table, provided by the authors.
-
-While not providing explicitly any stop criteria for the proposed algorithm,
-the authors have compared their method with classical GA, using same number
-of generation as stop criterion in both.
-University classes scheduling problem was selected for the tests.
-The presented results show better final fitness and faster convergence rate for
-the proposed QGA.
-
+\subfile{CSP/GA}
+\subfile{CSP/QGA}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \section{Distributed problems}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 Agents approach allows solving CSPs in a distributed manner by distributing
 the problem knowledge and constraints
 \cite{DCSPagent1998, DCSP2013, CSPagent2014, MAS, MAS-Survey}.
