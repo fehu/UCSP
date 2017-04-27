@@ -1,0 +1,45 @@
+\newcommand{\mkCEUMapGraph}[1][]{
+  \begin{tikzpicture}[
+    every node/.style={draw, circle, inner sep=0pt,
+                       text width=1.5em, align=center},
+    node IT/.style={},
+    node SN/.style={},
+    node CR/.style={},
+    node H/.style ={},
+    node A/.style ={},
+    node SK/.style={},
+    node CZ/.style={},
+    node G/.style ={},
+    node P/.style ={},
+    #1
+    ]
+
+  \node[node IT] (IT) at (0,0)   {IT};
+  \node[node SN] (SN) at (1,0)   {SN};
+  \node[node CR] (CR) at (2,-1)  {CR};
+  \node[node H]  (H)  at (3,0)   {H};
+  \node[node A]  (A)  at (1,1)   {A};
+  \node[node SK] (SK) at (3,1)   {SK};
+  \node[node CZ] (CZ) at (2,2)   {CZ};
+  \node[node G]  (G)  at (1,3)   {G};
+  \node[node P]  (P)  at (3,3)   {P};
+
+  \draw (G) -- (P);
+  \draw (G) -- (CZ);
+  \draw (G) -- (A);
+  \draw (P) -- (CZ);
+  \draw (P) -- (SK);
+  \draw (CZ) -- (A);
+  \draw (CZ) -- (SK);
+  \draw (A) -- (SK);
+  \draw (A) -- (H);
+  \draw (A) -- (SN);
+  \draw (A) -- (IT);
+  \draw (SK) -- (H);
+  \draw (IT) -- (SN);
+  \draw (SN) -- (H);
+  \draw (SN) -- (CR);
+  \draw (H) -- (CR);
+
+\end{tikzpicture}
+}
