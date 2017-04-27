@@ -152,6 +152,31 @@ of course all group size restrictions must be respected by newly created
 group and its ``donors''. A less radical way to change groups composition is
 student transfer.
 
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{figure}[H]
+  \begin{subfigure}{0.36\textwidth}
+    \resizebox{\linewidth}{!}{
+      \subfile{\rootdir/img/ConnectionMatrix2/WithComments.tikz}
+    }
+    \caption{Originally, the connections between groups and classes are
+             defined by classes (class-cores).}
+  \end{subfigure}
+  ~
+  \begin{subfigure}{0.64\textwidth}
+    \resizebox{\linewidth}{!}{
+      \subfile{\rootdir/img/ConnectionMatrix2/WithStudents.tikz}
+    }
+    \caption{In the new model, each group connects with strictly one professor
+             and a set of underlying students.}
+    \label{}
+  \end{subfigure}
+  \caption{Agents connections in case of students representation}
+  \label{fig:ConnectionMatrixDiff}
+\end{figure}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
 A group is formed by students to study specific discipline (or a set of
 explicitly linked ones). All the classes of a group would have the same professor.
 In this negotiation scheme, a group would have no more constraints of its own.
@@ -175,31 +200,9 @@ The modification would only affect group proactive behavior:
 Proxying would complicate the resulting relations between the agents, so
 some tests are needed to make further implementation suggestions.
 
-
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\begin{figure}[h]
-  \begin{subfigure}{0.36\textwidth}
-    \resizebox{\linewidth}{!}{
-      \subfile{\rootdir/img/ConnectionMatrix2/WithComments.tikz}
-    }
-    \caption{Originally, the connections between groups and classes are
-             defined by classes (class-cores).}
-  \end{subfigure}
-  ~
-  \begin{subfigure}{0.64\textwidth}
-    \resizebox{\linewidth}{!}{
-      \subfile{\rootdir/img/ConnectionMatrix2/WithStudents.tikz}
-    }
-    \caption{In the new model, each group connects with strictly one professor
-             and a set of underlying students.}
-    \label{}
-  \end{subfigure}
-  \caption{Agents connections in case of students representation}
-  \label{fig:ConnectionMatrixDiff}
-\end{figure}
 
-
-\begin{figure}[b]
+\begin{figure}[H]
   \centering
   \resizebox{\textwidth}{!}{
     \subfile{\rootdir/img/ScheduleHypercube/SGRPT.tikz}
@@ -210,7 +213,6 @@ some tests are needed to make further implementation suggestions.
   \label{fig:ScheduleHypercube-S}
 \end{figure}
 
-
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \section{Classrooms Representation}
 It is possible to make the classrooms a represented entity, by creating
@@ -219,7 +221,7 @@ Then the classrooms can have internal contexts of their own, and their
 \emph{opinions} would be included by external coherence evaluation.
 Agents connections in case of students and classrooms representation are shown
 on figure \ref{fig:ConnectionMatrixAll}.
-\begin{figure}[h]
+\begin{figure}[H]
   \resizebox{\textwidth}{!}{
     \subfile{\rootdir/img/ConnectionMatrix2/WithStudentsAndRooms.tikz}
   }

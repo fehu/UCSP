@@ -29,6 +29,18 @@ it into the \emph{common schedule variable} or generates a new one.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{figure}[H]
+  \centering
+  \subfile{\rootdir/img/ConnectionMatrix/Candidates.tikz}
+  \caption[Class cores and candidates]
+          {The \emph{class cores} define classes' connections. Candidates are
+           created by groups and refer the professors, mentioned in the
+           underlying classes. }
+  \label{fig:class-cores}
+\end{figure}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Class-Cores}
 \label{sec:solution-CC}
 
@@ -48,18 +60,6 @@ the disciplines, that the represented person can teach.
   \item Lazily generate all possible combinations \emph{professor} -- \emph{discipline}.
   \item When getting next combination, assign the generating \emph{group}.
 \end{enumerate}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\begin{figure}[h]
-  \centering
-  \subfile{\rootdir/img/ConnectionMatrix/Candidates.tikz}
-  \caption[Class cores and candidates]
-          {The \emph{class cores} define classes' connections. Candidates are
-           created by groups and refer the professors, mentioned in the
-           underlying classes. }
-  \label{fig:class-cores}
-\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Day -- Time -- Room}
@@ -135,7 +135,7 @@ $\tilde{c}_i$ is ``better'' than any conflicting candidate.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{figure}[h]
+\begin{figure}[H]
   \centering
   \subfile{\rootdir/img/ConnectionMatrix/Conflict.tikz}
   \caption{ Example of candidate placement intention }
@@ -222,6 +222,21 @@ coherence values of other agents:
             All ``new'' coherence values were already retrieved at some previous depth.
 \end{itemize}
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\begin{figure}[H]
+  \centering
+  \resizebox{0.7\textwidth}{!}{
+    \subfile{\rootdir/img/ConnectionMatrix/ConflictDeepCoherence.tikz}
+    }
+  \caption[Example of deep coherence evaluation]
+          {Example of deep coherence evaluation by agent $g_i$.}
+  \label{fig:ConflictDeepCoherence}
+\end{figure}
+\newpage
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
 \noindent
 \underline{External coherence} value is the result of applying the selected
 \emph{internal} coherence values to \emph{common goal} function $\Gamma$.
@@ -232,19 +247,6 @@ coherence values of other agents:
 An example of deep coherence evaluation by some agent $g_i$ is shown on figure
 \ref{fig:ConflictDeepCoherence}. $g_i$ wants to put a new candidate, that is
 in conflict with the candidate marked \red{red}.
-
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-\begin{figure}[h]
-  \centering
-  \resizebox{0.7\textwidth}{!}{
-    \subfile{\rootdir/img/ConnectionMatrix/ConflictDeepCoherence.tikz}
-    }
-  \caption[Example of deep coherence evaluation]
-          {Example of deep coherence evaluation by agent $g_i$.}
-  \label{fig:ConflictDeepCoherence}
-\end{figure}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
