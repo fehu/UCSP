@@ -17,7 +17,7 @@ There are different methods and techniques for implementing agents behavior.
 
 One of the simplest methods consists in taking all possible variable domain values
 and eliminating the values, that are in contradiction with the neighbors.
-The process results in a solution if when all the agents have exactly one
+The process results in a solution when all the agents have exactly one
 possible value; or it fails if any of the agents runs out of the possible
 values to propose. A natural question arises: in what order should the agents
 prune their domains?
@@ -29,8 +29,8 @@ if it exists.
 \noindent
 An agent $a_i$
 \begin{enumerate}
-  \item controls variable $v_i$ with a finite $\domain~v_i =
-        \{{\dot v}^i_j\}_{j=1}^{N_i}$, can set it's value ${\dot V}_i$,
+  \item controls variable $V_i$ with a finite $\domain~V_i =
+        \{{\dot v}^i_j\}_{j=1}^{N_i}$.
   \item has sets of possible ${\tilde V}_i$ and excluded ${\tilde V}_i^-$ values,
   \item has priority $p$.
 \end{enumerate}
@@ -40,10 +40,10 @@ In the beginning each agent assigns
 \begin{align*}
   &{\tilde V}_i   &&\leftarrow \domain~v_i       && \textit{(any domain value is possible)} & \\
   &{\tilde V}_i^- &&\leftarrow \{\}              && \textit{(no excluded values at start)}  &\\
-  &{\dot V}_i     &&\leftarrow \pop~{\tilde V}_i && \textit{(pop first possible value and assign it to the variable)} &\\
+  &V_i            &&\leftarrow \pop~{\tilde V}_i && \textit{(pop first possible value and assign it to the variable)} &\\
 \end{align*}
 
-Every time current value ${\dot V}_i$ is assigned, an agent must notify its
+Every time current value $V_i$ is assigned, an agent must notify its
 neighbors about it with a \emph{proposal} message, containing the value.
 The interactions between agents are heavily based on their priority and are
 defined for pairs, where one of the agents always has a higher priority.
@@ -70,13 +70,13 @@ priorities.
     for a supervisor.
 
     Upon a notification about solution incoherence, the supervisor
-    must try to change its value ${\tilde V}_s$ and add the old one to the
+    must try to change its value $V_i$ and add the old one to the
     excluded set ${\tilde V}_i^-$.
     If neither this agent has more possible values to assign, it should propagate
     backtracking request to its own supervisor, and so on. Otherwise, it should
-    demand its subordinates to reset their ${\tilde V}_*$ and ${\dot V}_*$ states
+    demand its subordinates to reset their ${\tilde V}_*$ and $V_*$ states
     before changing its value. New \emph{possible values} sets are formed, considering
-    the excluded values: ${\tilde V}_* = \domain~v_* \setminus {\tilde V}_*^-$.
+    the excluded values: ${\tilde V}_i = \domain~v_i \setminus {\tilde V}_i^-$.
     Backtracking request by the \emph{top priority} agent means that no solution
     could be found.
 \end{enumerate}
@@ -85,26 +85,38 @@ The \textbf{stop criteria} is the lack of negotiation activity, that signalizes
 that all the values assignations have been confirmed, thus a solution, satisfying
 the constraints, was found.
 
+Any set of \underline{consistent} (that are not in conflict)
+ variables assignations is called \emph{partial solution}.
+$$ \lbrace\left<V_i,{\dot v}^i_*\right>\rbrace_{i \in I} $$
+
+A \underline{complete solution} is a partial solution,
+that contains assignations for all the problem variables.
+
 \bigskip
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \noindent
 There are various extensions of the method that improve its speed.
 
-One of such techniques is \emph{Weak-commitment Search}\cite{Weak-commitment}.
-It can be used when the agents control several variables. It consists in
-aggregating variables into negotiation one-by-one, finding \emph{partial solutions}
-at each step, until all the variables are aggregated and the final solution
-is found. When a (partial) solution cannot be found for a newly aggregated
-variable, a process, similar to backtracking, is used to change previous
-partial solutions.
+\medskip
 
-A good example of a problem, that is solved much faster this way, is
-\emph{n-queen} problem. If one considers the position variable
-$\left< x,y \right>$ as two variables, owned by the same agent, the queens
-can be positioned first by rows and then by columns, or vice versa. Anyway,
-the number of combinations to consider is reduced greatly, thus accelerating
-solution search.
+One of such techniques is \emph{Weak-commitment Search}\cite{Weak-commitment},
+that removes the drawbacks of backtracking algorithms. It utilizes a min-conflict
+heuristic, and therefore is compared by the authors with min-conflict backtracking.
+Both algorithms \underline{add variables} to the \emph{partial solution} one by one.
+The difference is in algorithms' \emph{commitment} to current partial solution.
+Backtracking never abandons its p. solution until proven \emph{hopeless}:
+it tries every possible combination of variables assignations from ${\tilde V}_i$
+for each variable $V_i$, that isn't within the solution yet.
+
+\emph{Weak commitment}, as it follows from the name, commits \emph{weakly}:
+whole partial solution is abandoned if even one variable $V_i$ has no valid
+assignment. Furthermore, any failed partial solution is guarded and avoided in
+the future. The resulting difference is that Weak-commitment algorithm revises
+bad decision (as backtracking does) without exhaustive search, that speeds it up
+and still guarantees algorithm completeness (if any solution exists, it would be found).
+
+\medskip
 
 There is, for example, a technique, that manipulates agents priorities,
 decreasing the priorities of the agents that have fallen back in the backtracking
