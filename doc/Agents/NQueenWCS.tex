@@ -1,5 +1,35 @@
 \documentclass[../ThesisDoc]{subfiles}
 
+
+\newcommand{\queensImg}[2][]{%
+  \resizebox{\linewidth}{!}{\QueensPicture[#1]{#2}}%
+}
+
+\newcommand{\queensSubfig}[2]{
+  \begin{subfigure}[t]{#1\hsize}
+    \caption{}
+    \queensImg{#2}
+  \end{subfigure}
+}
+
+
+\newcommand{\showSteps}[4][]{
+  \gdef\acc{}
+  \gdef\first{1}
+  \pgfmathsetmacro{\w}{(1/#2) - 0.04}
+  \def\showBoard{\agentsBoard[#1]}
+  \foreach \i in {#3}
+    {
+      \ifthenelse{\first=1}
+                 {\numgdef\first{0}}
+                 {\xappto\acc{,}}
+      \xappto\acc{\i}
+      \queensSubfig{\w}{\expandafter\showBoard\expandafter{\acc}#4}
+    }
+}
+
+
+
 \begin{document}
 
 \providecommand{\rootdir}{..}
@@ -8,9 +38,253 @@
 \subsection{Solving N-Queens Problem with Weak Commitment Search}
 \label{sec:N-Queens-WCS}
 
+A good example of a problem, that is solved much faster
+using \emph{Weak-commitment search}, is \emph{n-queen} problem.
+In the problem description, given in chapter \ref{chapter:csp}, queens' positions
+are defined by a pairs $\left<x,y\right>$, that are single variables. In order to
+use Weak-commitment search, the position variables should be separated.
+
+Here is presented an example of problem solution, using modified Weak-commitment
+search. The modification consists in distribution of the variables between
+queen-representing agents. Each queen agent would now control two separated
+variables: $x$ and $y$ with domains $\overline{1,N}$, where $N$ is chessboard size.
+Each queen would also receive \emph{priority}, that establishes its relations
+with other agents.
+
+The agents assign variables (one-by-one) in the order, established by their
+priorities. When an agent cannot find valid variable assignation:
+\begin{enumerate}
+  \item The agent notifies its \emph{supervisor}: the agent with the following priory.
+        If the notification is sent by \emph{root} agent (with highest priority),
+        then it means that no solution exists.
+  \item Bad \emph{partial solution} is guarded in \emph{generic manner} and then
+        avoided by all the agents. The guarded bad solution ignores what agents
+        have assigned the values: such positions configurations must be avoided,
+        it is irrelevant which agents occupy the positions.
+\end{enumerate}
+The solution is found when all the agents managed to assign values to their
+variables.
+
+\medskip\noindent
+On figure \ref{fig:4-Queens} is presented a step-by-step solution of 4-Queens problem,
+using the method described.
 
 
 
 
+
+\input{\rootdir/img/NQueens/Solve-4-Queens.tikz.lib}
+
+
+
+% \def\foo#1{
+%     \edef\a{#1}
+%     \queensImg[]{
+%       \expandafter\agentsBoard\expandafter{\a}
+%     }
+% }
+
+% \def\showSteps[#1]#2{
+%   \gdef\acc{}
+%   \gdef\first{1}
+%   \def\showBoard{\agentsBoard[#1]}
+%   \foreach \i in {#2}
+%     {
+%       \ifthenelse{\first=1}
+%                  {\numgdef\first{0}}
+%                  {\xappto\acc{,}}
+%       \xappto\acc{\i}
+%       \begin{subfigure}[t]{0.25\textwidth}
+%         \caption{}
+%         \queensImg[]{
+%           \expandafter\showBoard\expandafter{\acc}
+%         }
+%       \end{subfigure}~
+%     }
+% }
+
+
+\begin{figure}
+  \centering
+  \showSteps[column 4/.style={text opacity=0}]
+    {4}
+    {Q1/boldText/4/false/1/1,
+     Q2/boldText/3/false/2/1,
+     Q3/boldText/2/false/3/1,
+     Q4/boldText/1/false/4/1}{}
+  % \rule{.9\textwidth}{1pt}
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \centering
+  \showSteps{3}
+    {Q1/boldText/4/true/1/1,
+     Q2/boldText/3/true/2/3}{}
+  \queensSubfig{0.29}{
+    \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
+      {Q1/boldText/4/true/1/1,
+       Q2/boldText/3/true/2/3,
+       Q3/boldText/2//3/x}
+    \selectRow[red, thick]{3}{\textbf{Q3}}
+    \newBadPosition(2,3)
+    \badPartialSolution{3}
+  }
+  % \rule{.9\textwidth}{1pt}
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \centering
+  \showSteps{4}
+    {Q1/boldText/4/true/1/1,
+     Q2/boldText/3/true/2/4,
+     Q3/boldText/2/true/3/2}
+    {\badPosition(2,3)}
+  \queensSubfig{0.21}{
+    \agentsBoard[row 5 column 4/.style={nodes={color=red}}]
+      {Q1/boldText/4/true/1/1,
+       Q2/boldText/3/true/2/4,
+       Q3/boldText/2/true/3/2,
+       Q4/boldText/1//4/x}
+    \badPosition(2,3)
+    \selectRow[red, thick]{4}{\textbf{Q4}}
+    \newBadPosition(3,2)
+    \badPartialSolution{4}
+  }
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \centering
+  \showSteps{3}
+    {Q1/boldText/4/true/1/1,
+     Q2/boldText/3/true/2/4}
+    {\badPosition(2,3)
+     \badPosition(3,2)}
+  \queensSubfig{0.29}{
+    \agentsBoard[row 4 column 4/.style={nodes={color=red}}]
+      {Q1/boldText/4/true/1/1,
+       Q2/boldText/3/true/2/4,
+       Q3/boldText/2/false/3/x}
+    \badPosition(2,3)
+    \badPosition(3,2)
+    \selectRow[red, thick]{3}{}
+    \newBadPosition(2,4)
+    \badPartialSolution{3}
+  }
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \centering
+  \queensSubfig{0.29}{\agentsBoard{Q1/boldText/4/true/1/1}
+                      \badPosition(2,3) \badPosition(2,4)}
+  \queensSubfig{0.29}{
+    \agentsBoard[row 3 column 4/.style={nodes={color=red}}]
+      {Q1/boldText/4/true/1/1,
+       Q2/boldText/3/true/2/x}
+    \badPosition(2,3)
+    \badPosition(2,4)
+    \selectRow[red, thick]{2}{}
+    \newBadPosition(1,1)
+    \badPartialSolution{2}
+  }
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \showSteps{4}
+    {Q1/boldText/4/true/1/2,
+     Q2/boldText/3/true/2/4,
+     Q3/boldText/2/true/3/1}
+    {\badPosition(1,1)}
+  \queensSubfig{0.21}{
+    \agentsBoard
+      {Q1/boldText/4/true/1/2,
+       Q2/boldText/3/true/2/4,
+       Q3/boldText/2/true/3/1,
+       Q4/boldText/1/true/4/3}
+    \badPosition(1,1)
+    \selectPartialSolution[draw, thick, myGreen, inner sep=0pt]{5}
+  }
+\end{figure}
+
+
+\begin{figure}\ContinuedFloat
+  \caption{}
+  \label{}
+\end{figure}
+
+
+
+
+% \begin{figure}[h]
+%   \centering
+%   %%% Step 1
+%   \begin{subfigure}[t]{0.25\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[column 4/.style={text opacity=0}]
+%         {Q1/boldText/4/false/1/1}
+%     }
+%   \end{subfigure}~
+%   \begin{subfigure}[t]{0.25\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[column 4/.style={text opacity=0}]
+%         {Q1/boldText/4/false/1/1,
+%          Q2/boldText/3/false/2/1}
+%     }
+%   \end{subfigure}~
+%   \begin{subfigure}[t]{0.25\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[column 4/.style={text opacity=0}]
+%         {Q1/boldText/4/false/1/1,
+%          Q2/boldText/3/false/2/1,
+%          Q3/boldText/2/false/3/1}
+%     }
+%   \end{subfigure}~
+%   \begin{subfigure}[t]{0.25\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[column 4/.style={text opacity=0}]
+%         {Q1/boldText/4/false/1/1,
+%          Q2/boldText/3/false/2/1,
+%          Q3/boldText/2/false/3/1,
+%          Q4/boldText/1/false/4/1}
+%     }
+%   \end{subfigure}\\
+%   %%% Step 2
+%   \begin{subfigure}[t]{0.33\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[badY=4]
+%         {Q1/boldText/4/true/1/1}
+%     }
+%   \end{subfigure}~
+%   \begin{subfigure}[t]{0.33\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[badY=4]
+%         {Q1/boldText/4/true/1/1,
+%          Q2/boldText/3/true/2/3}
+%     }
+%   \end{subfigure}~
+%   \begin{subfigure}[t]{0.33\textwidth}
+%     \caption{}
+%     \queensImg[]{
+%       \agentsBoard[badY=4]
+%         {Q1/boldText/4/true/1/1,
+%          Q2/boldText/3/true/2/3,
+%          Q3/boldText/2//3/x}
+%       \selectRow[red, thick]{3}{\textbf{Q3}}
+%       \newBadPosition(2,3)
+%       \badPartialSolution{3}
+%     }
+%   \end{subfigure}
+%   \caption{}
+% \end{figure}
 
 \end{document}

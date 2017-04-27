@@ -1,0 +1,88 @@
+\input{\rootdir/img/NQueens.tikz.lib}
+
+% 1: list: name/style/priority/show_moves/x/y
+\newcommand{\agentsBoard}[2][]{
+  \agentsOnBoard{#2}
+  \agentsBoardTable{#2}{#1}
+}
+
+\newcommand{\agentsOnBoard}[1]{
+  \mkBoard
+  \foreach \name/\style/\priority/\moves/\x/\y in {#1}
+    {\ifthenelse{\equal{\y}{x}}{} % \or{\equal{\y}{x}}{\equal{\x}{x}}
+      {\ifthenelse{\boolean{\moves}}
+                  { \queenMoves[\style][\name](\x,\y) }
+                  { \drawQueen [\style][\name](\x,\y) }}}
+}
+
+\newcommand{\agentsBoardTable}[2]{
+  \gdef\mrows{}
+  \foreach \name/\style/\priority/\moves/\x/\y in {#1}
+    { \ifthenelse{\equal{\y}{x}}
+                 {\gdef\ty{$\times$}}
+                 {\gdef\ty{\AlphAlph{\y}}}
+      \xappto{\mrows}{\priority\&\name\&\x\&\ty\noexpand\\}
+    };
+
+  \matrix[matrix of nodes, nodes in empty cells, anchor=north,
+          ampersand replacement=\&,
+          row sep=-\pgflinewidth, column sep=-\pgflinewidth,
+          nodes={draw=none, text depth=0.1ex, text height=1.2ex, align=center},
+          row 1/.style={nodes={draw=none, inner sep=0pt, text depth=1ex, font=\bf}},
+          column 1/.style={minimum width=1.7cm},
+          column 2/.style={minimum width=1cm},
+          column 3/.style={minimum width=0.5cm},
+          column 4/.style={minimum width=0.5cm},
+          #2
+  ] (AT) at ($(\BoardSize/2+0.5,0.2)$) {Priority\&Name\&x\&y\\\mrows};
+}
+
+
+\newcommand{\selectRow}[3][]{
+  \draw[rounded corners, #1]
+      (#2-0.3,0.6) rectangle node {#3}
+      (#2+0.3,\BoardSize+0.4);
+}
+
+\newcommand{\selectPartialSolution}[2][]{
+  \node[#1, fit=(AT-2-3) (AT-#2-4)]{};
+}
+
+\newcommand{\badPartialSolution}[1]{
+  \selectPartialSolution[draw, red, thick, inner sep=0pt]{#1} % , label={[red]right:BAD}
+}
+
+\def\newBadPosition(#1,#2){
+  \node[draw=red, circle, dotted, line width=5pt, inner sep=8pt] at (#1,#2) {};
+}
+
+\def\badPosition(#1,#2){
+  \newBadPosition(#1,#2)
+  \node[fill=red, circle, inner sep=5pt] at (#1,#2) {};
+}
+
+% \tikzset{badY/.style={row #1 column 4/.style={nodes={color=red}}}}
+
+\newcommand{\QueensPicture}[2][]{
+  \begin{tikzpicture}[
+    oddCellStyle/.style={draw, minimum size=1cm},
+    evenCellStyle/.style={oddCellStyle, fill=gray!50},
+    queenMove/.style={line width=3pt, line cap=round, shorten <=1pt, shorten >=2pt,
+                      darkgray},
+    boldText/.style={font=\bf},
+    badY/.style={row #1 column 4/.style={nodes={color=red}}},
+    myGreen/.style = {green!50!black},
+    #1
+    ]
+  \def\NodeStyleOdd{oddCellStyle}
+  \def\NodeStyleEven{evenCellStyle}
+  \def\BoardSize{4}
+  \def\QueenSymb{\BlackQueenOnWhite}
+  \def\MoveStyle{queenMove}
+  \def\ShowBoardHeader{boldText}
+  \def\ShowQueenName{}
+
+  #2
+
+  \end{tikzpicture}
+}
