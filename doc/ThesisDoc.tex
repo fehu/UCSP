@@ -4,6 +4,22 @@
 
 \setupRootDirAndImport{.}
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% From ITESM-MIT-MasterThesis
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+%% Definition of new commands
+\newcommand{\field}[1]{\mathbb{#1}}
+\renewcommand{\thefootnote}{\alph{footnote}}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+%% Change some 'phdThesisFormat' commands
+
+% 'insertChapter' should use 'subfiles' package.
+\renewcommand{\insertChapter}[1]{\subfile{#1}} % twoside case ignored
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 \begin{document}
 

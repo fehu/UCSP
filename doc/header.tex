@@ -80,22 +80,7 @@
 
 \def\thisdoc{thesis}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-%% From ITESM-MIT-MasterThesis
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-
-%% Definition of new commands
-\newcommand{\field}[1]{\mathbb{#1}}
-\renewcommand{\thefootnote}{\alph{footnote}}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-%% Change some 'phdThesisFormat' commands
-
-% 'insertChapter' should use 'subfiles' package.
-\renewcommand{\insertChapter}[1]{\subfile{#1}} % twoside case ignored
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
@@ -111,17 +96,7 @@
   \input{\rootdir/MathDefs}
 }
 
-\newcommand{\rootDependentDefinitions}{
-  \usepackage{\rootdir/phdThesisFormat}
-  \rootDependentImports
-}
-
 \newcommand{\setupRootDirAndImport}[1]{
   \providecommand{\rootdir}{#1}
   \rootDependentImports
-}
-
-\newcommand{\setupRootDefinitions}[1]{
-  \providecommand{\rootdir}{#1}
-  \rootDependentDefinitions
 }
