@@ -1,0 +1,250 @@
+\documentclass{beamer}
+
+\providecommand{\rootdir}{../doc}
+
+
+% \def\privateData{private_data}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\usepackage[english]{babel}
+\usepackage{ifthen}
+\usepackage{color}
+\usepackage{hhline}
+
+\usepackage{tikz} % , pgfplots, skak
+\usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
+                shapes.geometric, chains, arrows, calc }
+
+
+
+
+\newcommand{\red}[1]{{\color{red} #1}}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+% https://tex.stackexchange.com/questions/45938/error-when-using-colour-in-author
+\ifthenelse{\isundefined{\privateData}}
+           {\author{\texorpdfstring{\color{red} Anonymous}{???}}}
+           {\input{\privateData}}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\title{University class schedule generation using personalizable agents negotiation}
+\subtitle{Thesis for Master of Science in Intelligent Systems}
+\institute[ITESM]{Tecnol\'{o}gico de Monterrey}
+\logo{\includegraphics{../doc/escudo-itesm}}
+\date{May, 2017}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\mode<presentation>
+
+\begin{document}
+
+\frame{\titlepage}
+\frame{\tableofcontents} % \frametitle{Outline}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % I
+\section{University Class Scheduling Problem (UCSP)}
+\subsection{The Problem}
+
+% \subsection{The Goal}
+% \subsection{Schedule and Timetable}
+% \subsection{Restrictions}
+% \subsection{Preferences}
+
+\begin{frame}{University Class Scheduling Problem}
+  \begin{block}{The Problem}
+    \textbf{U}niversity \textbf{C}lass \textbf{S}cheduling \textbf{P}roblem (UCSP)
+    consists in finding valid \alert{class} assignations for \underline{all} the
+    participants:
+    \begin{itemize}
+      \item Groups / Students
+      \item Professors
+    \end{itemize}
+  \end{block}
+  \begin{block}{Class}
+    A class is an educational event, that is formed with purpose of studying
+    some \alert{discipline}.
+    \begin{columns}
+      \begin{column}{4cm}
+        \\Takes place
+        \begin{itemize}
+          \item in a \underline{classroom}
+          \item on given \underline{day}
+          \item during given \underline{time}
+        \end{itemize}
+      \end{column}
+      \begin{column}{3cm}
+        Links together
+        \begin{itemize}
+          \item a \underline{group} and
+          \item a \underline{professor}
+        \end{itemize}
+      \end{column}
+    \end{columns}
+
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \begin{columns}
+    \begin{column}{4cm}
+      \begin{block}{Schedule}
+        The complete schedule consists of all the classes of all the participants,
+        that can be seen as points in 5-dimensional space. It can be decomposed
+        into a set of \alert{timetables}.
+      \end{block}
+    \end{column}
+    \begin{column}{7cm}
+      \resizebox{\textwidth}{!}{
+        \input{\rootdir/img/ScheduleHypercube/GRPT-content.tikz}
+        }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame} %{Timetable}
+  \begin{block}{Timetable}
+    Timetable is projection of the schedule on the person/entity.
+    It is a 2-dimensional table, that contains \underline{only} the classes
+    of projection target.
+  \end{block}
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+      \centering
+      \input{\rootdir/Improvements/Timetable-high-discr}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \centering
+      \input{\rootdir/Improvements/Timetable-spaces}
+    \end{column}
+  \end{columns}
+  % \centering
+  % \input{\rootdir/Improvements/Timetable-current}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Constraints}
+
+\begin{frame}{University Class Scheduling Constraints}
+
+  % \makebox[0pt][l]{%
+  %   \raisebox{-3.5cm}[0pt][0pt]{% -\totalheight
+  %       \tikz \draw (0,0) rectangle (11,3);
+  %       % \tikz[] {\draw (1,6.7) rectangle (9,10);}%
+  %     }}
+
+  \fbox{
+    \begin{columns}[t]
+      ~~Independent
+      \begin{column}{.4\textwidth}
+        \begin{block}{Class}
+          \begin{itemize}
+            \item Group need
+            \item Professor can teach
+            \item Classroom is suitable
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Time}
+          \begin{itemize}
+            \item Classes non intersection
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+  }
+  \\[.7cm]
+  \fbox{
+    \begin{columns}[t]
+      Personal
+      \begin{column}{.4\textwidth}
+        \begin{block}{Obligations}
+          \begin{itemize}
+            \item Personal \alert{strong} restrictions
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Preferences}
+          \begin{itemize}
+            \item Personal \alert{weak} restrictions
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % II
+\section{Constraint Satisfaction Problem (CSP)}
+\subsection{CSP Definition}
+\subsection{CSP Examples}
+\subsection{CSP Solution Methods}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % III
+\section{Formal Definition}
+\subsection{Define Entities and Constraints}
+\subsection{Define Classes and Candidate}
+\subsection{Partial and Complete Solutions}
+
+% % % % % % % % % % % % % % % % % % % % IV
+\section{Coherence}
+\subsection{Coherence Usage in Thesis}
+\subsection{What is Coherence}
+\subsection{Thagard, usage examples}
+\subsection{Contexts Introduction}
+\subsection{Contexts Usage}
+\subsubsection{Independent}
+\subsubsection{Internal}
+\subsubsection{External}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % V
+\section{Agents}
+\subsection{Agent Definition}
+\subsection{Solve CSPs with Agents}
+\subsection{Distribution, Communication and Roles}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VI
+\section{Agent Roles}
+
+\subsection{Group}
+\subsubsection{Candidates Creation}
+\subsubsection{Propagation through Contexts}
+\subsubsection{Placement Intention and Conflicts}
+\subsubsection{Candidate Modification}
+\subsubsection{Sleep and Awake, Solution Improvement}
+
+\subsection{Professor}
+\subsubsection{Reactive}
+\subsubsection{Solution Improvement}
+
+\subsection{Schedule Holders}
+\subsubsection{Putting Candidates Together}
+\subsubsection{Conflicts and Forced Resolution}
+\subsubsection{Schedule Observation}
+
+\subsection{Common / Conflicts Resolution}
+\subsubsection{Deep Coherence Assessment}
+\subsubsection{Candidate ``Rareness''}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VII
+\section{Improvements}
+\subsection{Students Representation}
+\subsection{Classrooms Representation}
+\subsection{Roles Extension}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VIII
+\section{Results}
+%% ??? TODO ???
+
+
+
+
+
+
+
+\end{document}
