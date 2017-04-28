@@ -20,18 +20,7 @@ move from room to room.
 
 \begin{figure}[h]
   \centering
-  \begin{tabular}{|c||c|c|c|c|c|c|}
-    \hline & Mon & Tue & Wed & Thu & Fri & Sat \\
-    \hhline{|=#=|=|=|=|=|=|}
-    08:00 -- 08:30 & x & & & w & & \\\hline
-    08:30 -- 09:00 & x & & & w & & \\\hline
-    09:00 -- 09:30 & x & & & z & & \\\hline
-    09:30 -- 10:00 & y & & & z & & \\\hline
-    10:00 -- 10:30 & y & & & z & & \\\hline
-    $\vdots$\quad~--~\quad$\vdots$ & & & & & & \\\hline
-    21:00 -- 21:30 &   & & & & & \\\hline
-    21:30 -- 22:00 &   & & & & & \\\hline
-  \end{tabular}
+  \input{\rootdir/Improvements/Timetable-current}
   \caption[Current timetables implementation]
           {Current implementation of \emph{timetable} has
            no spaces between classes. }
@@ -55,38 +44,14 @@ Time margins around classes can be added in two ways:
 \begin{figure}[h]
   \begin{subfigure}[b]{.5\textwidth}
     \centering
-    \begin{tabular}{|c||c|c|c|}
-      \hline & Mon & Tue & $\cdots$ \\
-      \hhline{|=#=|=|=|}
-      08:30 -- 09:15 & x & & \\\hline
-      09:25 -- 10:10 & x & & \\\hline
-      10:30 -- 11:15 & y & & \\\hline
-      11:25 -- 12:10 & y & & \\\hline
-      Lunch          &   & & \\\hline
-      13:25 -- 14:10 & z & & \\\hline
-      14:20 -- 15:05 & z & & \\\hline
-      15:25 -- 16:10 &   & & \\\hline
-      $\vdots$\quad~--~\quad$\vdots$ & & & \\\hline
-    \end{tabular}
+    \input{\rootdir/Improvements/Timetable-spaces}
     \caption{Timetable with spaces between time slots and lunch time.}
     \label{fig:timetable-intervals-predef}
   \end{subfigure}
   ~
   \begin{subfigure}[b]{.5\textwidth}
     \centering
-    \begin{tabular}{|c||c|c|c|}
-      \hline & Mon & Tue & $\cdots$ \\
-      \hhline{|=#=|=|=|}
-      08:30 -- 08:40 & x & & \\\hline
-      08:40 -- 08:50 & x & & \\\hline
-      08:50 -- 09:00 & x & & \\\hline
-      $\vdots$\quad~--~\quad$\vdots$ & & & \\\hline
-      09:50 -- 10:00 & x & & \\\hline
-      10:00 -- 10:10 &   & & \\\hline
-      10:10 -- 10:20 & y & & \\\hline
-      10:20 -- 10:30 & y & & \\\hline
-      $\vdots$\quad~--~\quad$\vdots$ & & & \\\hline
-    \end{tabular}
+    \input{\rootdir/Improvements/Timetable-high-discr}
     \caption{Using timetable with smaller time slots allows leaving spaces
              between classes.}
     \label{fig:timetable-intervals-any}
