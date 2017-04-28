@@ -1,0 +1,60 @@
+\input{\rootdir/img/ConnectionMatrix.tikz}
+
+\newcommand*{\mkCandidate}[6][]{
+  \def\g{#2}
+  \def\n{#3}
+  \def\ps{#4}
+  \def\r{#5}
+  \def\color{#6}
+
+  \node[group, #1, color=\color] (G-\g) {$g_\g$};
+
+  \edef\a{-45}
+  \pgfmathsetmacro{\da}{135/\n}%
+  \foreach \p in \ps {
+    \path (G-\g) -- ++(\a:\r) node[prof] (P-\p) {$p_\p$};
+    \draw[-, color=\color] (G-\g) -- (P-\p)
+          node [midway, class, fill=red, color=black] {};
+    \pgfmathparse{\a+\da}
+    \global\edef\a{\pgfmathresult}
+    }
+}
+
+
+\newcommand*{\showCandidate}[7]{
+  \def\m{#2}
+  \def\i{#3}
+  \node[fit=(\m-\i-\mmin) (\m-\i-\mmax), inner sep=-5pt, draw, color=#1] {};
+  \mkCandidate[right=#5 of \m-\i-\mmax] {#4}{#6}{#7}{2cm}{#1}
+}
+
+
+\begin{tikzpicture}
+
+% Matrix - Candidates
+\connectionsMatrix{m};
+\begin{scope}[
+  scale=0.5,
+  agent/.style={draw, minimum size=0.5cm, inner sep=1pt, font=\small},
+  group/.style={agent, diamond},
+  prof/.style={agent, circle},
+  class/.style={draw, circle, fill, inner sep=1pt},
+  ]
+
+  \showCandidate{blue}           {m}{2}{1}{5pt}  {3}{2, *, m}
+  \showCandidate{green!50!black} {m}{3}{2}{1.7cm}{4}{1, *, *, *}
+  \showCandidate{orange!50!black}{m}{4}{*}{5pt}  {3}{2, *, *}
+  \showCandidate{blue}           {m}{5}{i}{2cm}  {3}{1, *, k}
+  \showCandidate{green!50!black} {m}{6}{*}{5pt}  {3}{*, *, m}
+  \showCandidate{orange!50!black}{m}{7}{n}{1.7cm}{4}{1, k, *, m}
+
+  \draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=4pt}]
+        (-6,-7.5) -- node[below=12pt]{$\bullet$ --- \emph{classes (cores)}} (8,-7.5);
+
+  \draw [decorate,decoration={brace,amplitude=10pt,mirror,raise=4pt}]
+        (8.5,-7.5) -- node[below=12pt]{\emph{candidates}} (15,-7.5);
+
+\end{scope}
+
+
+\end{tikzpicture}
