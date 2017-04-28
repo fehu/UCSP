@@ -11,6 +11,7 @@
 \usepackage{ifthen}
 \usepackage{color}
 \usepackage{hhline}
+\usepackage{adjustbox}
 
 \usepackage{tikz} % , pgfplots, skak
 \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
@@ -20,6 +21,11 @@
 
 
 \newcommand{\red}[1]{{\color{red} #1}}
+
+
+\newcommand{\resizeinput}[2][1]{%
+  \resizebox{#1\textwidth}{!}{\input{#2}}%
+}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -48,11 +54,6 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % I
 \section{University Class Scheduling Problem (UCSP)}
 \subsection{The Problem}
-
-% \subsection{The Goal}
-% \subsection{Schedule and Timetable}
-% \subsection{Restrictions}
-% \subsection{Preferences}
 
 \begin{frame}{University Class Scheduling Problem}
   \begin{block}{The Problem}
@@ -98,14 +99,12 @@
       \end{block}
     \end{column}
     \begin{column}{7cm}
-      \resizebox{\textwidth}{!}{
-        \input{\rootdir/img/ScheduleHypercube/GRPT-content.tikz}
-        }
+        \resizeinput{\rootdir/img/ScheduleHypercube/GRPT-content.tikz}
     \end{column}
   \end{columns}
 \end{frame}
 
-\begin{frame} %{Timetable}
+\begin{frame}
   \begin{block}{Timetable}
     Timetable is projection of the schedule on the person/entity.
     It is a 2-dimensional table, that contains \underline{only} the classes
@@ -129,13 +128,6 @@
 \subsection{Constraints}
 
 \begin{frame}{University Class Scheduling Constraints}
-
-  % \makebox[0pt][l]{%
-  %   \raisebox{-3.5cm}[0pt][0pt]{% -\totalheight
-  %       \tikz \draw (0,0) rectangle (11,3);
-  %       % \tikz[] {\draw (1,6.7) rectangle (9,10);}%
-  %     }}
-
   \fbox{
     \begin{columns}[t]
       ~~Independent
@@ -181,15 +173,94 @@
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % II
 \section{Constraint Satisfaction Problem (CSP)}
-\subsection{CSP Definition}
-\subsection{CSP Examples}
-\subsection{CSP Solution Methods}
+% \subsection{CSP Definition}
+% \subsection{CSP Examples}
+% \subsection{CSP Solution Methods}
+
+\begin{frame}{Constraint Satisfaction Problem}
+  \begin{block}{Definition}
+
+  \end{block}
+  \begin{examples}
+    ???
+  \end{examples}
+\end{frame}
+
+\begin{frame}{CSP Solution Methods}
+  ???
+\end{frame}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % III
 \section{Formal Definition}
-\subsection{Define Entities and Constraints}
-\subsection{Define Classes and Candidate}
-\subsection{Partial and Complete Solutions}
+% \subsection{Define Entities and Constraints}
+% \subsection{Define Classes and Candidate}
+% \subsection{Partial and Complete Solutions}
+
+\begin{frame}{University Class Scheduling Problem}
+  \begin{columns}[t]
+    \begin{column}{.4\textwidth}
+      \begin{block}{Disciplines $\{d_i\}$}
+        \begin{itemize}
+          \item academic program
+          \item special requirements
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \begin{block}{Groups $\{g_i\}$}
+        \begin{itemize}
+          \item disciplines needed
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \begin{columns}[t]
+    \begin{column}{.4\textwidth}
+      \begin{block}{Classrooms $\{r_i\}$}
+        \begin{itemize}
+          \item capacity
+          \item equipment
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \begin{block}{Professors $\{p_i\}$}
+        \begin{itemize}
+          \item able to teach (disciplines)
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+  \begin{columns}
+    \begin{column}{.4\textwidth}
+      \begin{block}{Working Days $\{\bar{d}_i\}$}\end{block}
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \begin{block}{Discrete Time $\{\bar{t}_i\}$}\end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{University Class Scheduling Problem}
+  \begin{block}{Class Core $\mathrm{cc} \sim \left< d, g, p \right>$}
+    \emph{possible} class (of discipline $d$) for group $g$,
+    taught by professor $p$
+  \end{block}
+  \begin{block}{Class $ c \sim \left< \mathrm{cc}, r, \bar d, \bar t_b, \bar t_e \right> $}
+    \emph{concrete} class, with day, time (beginning \& end) and room
+  \end{block}
+  \begin{block}{Candidate $\tilde{c}=\{c\}$}
+    set of \alert{valid} classes, assessed using \underline{coherence}
+    %{Candidate $\tilde{c}_a=\{c\}$}
+    % set of \alert{valid} classes for agent $a$
+  \end{block}
+\end{frame}
+
+\frame{
+  \trimbox{30pt 0 0 0}{
+    \resizeinput{\rootdir/img/ConnectionMatrix/Candidates-content.tikz}
+  }
+}
 
 % % % % % % % % % % % % % % % % % % % % IV
 \section{Coherence}
