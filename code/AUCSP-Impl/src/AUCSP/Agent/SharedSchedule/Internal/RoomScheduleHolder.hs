@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 --
--- Module      :  AUCSP.Agent.SharedSchedule.Internal
+-- Module      :  AUCSP.Agent.SharedSchedule.Internal.RoomScheduleHolder
 -- License     :  MIT
 --
 -- Maintainer  :  kdn.kovalev@gmail.com
@@ -11,13 +11,12 @@
 {-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE StandaloneDeriving #-}
-{-# LANGUAGE UndecidableInstances #-}
 
-module AUCSP.Agent.SharedSchedule.Internal where
+module AUCSP.Agent.SharedSchedule.Internal.RoomScheduleHolder where
 
-import AUCSP.Agent.Messages
+import AUCSP.Agent.Predef0
 import AUCSP.Agent.SharedSchedule.Interface
+import AUCSP.Agent.SharedSchedule.Internal.Messages
 
 import Data.Maybe (fromJust, isJust, catMaybes)
 
@@ -47,20 +46,6 @@ newtype TimeSlot = TimeSlot { timeSlotVar :: TVar (Maybe Class) }
 
 writeSlot c s = timeSlotVar s `writeTVar` Just c
 readSlot s = readTVar $ timeSlotVar s
-
------------------------------------------------------------------------------
--- * Messages
-
-data ScheduleHolderListAndReset = ScheduleHolderListAndReset deriving (Typeable, Show)
-newtype ScheduleHolderClasses = ScheduleHolderClasses
-      { scheduleHolderClasses :: Set Class } deriving Typeable
-
-
-
-deriving instance NegotiatorsConstraint => Show ScheduleHolderClasses
-
-type instance ExpectedResponse ScheduleHolderListAndReset = ScheduleHolderClasses
-
 
 -----------------------------------------------------------------------------
 -- * Implementation: ScheduleHolder

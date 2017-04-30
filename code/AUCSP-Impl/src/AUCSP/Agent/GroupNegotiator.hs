@@ -37,14 +37,14 @@ groupRoleDescriptor :: NegotiationRole Group a =>
 groupRoleDescriptor = negotiatingAgentDescriptor Group
 
 
--- groupRequiredData :: RequiredData Group a
-groupRequiredData name debug = RequiredData{
+-- groupNegotiatorData :: NegotiatorDefinition Group a
+groupNegotiatorData name debug = NegotiatorDefinition{
     uniqueAgentName   = name
   , debugAgent        = debug
   , handleNegotiation = undefined
   , proaction         = undefined
   , initialContexts   = undefined
-  , roleRequiredData  = undefined
+  , roleNegotiatorData  = undefined
   , initialExtraState = undefined
   }
 

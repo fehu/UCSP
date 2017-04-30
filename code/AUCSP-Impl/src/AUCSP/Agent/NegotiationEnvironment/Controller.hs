@@ -23,7 +23,7 @@ module AUCSP.Agent.NegotiationEnvironment.Controller(
 
 ) where
 
-import AgentSystem.Generic hiding (AgentOfRole)
+import AgentSystem.Generic
 import AUCSP.Agent.NegotiatingAgent
 import AUCSP.Agent.NegotiationEnvironment.Integration
 
@@ -64,8 +64,8 @@ shareKnownAgents :: NegotiationController -> IO (Response Done)
 
 class ControllerForRole r where
   -- | Creates agents and adds them to underlying `MutableKnownAgents`.
-  addNegotiators :: NegotiationController -> r -> [RequiredData r]
-                                          -> IO [KnownAgent r]
+  addNegotiators  :: NegotiationController -> r -> [NegotiatorData r]
+                                           -> IO [KnownAgent r]
   listNegotiators :: NegotiationController -> r -> IO [KnownAgent r]
 
 -- data ControllerRole = forall r . (NegotiationRole r, ControllerForRole r) =>
@@ -138,18 +138,22 @@ updateKnownAgents groups profs = flip send (KnownAgentsUpdate groups profs)
 
 ----------------------------------------------------------------------------
 
-instance (Typeable Coherence, Num Coherence) => ControllerForRole Group where
-  addNegotiators = createAndAddNegotiators varKnownGroups
-  listNegotiators sys _ = knownGroups $ ctrlKnownAgents sys
+instance (Typeable Coherence, Num Coherence, RoleBehaviourDef Group) =>
+  ControllerForRole Group where
+    addNegotiators = createAndAddNegotiators varKnownGroups
+    listNegotiators sys _ = knownGroups $ ctrlKnownAgents sys
 
-instance (Typeable Coherence, Num Coherence) => ControllerForRole Professor where
-  addNegotiators = createAndAddNegotiators varKnownProfessors
-  listNegotiators sys _ = knownProfessors $ ctrlKnownAgents sys
+instance (Typeable Coherence, Num Coherence, RoleBehaviourDef Professor) =>
+  ControllerForRole Professor where
+    addNegotiators = createAndAddNegotiators varKnownProfessors
+    listNegotiators sys _ = knownProfessors $ ctrlKnownAgents sys
 
 
-createAndAddNegotiators :: (Typeable Coherence, Num Coherence, NegotiationRole r) =>
+createAndAddNegotiators :: ( Typeable Coherence, Num Coherence
+                           , NegotiationRole r, RoleBehaviourDef r
+                            ) =>
                            (MutableKnownAgents -> TVar (Set (KnownAgent r)))
-                        -> NegotiationController -> r -> [RequiredData r]
+                        -> NegotiationController -> r -> [NegotiatorData r]
                         -> IO [KnownAgent r]
 createAndAddNegotiators selVar sys r = remember <=< createNegotiators sys r
   where remember new = addKnownAgents' (negotiationMKnown sys) selVar new
@@ -158,10 +162,10 @@ createAndAddNegotiators selVar sys r = remember <=< createNegotiators sys r
 
 
 -- | Should fail if any agent already exsits
-createNegotiators :: ( AgentSystem sys, NegotiationRole r) =>
-                     sys -> r -> [RequiredData r] -> IO [KnownAgent r]
-createNegotiators sys r = mapM $ \rdata -> newKnownAgent r (roleRequiredData rdata)
+createNegotiators :: ( AgentSystem sys, NegotiationRole r, RoleBehaviourDef r) =>
+                     sys -> r -> [NegotiatorData r] -> IO [KnownAgent r]
+createNegotiators sys r = mapM $ \rdata -> newKnownAgent r (roleNegotiatorData rdata)
                                        <$> newAgentOfRole sys d (return rdata)
-  where d = negotiatingAgentDescriptor r
+  where d = negotiatingAgentDescriptor $ roleBehaviour' r
 
 ----------------------------------------------------------------------------

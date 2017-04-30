@@ -16,8 +16,9 @@
 module AUCSP.Agent.NegotiatingAgent.Descriptor(
 
   SystemIntegration(..), RoleSystemIntegration
-, NegotiatorOfRole(..), NegotiationRole
+, NegotiationRole, NegotiationRoles
 
+, RoleBehaviour(..), RoleBehaviourDef(..)
 , negotiatingAgentDescriptor
 , negotiatingGenericAgentDescriptor
 
@@ -40,35 +41,54 @@ type RoleSystemIntegration r = SystemIntegration (RoleState r) (RoleResult r)
 
 -----------------------------------------------------------------------------
 
+data RoleBehaviour r = RoleBehaviour {
+    theRole :: r
+  , handleNegotiation :: MessageHandling (RoleState r) (RoleResult r)
+  , proaction         :: AgentAction (RoleState r) (RoleResult r)
+  , initialContexts   :: IO ObligationsContext
+                      -> IO (PreferencesContext Coherence)
+                      -> IO (Contexts Coherence)
+  }
+
+class RoleBehaviourDef r where
+  roleBehaviour  ::      RoleBehaviour r
+  roleBehaviour' :: r -> RoleBehaviour r
+  roleBehaviour' _ = roleBehaviour
+
+-----------------------------------------------------------------------------
+
+type NegotiationRoles = (NegotiationRole Group, NegotiationRole Professor)
 
 type NegotiationRole r =  ( AgentRole r
                           , NegotiatorConstraint r
                           , RoleResult r ~ ()
                           , RoleState  r ~ AgentState r
-                          , RoleArgs   r ~ RequiredData r
+                          , RoleArgs   r ~ NegotiatorData r
                           , RoleRef    r ~ AgentRef'
                           , RoleSystemIntegration r
                           , Typeable r, Typeable Coherence, Num Coherence
                           )
 
 negotiatingAgentDescriptor :: NegotiationRole r =>
-                              r -> GenericRoleDescriptor r
-negotiatingAgentDescriptor =
-  flip genericRoleDescriptor (return . negotiatingGenericAgentDescriptor)
+                              RoleBehaviour r -> GenericRoleDescriptor r
+negotiatingAgentDescriptor b =
+  genericRoleDescriptor (theRole b) (return . negotiatingGenericAgentDescriptor b)
 
 
 negotiatingGenericAgentDescriptor :: NegotiationRole r =>
-                               RequiredData r
+                               RoleBehaviour r
+                            -> NegotiatorData r
                             -> GenericAgentOfRoleDescriptor r
-negotiatingGenericAgentDescriptor d = GenericAgentDescriptor{
+negotiatingGenericAgentDescriptor b d = GenericAgentDescriptor{
     agName  = uniqueAgentName d
   , agDebug = debugAgent d
   , emptyResult = EmptyResult :: EmptyResult ()
   , messageHandling = combineMessageHandling handleSystemMessages
-                                            (handleNegotiation d)
-  , action = proaction d
+                                            (handleNegotiation b)
+  , action = proaction b
   , initialState = do extra <- initialExtraState d
-                      ctxs  <- initialContexts d
+                      ctxs  <- initialContexts b (personalObligations d)
+                                                 (personalPreferences d)
                       newAgentState extra ctxs
   }
 

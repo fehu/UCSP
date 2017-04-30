@@ -13,23 +13,23 @@
 
 module AUCSP.Agent.NegotiatingAgent.Roles(
 
-  RequiredData(..) , module Export
+  NegotiatorData(..) , module Export
 
 ) where
 
 import AUCSP.Agent.Predef0                as Export
 import AUCSP.Agent.NegotiatingAgent.State as Export
+import AUCSP.Contexts
 
 -----------------------------------------------------------------------------
 
-data RequiredData r = RequiredData {
-    uniqueAgentName   :: String
-  , debugAgent        :: Bool
-  , handleNegotiation :: MessageHandling (RoleState r) (RoleResult r)
-  , proaction         :: AgentAction (RoleState r) (RoleResult r)
-  , initialContexts   :: IO (Contexts Coherence)
-  , roleRequiredData  :: RoleData r
-  , initialExtraState :: IO (StateExtra r)
+data NegotiatorData r = NegotiatorData {
+    uniqueAgentName     :: String
+  , debugAgent          :: Bool
+  , personalObligations :: IO ObligationsContext
+  , personalPreferences :: IO (PreferencesContext Coherence)
+  , roleNegotiatorData  :: RoleData r
+  , initialExtraState   :: IO (StateExtra r)
   }
 
 -----------------------------------------------------------------------------
@@ -39,14 +39,14 @@ instance RoleName Group where roleName = show
 instance AgentRole Group where
   type RoleResult Group = ()
   type RoleState  Group = AgentState Group
-  type RoleArgs   Group = RequiredData Group
+  type RoleArgs   Group = NegotiatorData Group
 
 
 instance RoleName Professor where roleName = show
 instance AgentRole Professor where
   type RoleResult Professor = ()
   type RoleState  Professor = AgentState Professor
-  type RoleArgs   Professor = RequiredData Professor
+  type RoleArgs   Professor = NegotiatorData Professor
 
 -----------------------------------------------------------------------------
 

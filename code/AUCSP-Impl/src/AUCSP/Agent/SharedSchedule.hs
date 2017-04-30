@@ -24,15 +24,15 @@ module AUCSP.Agent.SharedSchedule(
 
 -- * Constructor args
 
-, NegotiatingGroups(..)
 , TotalCoherenceThresholdFilter(..)
 
 ) where
 
-import AUCSP.Agent.Messages
-import AUCSP.Agent.SharedSchedule.Interface
-import AUCSP.Agent.SharedSchedule.Internal
+import AUCSP.Agent.NegotiatingAgent
 import AUCSP.Agent.SharedSchedule.Observer
+
+import AUCSP.Agent.SharedSchedule.Internal.ObserverImpl
+import AUCSP.Agent.SharedSchedule.Internal.RoomScheduleHolder
 
 import Data.Set (Set)
 
@@ -43,34 +43,28 @@ import Control.Monad (forM)
 
 -----------------------------------------------------------------------------
 
-createSharedSchedule :: ( AgentSystem sys, NegotiatorsConstraint
-                        , Typeable a, Show a
-                        , RoleResult ScheduleObserver ~ (Schedule, a)
+createSharedSchedule :: ( AgentSystem sys, NegotiationRoles
+                        , Typeable Coherence, Show Coherence
+                        , RoleResult ScheduleObserver ~ (Schedule, Coherence)
                         ) =>
                         sys
                      -> SomeDiscreteTimeDescriptor
                      -> Set Classroom
-                     -> NegotiatingGroups
-                     -> TotalCoherenceThresholdFilter a
+                     -> TotalCoherenceThresholdFilter
                      -> Int -> Bool
-                     -> IO [ScheduleInterface]
+                     -> IO (AgentRefOfRole ScheduleObserver, [ScheduleInterface])
 
-createSharedSchedule sys td rooms groups totalFilter nInterfaces debug = do
+createSharedSchedule sys td rooms totalFilter nInterfaces debug = do
   holders <- forM (Set.toList rooms) $
               \room -> (,) room <$>
                        newAgentOfRole sys (scheduleHolderDescriptor debug)
                                           (return (td, room))
   observer <- newAgentOfRole sys (scheduleObserverDescriptor debug)
-            $ return ( groups, SharedScheduleHolders $ map snd holders, totalFilter )
+            $ return ( SharedScheduleHolders $ map snd holders, totalFilter )
   interfaces <- forM [1..nInterfaces] $
                  \n -> newAgentOfRole sys (sharedScheduleDescriptor debug n)
                      $ return (Map.fromList holders, observer)
-  return $ map newScheduleInterface interfaces
+  return (observer, map newScheduleInterface interfaces)
 
--- data SharedScheduleRefs = SharedScheduleRefs{
---     sharedScheduleInterface :: [AgentRef']
---   , sharedScheduleHolders   :: [AgentRef']
---   , sharedScheduleObserver  :: AgentRef Schedule
---   }
 
 -----------------------------------------------------------------------------

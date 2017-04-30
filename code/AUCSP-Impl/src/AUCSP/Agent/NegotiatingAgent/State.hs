@@ -28,22 +28,22 @@ module AUCSP.Agent.NegotiatingAgent.State (
 
 -- * Export
 
-, Contexts(..), module Export
+, module Export
 
 ) where
 
 import CSP.Coherence.Candidate
 
-import AUCSP.Contexts
-import AUCSP.Classes
+import AUCSP.Contexts as Export
+import AUCSP.Classes  as Export
 import AUCSP.Classes.Generation
-import AUCSP.NegotiationRoles
+import AUCSP.NegotiationRoles as Export
 
 import AgentSystem
 
 import AUCSP.Agent.Predef0
 import AUCSP.Agent.SharedSchedule.Interface as Export
-import AUCSP.AgentsInterface.KnownAgents as Export
+import AUCSP.AgentsInterface.KnownAgents    as Export
 
 
 import Data.Typeable

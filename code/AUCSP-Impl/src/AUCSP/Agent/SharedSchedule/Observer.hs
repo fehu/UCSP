@@ -25,13 +25,12 @@ import Control.Concurrent.STM (TVar)
 -- * State
 
 newtype ScheduleCompleteness = ScheduleCompleteness
-                              (Map (AgentRefOfRole Group) (TVar Bool))
+                              (TVar (Map (AgentRefOfRole Group) Bool))
 
 -----------------------------------------------------------------------------
 -- *Args
 
 newtype SharedScheduleHolders = SharedScheduleHolders [AgentRef']
-newtype NegotiatingGroups = NegotiatingGroups (Set (AgentRefOfRole Group))
 newtype TotalCoherenceThresholdFilter = TotalCoherenceThresholdFilter (Coherence -> Bool)
 
 -----------------------------------------------------------------------------
@@ -48,8 +47,7 @@ instance RoleName ScheduleObserver where roleName = show
 instance AgentRole ScheduleObserver where
   type RoleResult ScheduleObserver = (Schedule, Coherence)
   type RoleState  ScheduleObserver = ScheduleCompleteness
-  type RoleArgs   ScheduleObserver = ( NegotiatingGroups
-                                     , SharedScheduleHolders
+  type RoleArgs   ScheduleObserver = ( SharedScheduleHolders
                                      , TotalCoherenceThresholdFilter)
 
 -----------------------------------------------------------------------------
