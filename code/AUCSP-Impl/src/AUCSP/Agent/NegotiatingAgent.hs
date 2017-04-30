@@ -9,19 +9,13 @@
 -----------------------------------------------------------------------------
 
 module AUCSP.Agent.NegotiatingAgent (
--- * Re-export
 
   module Export
 
-
 ) where
 
-import AgentSystem.Manager                                as Export
-import AUCSP.Agent.NegotiatingAgent.State                 as Export
-import AUCSP.Agent.NegotiatingAgent.NegotiationDefinition as Export
-
------------------------------------------------------------------------------
-
--- instance DataForRole (RoleT Group a)                                         -- TODO
+import AUCSP.Agent.NegotiatingAgent.Roles as Export
+import AUCSP.Agent.NegotiatingAgent.Descriptor as Export
+import AUCSP.Agent.NegotiatingAgent.DisciplinePriority as Export
 
 -----------------------------------------------------------------------------

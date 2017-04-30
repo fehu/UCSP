@@ -14,18 +14,21 @@
 {-# LANGUAGE TypeSynonymInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module AUCSP.Agent.NegotiatingAgent.State (
 
   AgentState(..), StateExtra, newAgentState
-, SomeAgentState(..), ACandidate
-, CandidateDetails(..), CandidateCreationDetails(..)
 
-, MutableKnownAgents(..), newMutableKnownAgents
+, CandidateDetails(..), CandidateCreationDetails(..)
+, ACandidate
+
+, MutableKnownAgents(..), newMutableKnownAgents, mkKnownAgents
+, addKnownAgents, addKnownAgents'
 
 -- * Export
 
-, Contexts(..)
+, Contexts(..), module Export
 
 ) where
 
@@ -38,52 +41,66 @@ import AUCSP.NegotiationRoles
 
 import AgentSystem
 
-import AUCSP.Agent.SharedSchedule
+import AUCSP.Agent.Predef0
+import AUCSP.Agent.SharedSchedule.Interface as Export
+import AUCSP.AgentsInterface.KnownAgents as Export
 
 
 import Data.Typeable
+import Control.Monad (unless)
 
 import Data.Set (Set)
 import qualified Data.Set as Set
 
 import Control.Concurrent.STM
 
--- import AUCSP.Agent.NegotiatingAgent.Decide
 
 -----------------------------------------------------------------------------
 
-data AgentState r a = AgentState{
-   contexts        :: Contexts a,
-   bestInternalCoh :: TVar a,
+data AgentState r = AgentState{
+   contexts        :: Contexts Coherence,
+   bestInternalCoh :: TVar Coherence,
 
    knownAgentsVars :: MutableKnownAgents,
    knownAgents'    :: KnownAgents,
-   stateExtra      :: StateExtra r a
+   stateExtra      :: StateExtra r
  }
 
-type family StateExtra r a :: *
+type family StateExtra r :: *
 
-type ACandidate a = Candidate a CandidateDetails
-
-data SomeAgentState r = forall a . Typeable a => SomeAgentState (AgentState r a)
+type ACandidate = Candidate Coherence CandidateDetails
 
 data MutableKnownAgents = MutableKnownAgents{
-   varKnownGroups     :: TVar [KnownAgent Group],
-   varKnownProfessors :: TVar [KnownAgent Professor]
+   varKnownGroups     :: TVar (Set (KnownAgent Group)),
+   varKnownProfessors :: TVar (Set (KnownAgent Professor))
  }
 
 mkKnownAgents :: MutableKnownAgents -> KnownAgents
-mkKnownAgents a = KnownAgents (readTVarIO $ varKnownGroups a)
-                              (readTVarIO $ varKnownProfessors a)
+mkKnownAgents a = KnownAgents (readVar varKnownGroups)
+                              (readVar varKnownProfessors)
+  where readVar :: (MutableKnownAgents -> TVar (Set x)) -> IO [x]
+        readVar f = fmap Set.toList . readTVarIO $ f a
 
-newMutableKnownAgents = atomically $ do groups  <- newTVar []
-                                        profs   <- newTVar []
+newMutableKnownAgents = atomically $ do groups  <- newTVar Set.empty
+                                        profs   <- newTVar Set.empty
                                         return $ MutableKnownAgents
                                                  groups profs
 
+addKnownAgents :: (NegotiatorOfRole Group, NegotiatorOfRole Professor) =>
+                  MutableKnownAgents -> [KnownAgent Group]
+                                     -> [KnownAgent Professor] -> IO ()
+addKnownAgents mKnown groups profs =
+  do unless (null groups) $ addKnownAgents' mKnown varKnownGroups groups
+     unless (null profs)  $ addKnownAgents' mKnown varKnownProfessors profs
+
+
+addKnownAgents' mKnown selVar new  =
+  atomically $ modifyTVar (selVar mKnown)
+                          (Set.union (Set.fromList new))
+
 -----------------------------------------------------------------------------
 
-newAgentState :: (Num a) => StateExtra r a -> Contexts a -> IO (AgentState r a)
+newAgentState :: (Num Coherence) => StateExtra r -> Contexts Coherence -> IO (AgentState r)
 newAgentState extra cxts = do bestVar   <- newTVarIO 0
                               knownVar  <- newMutableKnownAgents
                               return $ AgentState cxts bestVar knownVar
@@ -101,8 +118,5 @@ newtype CandidateCreationDetails = CandidateCreationDetails SomeClassesGenerator
 instance Show CandidateCreationDetails where show _ = "CandidateCreationDetails"
 
 type CandidateCreator = AgentRefOfRole Group
-
--- instance (RoleResult Group ~ ()) => HasCreator CandidateDetails AgentRef' where
---   getCreator (CandidateDetails _ c) = c
 
 -----------------------------------------------------------------------------

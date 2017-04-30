@@ -20,41 +20,45 @@
 module AUCSP.Agent.NegotiationEnvironment.Integration(
 
   KnownAgentsUpdate(..)
+, Done(..)
 
 ) where
 
 import Agent.Generic
 
-import AUCSP.Agent.NegotiatingAgent.NegotiationDefinition
+import AUCSP.Agent.NegotiatingAgent
 
 import Data.Typeable (Typeable)
+
+import qualified Data.Set as Set
 
 import Control.Concurrent.STM
 
 -----------------------------------------------------------------------------
 
-newtype KnownAgentsUpdate = KnownAgentsUpdate KnownAgents
-instance Show KnownAgentsUpdate where show _ = "KnownAgentsUpdate"
+instance SystemIntegration (AgentState r) () where
+  handleSystemMessages = MessageHandling {
+    msgHandle = selectMessageHandler [
+                mbHandle $ \i (KnownAgentsUpdate groupsUpd profsUpd) ->
+                                addKnownAgents (knownAgentsVars $ agentState i)
+                                               groupsUpd profsUpd
+              ]
+  , msgRespond = selectResponse [
+                 mbResp $ \_ Done -> respond Done
+               ]
+  }
 
 
 -----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
 
-instance (Typeable a) => SystemIntegration (AgentState r a) () where
-  handleSystemMessages = MessageHandling {
-    msgHandle = selectMessageHandler [
-                mbHandle $ \i (KnownAgentsUpdate upd) -> updateKnownAgents i upd
-              ]
-  , msgRespond = selectResponse []
-  }
+data KnownAgentsUpdate = KnownAgentsUpdate [KnownAgent Group]
+                                           [KnownAgent Professor]
+  deriving Show
 
-updateKnownAgents i upd =
-  do let known = knownAgentsVars $ agentState i
-     groupsUpd <- knownGroups upd
-     profsUpd  <- knownProfessors upd
-     atomically $ do modifyTVar (varKnownGroups known )
-                                (++ groupsUpd)
-                     modifyTVar (varKnownProfessors known )
-                                (++ profsUpd)
+-----------------------------------------------------------------------------
 
+data Done = Done deriving Show
+type instance ExpectedResponse Done = Done
 
 -----------------------------------------------------------------------------

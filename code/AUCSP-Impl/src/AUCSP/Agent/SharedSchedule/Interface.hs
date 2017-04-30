@@ -13,10 +13,11 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE ExistentialQuantification #-}
 
 module AUCSP.Agent.SharedSchedule.Interface where
 
-import AUCSP.Agent.Messages
+import AUCSP.Agent.Predef0
 
 import Data.Set (Set)
 import Data.Map.Strict (Map)
@@ -27,6 +28,7 @@ import qualified Data.List as List
 
 import Control.Monad (forM)
 import Control.Arrow ( (&&&), first )
+import Data.Function (on)
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
@@ -42,6 +44,8 @@ data ScheduleObserver = ScheduleObserver deriving (Show, Eq, Ord, Typeable)
 newtype Schedule = Schedule (Set Class) deriving Typeable
 deriving instance NegotiatorsConstraint => Show Schedule
 
+-----------------------------------------------------------------------------
+
 newtype ScheduleInterface = ScheduleInterface {
   tryPutCandidate :: forall a d . ( Typeable a, Typeable d
                                   , Show (Candidate a d)
@@ -52,6 +56,34 @@ newtype ScheduleInterface = ScheduleInterface {
 newScheduleInterface :: AgentRef' -> ScheduleInterface
 newScheduleInterface ref = ScheduleInterface $
                          \c -> ref `ask` TryPutCandidate (SomeCandidate c)
+
+
+-----------------------------------------------------------------------------
+
+data SomeCandidate = forall a d . ( Typeable a, Typeable d
+                                 , Show (Candidate a d)
+                                 ) =>
+   SomeCandidate (Candidate a d)
+
+candidateInfo' :: SomeCandidate -> Information
+candidateInfo' (SomeCandidate c) = candidateInfo c
+
+instance Eq  SomeCandidate where (==)    = (==)    `on` candidateInfo'
+instance Ord SomeCandidate where compare = compare `on` candidateInfo'
+instance Show SomeCandidate where show (SomeCandidate c) = show c
+
+-----------------------------------------------------------------------------
+-----------------------------------------------------------------------------
+-- * Messages (Public)
+
+data PutCandidateResult = PutCandidateSuccess
+                        | PutCandidateConflicts (Set SomeCandidate)
+  deriving (Typeable, Show)
+
+putCanidadateConflicts :: PutCandidateResult -> Set SomeCandidate
+putCanidadateConflicts (PutCandidateConflicts s) = s
+putCanidadateConflicts _                        = Set.empty
+
 
 -----------------------------------------------------------------------------
 -----------------------------------------------------------------------------
@@ -68,6 +100,9 @@ type instance ExpectedResponse TryPutClasses = AwaitingConfirmation PutClassesRe
 putClassesConflicts :: PutClassesResult -> Set Class
 putClassesConflicts (PutClassesConflict s) = s
 putClassesConflicts _                      = Set.empty
+
+newtype TryPutCandidate = TryPutCandidate SomeCandidate deriving (Typeable, Show)
+type instance ExpectedResponse TryPutCandidate = PutCandidateResult
 
 -----------------------------------------------------------------------------
 

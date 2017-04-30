@@ -51,6 +51,8 @@ Consists of:
 
 >   knownAgentId :: KnownAgent r -> String
 
+>   newKnownAgent :: r -> RoleData r -> RoleRef r -> KnownAgent r
+
   \item Some data, associated with the role.
 
 > class NegotiatorOfRoleData r where type RoleData r :: *
