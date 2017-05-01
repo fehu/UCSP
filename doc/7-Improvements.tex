@@ -67,6 +67,40 @@ both possibly dependent on the discipline.
 The classes for same discipline then should be assigned to the cores all together.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Obligations and Preferences Descriptions}
+
+The implementation of personal contexts' relations is based on functions,
+described in section \ref{sec:solution-contexts}, that work with classes
+either in pairs or over whole set. The latter one gives great flexibility.
+
+\medskip
+These functions are rather inconvenient for \underline{describing} the
+obligations/preferences on practice. A \emph{Domain Specific Language}
+(DSL) should be developed in order to describe personal constraints.
+Such language must \underline{provide expressions} for:
+\begin{enumerate}
+  \item Constraints over single class.
+  \item Constraints between any two classes.
+  \item Constraints over whole classes set.
+  \item A way to weight and mix constraints descriptors.
+\end{enumerate}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\section{Default Preference Rules}
+Some personal preferences should be provided by default and used by the agents
+unless overridden. Such preferences should be established by the institution and
+might be:
+\begin{itemize}
+  \item Classes per day.
+  \item Time between classes.
+  \item Preferred time range.
+  \item Classes per week distribution.
+\end{itemize}
+
+\noindent
+Those preferences reflect institution scheduling policy.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \section{Full-/Part- Time Professors}
 Apart from \emph{full-time} working professors, many universities contract
 \emph{part-time} professors, that work only some pre-established hours.
