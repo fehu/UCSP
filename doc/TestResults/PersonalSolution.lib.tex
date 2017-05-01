@@ -34,16 +34,20 @@
 \newcommand{\putClasses}[3]{
   \def\m{#1}
   \numdef\day{#2+1}
-  \foreach \bh/\bm/\eh/\em/\text/\style in {#3}
+  \foreach \bh/\bm/\eh/\em/\name/\linkA/\linkB/\style in {#3}
   {
   \pgfmathsetmacro{\bmd}{\bm==30}
   \pgfmathsetmacro{\emd}{\em==30}
   \pgfmathsetmacro\b{int(\bh*2-14+\bmd)}
   \pgfmathsetmacro\e{int(\eh*2-15+\emd)}
   %
-  \node[fit = (\m-\b-\day) (\m-\e-\day), class, \style] {\text};
+  \node[fit = (\m-\b-\day) (\m-\e-\day), class, \style] {%
+      \scriptsize\\[-4pt]%
+      \textbf{\name}\\[-2pt]
+      \linkA\\[-5pt]
+      \linkB%
+    };
   }
-
 }
 
 \begin{document}
@@ -52,7 +56,8 @@
       cred/.style={draw=red}
     ]
     \timetable{T}
-    \putClasses{T}{2}{8/00/9/00/AA/cred, 11/00/12/00/BB/}
+    \putClasses{T}{2}{ 8/00/ 9/00/MathI/A-101/P-1/cred,
+                      11/00/12/00/???/???/???/}
 
 
   \end{tikzpicture}
