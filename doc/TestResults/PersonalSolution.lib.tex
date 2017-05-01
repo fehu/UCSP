@@ -1,8 +1,8 @@
-\documentclass{standalone}
-
-\usepackage{tikz, ifthen, etoolbox, pdftexcmds, loops}
-\usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
-                shapes.geometric, chains, arrows, calc }
+% \documentclass{standalone}
+%
+% \usepackage{tikz, ifthen, etoolbox, pdftexcmds, loops}
+% \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
+%                 shapes.geometric, chains, arrows, calc }
 
 \newcommand{\timetable}[2][]{
   \gdef\mrows{}
@@ -24,9 +24,9 @@
           ampersand replacement=\&,
           row sep=-\pgflinewidth, column sep=-\pgflinewidth,
           nodes={draw, text depth=-0.3ex, text height=1.2ex},
-          column 1/.style={minimum width=2.1cm},
+          column 1/.style={minimum width=2.5cm},
           row 1/.style={font=\bf},
-          minimum width=1.5cm,
+          minimum width=1.9cm,
           #1] (#2)
   {Time \& Mon \& Tue \& Wed \& Thu \& Fri \& Sat \\ \mrows};
 }
@@ -42,24 +42,24 @@
   \pgfmathsetmacro\e{int(\eh*2-15+\emd)}
   %
   \node[fit = (\m-\b-\day) (\m-\e-\day), class, \style] {%
-      \scriptsize\\[-4pt]%
-      \textbf{\name}\\[-2pt]
+      \scriptsize\\%[-2pt]%
+      \textbf{\name}\\[5pt]
       \linkA\\[-5pt]
       \linkB%
     };
   }
 }
 
-\begin{document}
-  \begin{tikzpicture}[
-      class/.style={inner sep=-\pgflinewidth, draw, double, fill=white},
-      cred/.style={draw=red}
-    ]
-    \timetable{T}
-    \putClasses{T}{2}{ 8/00/ 9/00/MathI/A-101/P-1/cred,
-                      11/00/12/00/???/???/???/}
-
-
-  \end{tikzpicture}
-
-\end{document}
+% \begin{document}
+%   \begin{tikzpicture}[
+%       class/.style={inner sep=-\pgflinewidth, draw, double, fill=white},
+%       cred/.style={draw=red}
+%     ]
+%     \timetable{T}
+%     \putClasses{T}{2}{ 8/00/ 9/00/MathI/A-101/P-1/cred,
+%                       11/00/12/00/???/???/???/}
+%
+%
+%   \end{tikzpicture}
+%
+% \end{document}

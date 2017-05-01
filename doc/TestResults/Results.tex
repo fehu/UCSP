@@ -1,0 +1,151 @@
+\documentclass[../header]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+\input{\rootdir/TestResults/PersonalSolution.lib}
+
+\section{Results and Conclusions}
+
+The negotiation was executed 3 minutes, during which 17 schedules were reported.
+The best (last) one had \textbf{\emph{total coherence} estimated }$\mathbf{0.7}$.
+Total coherence was assessed as \emph{geometric mean} of all participants'
+internal coherence, that reflects schedule's concordance with \emph{personal preferences}.
+$$ \coh_\Pi = \sqrt[\leftroot{-2}\uproot{2}n]
+                   {\prod\limits_{a \in \{g\} \cup \{p\}}
+                         \coh_a (\mathit{schedule})
+                   }
+$$
+
+\noindent
+Preferences values were assigned as:
+$\begin{cases}
+  1   & \text{if all the preferences were satisfied,} \\
+  0.6 & \text{if some preferences were satisfied,}    \\
+  0.1 & \text{if no preference was satisfied.}
+\end{cases}$
+
+
+\crule{.9}
+\noindent
+6 groups have shown maximum coherence $1$, that means that all their preferences
+were satisfied (two of them had no preferences defined).
+Two of them are shown in tables \ref{result:best-1} and \ref{result:best-2}.
+One more group had its constraints satisfied partially (shown in table
+\ref{result:soso-1}) and for the resting 3 groups no preference constraint was
+satisfied (one of them is shown in table \ref{result:bad-1}).
+
+\medskip\noindent
+The professor agents had no preferences specified, so all of them have reported
+maximum coherence 1. Tho professor schedule examples are show in tables
+\ref{result:prof-1} and \ref{result:prof-2}.
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\subsection{Personal Timetable Examples}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsubsection{Best Group Schedules}
+
+\begin{table}[H]\caption[Result Examples: Best Group Schedules (1)]
+                        {Best Group Schedules (G-2A).
+                         The preference (free Saturday) is satisfied.}
+\label{result:best-1}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{1}{11/00/13/00/Chem II/B-202/P-4/,
+                      16/00/18/00/Math II/B-202/P-1/}
+    \putClasses{T}{2}{8/30/10/30/Phys II/C-301/P-3/}
+    \putClasses{T}{4}{19/00/21/00/Gym/E-500/P-8/}
+    \putClasses{T}{5}{13/00/14/30/Eng II/D-401/P-7/}
+  \end{tikzpicture}
+\end{table}
+
+\begin{table}[H]\caption[Result Examples: Best Group Schedules (2)]
+                        {Best Group Schedules (G-4B).
+                         The preference (until 16:00) is satisfied.}
+\label{result:best-2}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{1}{8/00/10/00/Law I/B-203/P-11/}
+    \putClasses{T}{2}{12/00/13/30/Inf ERP I/D-402/P-6/}
+    \putClasses{T}{3}{10/00/12/00/Manage I/B-201/P-10/,
+                      13/00/14/30/Account I/B-202/P-10/}
+    \putClasses{T}{6}{9/30/11/30/Mark I/C-301/P-10/}
+  \end{tikzpicture}
+\end{table}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% \newpage
+\subsubsection{Worst Group Schedules}
+
+\begin{table}[H]\caption[Result Examples: Worst Group Schedules (1)]
+                        {Schedule for group G-5A, that satisfies groups preferences
+                         only partially: Saturday is free, but not Friday.}
+\label{result:soso-1}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{1}{12/00/13/30/Inf M/D-402/P-6/}
+    \putClasses{T}{2}{ 8/30/10/00/Chem Lab II/A-102/P-4/,
+                      10/00/12/00/Chem Poly/B-201/P-4/}
+    \putClasses{T}{4}{20/00/22/00/Math V/B-201/P-2/}
+    \putClasses{T}{5}{16/00/17/30/Phys Lab II/A-101/P-5/}
+  \end{tikzpicture}
+\end{table}
+
+\begin{table}[H]\caption[Result Examples: Worst Group Schedules (2)]
+                        {Schedule for group G-1A, that doesn't satisfy group's
+                         preference: free Saturday.}
+\label{result:bad-1}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{2}{14/00/15/30/Eng I/D-401/P-7/}
+    \putClasses{T}{3}{18/00/20/00/Phys I/C-302/P-3/}
+    \putClasses{T}{4}{11/00/13/00/Math I/C-302/P-2/}
+    \putClasses{T}{5}{12/00/14/00/Chem I/C-301/P-4/}
+    \putClasses{T}{6}{10/00/12/00/Gym/E-500/P-8/}
+  \end{tikzpicture}
+\end{table}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\subsubsection{Professor Schedles}
+
+\begin{table}[H]\caption[Result Examples: Professor Schedules (1)]
+                        {Schedule of professor P-4.}
+\label{result:prof-1}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{1}{11/00/13/00/Chem II/B-202/G-2A/}
+    \putClasses{T}{2}{ 8/30/10/00/Chem Lab II/A-102/G-5A/,
+                      10/00/12/00/Chem Poly/B-201/G-5A/}
+    \putClasses{T}{3}{11/30/13/30/Chem IV/B-203/G-4A/,
+                      15/00/17/00/Chem III/B-201/G-3A/}
+    \putClasses{T}{5}{12/00/14/00/Chem I/C-301/G-1A/}
+  \end{tikzpicture}
+\end{table}
+
+\begin{table}[H]\caption[Result Examples: Professor Schedules (2)]
+                        {Schedule of professor P-11.}
+\label{result:prof-2}
+  \begin{tikzpicture}[
+        class/.style={inner sep=-\pgflinewidth, draw, double, fill=white}
+        ]
+    \timetable{T}
+    \putClasses{T}{1}{8/00/10/00/Law I/B-203/G-4B/}
+    \putClasses{T}{1}{10/00/12/00/Law II/B-202/G-5B/}
+  \end{tikzpicture}
+\end{table}
+
+\end{document}
