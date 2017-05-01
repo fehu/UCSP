@@ -1,0 +1,120 @@
+\documentclass{standalone}
+
+\usepackage{tikz, ifthen, etoolbox, pdftexcmds}
+\usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
+                shapes.geometric, chains, arrows, calc }
+
+\newcommand{\timetable}[2][]{
+  \gdef\mrows{}
+  \foreach \h in {8,...,21}
+  \foreach \m in {0, 30}
+  {
+    \ifthenelse{\m = 0}
+      { \xappto{\mrows}{\h:00--\h:30 \&} }
+      {
+        \pgfmathsetmacro{\hh}{int(\h+1)}
+        \xappto{\mrows}{\h:30--\hh:00 \&}
+      }
+    \foreach \i in {1,...,6}
+      {\ifthenelse{\i = 6}
+        {\xappto{\mrows}{\noexpand\\}}
+        {\xappto{\mrows}{\&}}}
+  }
+  \matrix[matrix of nodes, nodes in empty cells,
+          ampersand replacement=\&,
+          row sep=-\pgflinewidth, column sep=-\pgflinewidth,
+          nodes={draw, text depth=-0.3ex, text height=1.2ex},
+          column 1/.style={minimum width=2.1cm},
+          row 1/.style={font=\bf},
+          minimum width=1.5cm,
+          #1] (#2)
+  {Time \& Mon \& Tue \& Wed \& Thu \& Fri \& Sat \\ \mrows};
+}
+
+
+% \newcommand{\putClassesDay}[3]{
+%   \def\m{#1}
+%   \numdef\day{#2+1}
+%   \foreach \start/\end/\text/\style in {#3}
+%     \node[fit = (\m-\start-\day) (\m-\end-\day), class, \style] {\text};
+% }
+
+
+
+
+% \newcommand{\putClassesDay}[3]{
+%   \def\m{#1}
+%   \numdef\day{#2+1}
+%   \foreach \time/\text/\style in {#3}
+%     {
+%     \makeatletter
+%     \def\start{\expandafter\parseClassBegins\expandafter(\time\expandafter)}
+%     \def\end{\expandafter\parseClassEnds\expandafter(\time\expandafter)}
+%     \def\x{\m-\start-\day}
+%     % \mkNode{\x}
+%     % \start-\end
+%     % \node[fit = (\m-\start-\day) (\m-\end-\day),class, \style] {\text};
+%     % \node[class, \style] {\start-\end --- \x};
+%     }
+% }
+
+\def\parseMinutes#1{\ifnum\pdfstrcmp{#1}{00}=0
+                      0
+                    \else \ifnum\pdfstrcmp{#1}{30}=0
+                            1
+                          \else
+                            \errmessage{Incorrect time minutes: #1}
+                          \fi
+                    \fi
+}
+
+\def\parseTime(#1:#2){%
+  \pgfmathsetmacro{\res}{int(#1-6+\parseMinutes{#2})}%
+  \res%
+}
+
+\def\parseClassBegins(#1-#2){\parseTime(#1)}
+\def\parseClassEnds(#1-#2){\parseTime(#2)}
+
+\newcommand{\putClassesDay}[3]{
+  \def\m{#1}
+  \numdef\day{#2+1}
+  \foreach \time/\text/\style in {#3}
+    {
+    \def\start{\parseClassBegins(\time)}
+    % \def\end{\parseClassEnds(\time)}
+    % \expandafter\fit\expandafter[\time]
+
+
+    % \def\fitt{fit=(\m-\time)}
+
+
+
+    % \expandafter\node\expandafter{\expandafter\fit\expandafter[\time]{\m}{\day}};
+    % \expandafter\node\expandafter{\expandafter\fit\expandafter[\time]};
+    % \expandafter\node\expandafter{\fitt};
+    % \expandafter\node\expandafter[\fitt] {};
+
+    % \node[fit = (\m-\start-\day) (\m-\end-\day),class, \style] {\text};
+    }
+}
+
+\def\fit(#1)#2#3{fit = (#2-\parseClassBegins(#1)-#3)%
+                       (#2-\parseClassEnds(#1)-#3),}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+
+
+
+\begin{document}
+  \begin{tikzpicture}[
+      class/.style={inner sep=0pt, draw, double, fill=white},
+    ]
+    \timetable{T}
+
+    % \node[fitClass=T-A-8:00-12:00]  {!};
+
+  \end{tikzpicture}
+
+\end{document}
