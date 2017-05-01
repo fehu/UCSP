@@ -31,66 +31,30 @@
   {Time \& Mon \& Tue \& Wed \& Thu \& Fri \& Sat \\ \mrows};
 }
 
-
-\newcommand{\putClass}[3]{
+\newcommand{\putClasses}[3]{
   \def\m{#1}
   \numdef\day{#2+1}
-  \foreach \start/\end/\text/\style in {#3}
-    % {node[fit = (\m-\start-\day) (\m-\end-\day), class, \style] \{\text\};}
-    \node[fit = (\m-\start-\day) (\m-\end-\day), class, \style] {\text};
-}
-
-\def\parseMinutes#1{\ifnum\pdfstrcmp{#1}{00}=0
-                      0
-                    \else \ifnum\pdfstrcmp{#1}{30}=0
-                            1
-                          \else
-                            \errmessage{Incorrect time minutes: #1}
-                          \fi
-                    \fi
-}
-
-\def\parseTime(#1:#2){%
-  \pgfmathsetmacro{\res}{int(#1-6+\parseMinutes{#2})}%
-  \res%
-}
-
-\def\parseClassBegins(#1-#2){\parseTime(#1)}
-\def\parseClassEnds(#1-#2){\parseTime(#2)}
-
-\newcommand{\class}[3]{
-  \def\m{#1}
-  \numdef\day{#2+1}
-  \let\acc\empty
-  \let\n 0
-  \foreach \time/\text/\style [count=\i] in {#3}
-    {\numgdef\n\i}
-  \foreach \time/\text/\style [count=\i] in {#3}
-    {
-    \expandafter\xappto\expandafter\acc\expandafter{%
-        \expandafter\expandonce\expandafter{%
-          \expandafter\parseClassBegins\expandafter(\time)}}
-    \xappto\acc{/}
-    \expandafter\xappto\expandafter\acc\expandafter{%
-        \expandafter\expandonce\expandafter{%
-          \expandafter\parseClassEnds\expandafter(\time)}}
-    \xappto\acc{/\text/\style}
-    \ifnum \i=\n \else \xappto\acc, \fi
-    }
-
-    \acc
+  \foreach \bh/\bm/\eh/\em/\text/\style in {#3}
+  {
+  \pgfmathsetmacro{\bmd}{\bm==30}
+  \pgfmathsetmacro{\emd}{\em==30}
+  \pgfmathsetmacro\b{int(\bh*2-14+\bmd)}
+  \pgfmathsetmacro\e{int(\eh*2-15+\emd)}
+  %
+  \node[fit = (\m-\b-\day) (\m-\e-\day), class, \style] {\text};
+  }
 
 }
-
 
 \begin{document}
   \begin{tikzpicture}[
-      class/.style={inner sep=0pt, draw, double, fill=white},
+      class/.style={inner sep=-\pgflinewidth, draw, double, fill=white},
+      cred/.style={draw=red}
     ]
     \timetable{T}
+    \putClasses{T}{2}{8/00/9/00/AA/cred, 11/00/12/00/BB/}
+
 
   \end{tikzpicture}
-
-  \class{}{}{8:00-9:00/AA/}
 
 \end{document}
