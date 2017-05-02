@@ -31,7 +31,7 @@
 \node[gact, draw, double] (G-Act-label) {\textbf{Group Action}};
 
 
-\def\rshift{10pt}
+\def\rshift{15pt}
 \node[gact, draw] (G-create-c) {Create candidate $\tilde{c}=\{c\}$ --- set of classes};
 % \node[mymark, left=20pt of G-create-c, yshift=30pt] (mark-Beta) {\Large $\beta$};
 \node[right=of G-create-c, yshift=\rshift, draw, extracol] (G-create-cc)
@@ -42,7 +42,7 @@
 \draw (G-create-c) -- (G-create-DTR);
 
 
-\def\rshift{15pt}
+\def\rshift{20pt}
 \node[gact, draw, yshift=-20pt] (G-assess) {Assess coherence of $\tilde{c}$};
 \node[right=of G-assess, yshift=\rshift, draw, extracol] (G-assess-i)
     {Internal: obligation \& preferences};
@@ -137,7 +137,7 @@
       by agent $a_k$ is agent's \emph{internal coherence} of the candidate.};
 
 \draw[msg] ($(G-assess-e.east) + (0, 4pt)$)
-           node[right, yshift=10pt, text width=2.2cm, center, xshift=1pt]
+           node[right, yshift=20pt, text width=2.2cm, center, xshift=7pt]
                 {\underline{ask opinion} \\ of $p_k$ about $\tilde{c}$}
            -| ($(A-opinion.south) - (1cm, 0)$);
 \draw[msg] ($(A-opinion.south) + (1cm, 0)$)
@@ -201,7 +201,7 @@
 % Schedule Holder(s) ACT
 \begin{scope}
 
-\node[hact, below=2cm of G-prove-res, draw, double, center, text width=5cm]
+\node[hact, below=3cm of G-prove-res, draw, double, center, text width=5cm]
     (H-Act-label) {\textbf{Schedule Holder(s) Action}};
 
 \node[hact, right=of H-Act-label, draw, yshift=1cm] (H-monitor)
