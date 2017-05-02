@@ -1,0 +1,25 @@
+\input{\rootdir/img/ConnectionMatrix.tikz}
+
+\begin{tikzpicture}
+
+%from https://tex.stackexchange.com/questions/175616/tikz-matrix-style-for-combination-or-rows-and-columns
+\tikzset{cell-color/.style args = {(#1,#2)=#3}{%
+    row #1 column #2/.style={nodes={text=#3}}}}
+
+\connectionsMatrix
+  [ cell-color/.list={(5,1)=red,(5,2)=red,(5,4)=red,(5,5)=red,
+                      (3,1)=blue,(3,2)=blue,(3,4)=blue,
+                      (6,1)=blue,(6,4)=blue,
+                      (7,1)=blue,(7,2)=blue,(7,5)=blue
+  } ]{m};
+
+\fith{m}{5}{red}
+\fitv[dotted]{m}{2}{red}
+\fitv[dotted]{m}{4}{red}
+\fitv[dotted]{m}{5}{red}
+
+\fith[dashed]{m}{3}{blue}
+\fith[dashed]{m}{6}{blue}
+\fith[dashed]{m}{7}{blue}
+
+\end{tikzpicture}
