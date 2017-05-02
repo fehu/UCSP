@@ -13,9 +13,6 @@
 \usepackage{adjustbox}
 \usepackage{amsfonts, amssymb}
 \usepackage{mdframed}
-% \usepackage{enumitem}
-% \usepackage[utf8]{inputenc}
-% \usepackage[backend=biber]{biblatex}
 
 \usepackage{tikz, skak}
 \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
@@ -58,14 +55,12 @@
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-% \bibliography{\rootdir/References}
 
 \mode<presentation>
 
 \begin{document}
 
 \frame{\titlepage}
-% \frame{\tableofcontents} % \frametitle{Outline}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{Part-1}
@@ -82,17 +77,6 @@
 \section{Agent Roles}
 
 \begin{frame}{Agent Roles}
-  % \begin{columns}[t]
-  %   \begin{column}{.1\textwidth}
-  %     \begin{block}{Groups}\end{block}
-  %   \end{column}
-  %   \begin{column}{.1\textwidth}
-  %     \begin{block}{Professors}\end{block}
-  %   \end{column}
-  %   \begin{column}{.2\textwidth}
-  %     \begin{block}{Schedule Holders}\end{block}
-  %   \end{column}
-  % \end{columns}
   \centering
   \begin{tikzpicture}[every node/.style={text width=1.5cm, align=center}]
     \node[draw, rounded corners,dashed, inner sep=8pt] (C) {Controller};
