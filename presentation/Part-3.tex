@@ -1,0 +1,77 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % III
+\section{Formal Definition}
+
+\begin{frame}{University Class Scheduling Problem}
+  \centering
+  \begin{block}{Required Data}
+    \begin{columns}[t]
+      \begin{column}{.4\textwidth}
+        \begin{block}{Disciplines $\{d_i\}$}
+          \begin{itemize}
+            \item academic program
+            \item special requirements
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Groups $\{g_i\}$}
+          \begin{itemize}
+            \item disciplines needed
+            \item personal constraints
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+    \begin{columns}[t]
+      \begin{column}{.4\textwidth}
+        \begin{block}{Classrooms $\{r_i\}$}
+          \begin{itemize}
+            \item capacity
+            \item equipment
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Professors $\{p_i\}$}
+          \begin{itemize}
+            \item able to teach (disciplines)
+            \item personal constraints
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+    \begin{columns}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Working Days $\{\bar{d}_i\}$}\end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Discrete Time $\{\bar{t}_i\}$}\end{block}
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
+
+\begin{frame}{University Class Scheduling Problem}
+  \begin{block}{Class Core $\mathrm{cc} \sim \left< d, g, p \right>$}
+    \emph{possible} class (of discipline $d$) for group $g$,
+    taught by professor $p$
+  \end{block}
+  \begin{block}{Class $ c \sim \left< \mathrm{cc}, r, \bar d, \bar t_b, \bar t_e \right> $}
+    \emph{concrete} class, with day, time (beginning \& end) and room
+  \end{block}
+  \begin{block}{Candidate $\tilde{c}_a=\{c ~|~ c\,\mathrm{mensions}\,a\}$}
+    set of \alert{valid} classes, assessed using \underline{coherence},
+    proposed by $a$
+  \end{block}
+  \begin{block}{Schedule $= \bigcup\limits_{\forall\,a}\tilde{c}_a$}
+    set of \alert{\underline{all}} proposed classes, assessed by every group and
+    professor
+
+  \end{block}
+\end{frame}
+
+\frame{
+  \trimbox{30pt 0 0 0}{
+    \resizeinput{\rootdir/img/ConnectionMatrix/Candidates-content.tikz}
+  }
+}
