@@ -1,0 +1,63 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % V
+\section{Agents}
+
+\begin{frame}{Agents}
+  The notion of agent appears in Aristotle's works
+   \begin{quote}
+     Entity that acts with a purpose, within a social context.
+   \end{quote}\\\medskip
+  The prætorian roman law defined an agent as
+    \begin{quote}
+      A person who acts on behalf of a principal for
+      a specific purpose and under limited delegation of authority and
+      responsibility.
+    \end{quote}\\\medskip
+  The earliest use of the term agent in AI was
+    \begin{quote}
+      A program that is capable of executing an action vicariously.
+    \end{quote}
+\end{frame}
+
+% ?? Solve CSPs with Agents ??
+
+\begin{frame}
+  \centering
+  \begin{block}{An Agent}
+    is \emph{computer system}, that
+    \begin{enumerate}
+      \item has a degree of autonomy in determining its behavior,
+      \item interacts with humans and or other agents,
+      \item perceives the environment and reacts to it, and
+      \item exhibits a goal directed behavior.
+    \end{enumerate}
+  \end{block}
+  \begin{block}{A Negotiation}
+     is a process of \underline{communication} between heterogeneous agents
+     with goal of resolving some common problem.
+  \end{block}
+  \begin{block}{A Negotiating Agent}
+     is an \emph{isolated} \emph{proactive} computational entity,
+     capable of sending and receiving messages.
+  \end{block}
+\end{frame}
+
+\begin{frame}{Agents}
+  \begin{block}{Behaviour}
+    An agent is defined by it's behaviour:
+    \begin{align*}
+      \behaviour_\act   &: \state \mapsto \action \\
+      \behaviour_\react &: \state \times \msg \mapsto \action
+    \end{align*}
+    % The agents must use a common \emph{communication protocol}, to ensure
+    % understanding between agents of the same or different roles.
+  \end{block}
+  \begin{block}{Role}
+    A role describes whom or what an agents represents in the negotiation and
+    defines \emph{behaviour archetype}.
+  \end{block}
+  \begin{block}{Implementation}
+    Agents are implemented in \underline{Haskell} using
+    \emph{Software Transactional Memory} (STM)
+    --- a promising concurrency paradigm.
+  \end{block}
+\end{frame}
