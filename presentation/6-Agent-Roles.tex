@@ -47,4 +47,105 @@
   }
 \end{frame}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Schedule Holders}
+\subsubsection{Schedule Holders}
+
+\def\ttable{\tiny%
+  \def\var{\texttt{var}}
+  \begin{tabular}{|c||c|c|c|}
+    \hline  & M        & $\cdots$ & S       \\\hhline{|=##=|=|=|}
+    8:00    & \var     & $\cdots$ & \var    \\\hline
+    $\cdots$& $\cdots$ & $\cdots$ & $\cdots$\\\hline
+    21:30   & \var     & $\cdots$ & \var    \\\hline
+  \end{tabular}}
+
+\begin{frame}{Schedule Holders}
+  \begin{block}{Reactions}
+    \begin{itemize}
+      \item Put candidate into the schedule. Results in either success or conflict.
+            In latter case, the conflicting candidates are attached to the response.
+      \item Put a candidate, removing conflicting candidates and notifying their
+            creators. Requires a proof of \alert{superiority} for each conflict.
+    \end{itemize}
+  \end{block}
+  \begin{block}{Underlying Timetable Holders}
+    \centering
+    \bigskip
+    \begin{columns}
+      \begin{column}{.1\textwidth}\end{column}
+      \begin{column}{.3\textwidth}
+        \centering Classroom 1 \\\medskip \ttable
+      \end{column}
+      \begin{column}{.04\textwidth}
+        $\Huge \cdots$
+      \end{column}
+      \begin{column}{.3\textwidth}
+        \centering Classroom M \\\medskip \ttable
+      \end{column}
+      \begin{column}{.1\textwidth}\end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Schedule Holders Reactions}
+  \centering
+  \clipbox{295pt 490 -90 0}{ %{left bottom right top}
+    \resizebox{\textwidth}{!}{
+      \input{\rootdir/img/SolutionProcess-content.tikz}
+    }
+  }\\[-5pt]
+  \clipbox{295pt 300 -90 140}{ %{left bottom right top}
+    \resizebox{\textwidth}{!}{
+      \input{\rootdir/img/SolutionProcess-content.tikz}
+    }
+  }\\[-5pt]
+  \clipbox{295pt 100 -90 340}{ %{left bottom right top}
+    \resizebox{\textwidth}{!}{
+      \input{\rootdir/img/SolutionProcess-content.tikz}
+    }
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\subsubsection{Schedule Observer}
+
+\begin{frame}{Schedule Observer}
+  Monitors schedule's state and reports possible solutions
+  \bigskip
+  \begin{block}{Solution is Complete}
+    when
+    \begin{enumerate}
+      \item it contains candidates of all groups
+      \item was positively assessed in \emph{final} mode
+    \end{enumerate}
+  \end{block}
+  \bigskip
+  \centering
+  \marginbox{-10pt 0 0 0}{
+    \clipbox{-35pt -2 -70 314}{ %{left bottom right top}
+      \resizebox{.7\textwidth}{!}{
+        \input{\rootdir/img/SolutionProcess-content.tikz}
+      }
+    }
+  }
+  % \begin{block}{If Positively Assessed}
+  %   \begin{columns}[t]
+  %     \begin{column}{.4\textwidth}
+  %       \begin{block}{Then}
+  %         \begin{itemize}
+  %           \item Notify listeners
+  %           \item Demand agents to provide better solution
+  %         \end{itemize}
+  %       \end{block}
+  %     \end{column}
+  %     \begin{column}{.4\textwidth}
+  %       \begin{block}{Else}
+  %         \begin{itemize}
+  %           \item Demand agents to provide another solution
+  %         \end{itemize}
+  %       \end{block}
+  %     \end{column}
+  %   \end{columns}
+  % \end{block}
+\end{frame}
