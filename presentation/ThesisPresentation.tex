@@ -11,7 +11,7 @@
 \usepackage{color}
 \usepackage{hhline}
 \usepackage{adjustbox}
-\usepackage{amsfonts, amssymb}
+\usepackage{amsmath,amsfonts, amssymb}
 \usepackage{mdframed}
 
 \usepackage{tikz, skak}
@@ -31,12 +31,35 @@
   \resizebox{#1\textwidth}{!}{\input{#2}}%
 }
 
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% from MathDefs.tex
+
+\def\Re{\mathbb{R}}
+
 \def\behaviour{\mathrm{behaviour}}
 \def\act{\mathrm{act}}
 \def\react{\mathrm{react}}
 \def\state{\mathrm{state}}
 \def\action{\mathrm{action}}
 \def\msg{\mathrm{message}}
+
+\def\coh{\mathrm{coh}}
+\def\rel{\mathrm{rel}}
+\def\fold{\mathit{fold}\,}
+
+\def\Bool{\mathrm{Bool}}
+\def\Candidate{\mathit{Candidate}}
+\def\Details{\mathit{Details}}
+% \def\Context{\mathit{Context}}
+
+
+\providecommand{\letIn}[2]{
+  \begin{aligned}[t]%
+    & \mathit{let}\, #1 \\%
+    & \mathit{in}~ #2%
+  \end{aligned}%
+}
+
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
@@ -77,7 +100,8 @@
 \section{Agent Roles}
 
 \begin{frame}{Agent Roles}
-  \centering
+
+  \begin{center}
   \begin{tikzpicture}[every node/.style={text width=1.5cm, align=center}]
     \node[draw, rounded corners,dashed, inner sep=8pt] (C) {Controller};
     \node[color=blue, below=2cm of C] (P) {Professors};
@@ -91,16 +115,78 @@
     \draw[->, >=stealth, blue] (H) -- (HH);
     \draw[->, >=stealth, blue] (H) -- (HO);
   \end{tikzpicture}
+  \end{center}
+
+  \bigskip
+
+  \blue{Groups} and \blue{Observer} have \underline{active} behaviour, while \\
+  \blue{Professors} and \blue{Holders} exhibit only the \underline{reactive} one.
+
 \end{frame}
 
 % % % % % % % % % % % % % % % % % % % %
 \subsection{Group}
-% \subsubsection{Candidates Creation}
-% \subsubsection{Propagation through Contexts}
-% \subsubsection{Placement Intention and Conflicts}
+
+
+% % % % % % % % % % % % % % % % % % % % Candidates Creation
+
+\againframe{candidate-def}
+
+\begin{frame}{Group: Candidates Creation}
+  \centering
+  Each class consists of \emph{class-core} and \emph{instance} assignations
+
+  \bigskip \bigskip
+
+  \begin{block}{Class-Cores Pool}
+    is a lazy random sequence of class-cores,
+    that contain \underline{a class for each discipline}, needed by the group.
+
+    \medskip
+
+    \begin{enumerate}
+      \item For each discipline needed select professors, that can teach it.
+            Randomize professors lists.
+      \item Lazily generate all possible combinations \emph{professor} -- \emph{discipline}.
+      \item When getting next combination, assign the generating \emph{group}.
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Group: Candidates Creation}
+  \begin{block}{Day -- Time -- Room}
+    \begin{enumerate}
+      \item Generate random \emph{day}.
+      \item Select random \emph{classroom}.
+      \item Generate \emph{beginning time}.
+      \item Get class duration from the \emph{discipline}, contained in argument class-core.
+            Calculate \emph{end time}.
+      \item Test \emph{end time} consistency (upper bound).
+      \item Test \emph{time consistency} of the values from (1-4) using the history.
+      \item If new values are consistent, add them to history, assign to class-core
+            and return it.
+            Otherwise, repeat from (1).
+    \end{enumerate}
+    Assignation for classes of same possible candidate is done with same
+      history.
+  \end{block}
+\end{frame}
+
+
+% % % % % % % % % % % % % % % % % % % % Action
+
+\begin{frame}{Group Action}
+  \marginbox{-30pt 0 0 0}{
+    \clipbox{-65pt 350 20 0}{ %{left bottom right top}
+      \resizebox{\textwidth}{!}{
+        \input{\rootdir/img/SolutionProcess-content.tikz}
+      }
+    }
+  }
+\end{frame}
+
 % \subsubsection{Candidate Modification}
 % \subsubsection{Sleep and Awake, Solution Improvement}
-
 
 
 % % % % % % % % % % % % % % % % % % % %

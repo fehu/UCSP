@@ -91,6 +91,76 @@
   \end{block}
 \end{frame}
 
+
+
+
+
+\begin{frame}{Context}
+  % Context represents an aspect for optimization/restriction (group of constraints).
+  \begin{block}{Defines}
+    \begin{enumerate}
+      \item Context-specific information
+      \item \underline{Relations} over the information graph $\{\rel\}$
+      \item \underline{Relations combination} associative function $f^\cup$
+      \item Context-specific \emph{Details}
+      \item Context-specific threshold $\Theta$
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Context: Relations}
+  \begin{block}{Relations}
+    \begin{itemize}
+      \item Over whole graph
+        \begin{align*}
+          & \rel: \lbrace I \rbrace \mapsto \Re \times \Details \\
+          & \coh[\rel](\tilde{c}) = rel(\tilde{c})
+        \end{align*}
+      \item Binary
+        \begin{align*}
+          & \rel: I \times I \mapsto \Re \times \Details \\
+          & f^\cup_2: (\Re \times \Details) \times
+                      (\Re \times \Details)
+               \mapsto \Re \times \Details \\[0.3em]
+          & \coh[\rel](\tilde{c}) = \fold (f^\cup_2[\rel]) ~
+              \left(\lbrace \rel(c_a,c_b) ~|~ \forall\, c_a,c_b \in \tilde{c}
+                                      , ~ a \not= b \rbrace\right)
+        \end{align*}
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Context: Assessment}
+  \begin{block}{Relations Combination}
+    \begin{align*}
+      & f^\cup: (\Re \times \Details) \times
+                (\Re \times \Details)
+         \mapsto \Re \times \Details \\
+      & \mathrm{assess}[\mathrm{context}]: \Candidate \mapsto
+                                           \Re \times \Details
+      \\[0.3em]
+      & \mathrm{assess}[\mathrm{context}](\tilde{c}) =
+        \fold (f^\cup) ~ \left(
+        \lbrace \coh[\rel](\tilde{c}) ~|~
+                \forall\, \rel \in \mathrm{rels}(\mathrm{context})
+        \rbrace\right)
+    \end{align*}
+  \end{block}
+  \begin{block}{Coherence Assessment at Context}
+    \begin{align*}
+      & \coh[\mathrm{context}]: \Candidate \mapsto \Re \times
+                                \Bool \times \Details
+      \\[0.3em]
+      & \coh[\mathrm{context}](\tilde{c}) =
+          \letIn{ \left<x,d\right> = \mathrm{assess}[\mathrm{context}](\tilde{c}) }
+                {\left<x, x \geq \Theta, d\right>}
+    \end{align*}
+  \end{block}
+\end{frame}
+
+
+% % % % % % % % % % % % % % % % % % % %
+
 \againframe{constraints}
 
 \begin{frame}{Contexts}
@@ -102,22 +172,22 @@
                   --
                 (0,-5) node[yshift=-10pt] {Assessed candidate $\tilde{c}$};
     \end{column}
-    \begin{column}{.5\textwidth}
+    \begin{column}{.7\textwidth}
       \vfill
       \begin{enumerate}
         \item Common / Independent
           \begin{enumerate}
-            \item Class constraints
-            \item Time constraints
+            \item Class constraints: \textit{true}/\textit{false}
+            \item Time constraints: \textit{true}/\textit{false}
           \end{enumerate}
         \item Internal / Personal
           \begin{enumerate}
-            \item Obligations (strong)
-            \item Preferences (weak)
+            \item Obligations (strong): \textit{true}/\textit{false}
+            \item Preferences (weak):   $(0,1]$
           \end{enumerate}
-        \item \underline{External}\\
-              communicates, works towards
-              \emph{common goal}
+        \item \underline{External}: $[0,1]$\\
+              communicates,\\
+              works towards \emph{common goal}
       \end{enumerate}
       \vfill
     \end{column}
