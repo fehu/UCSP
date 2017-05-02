@@ -27,6 +27,7 @@ cabal.sandbox.config
 *.pdf
 
 tex-build/
+build/
 
 
 # Emacs
