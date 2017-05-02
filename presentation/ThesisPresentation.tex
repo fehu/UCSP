@@ -13,6 +13,7 @@
 \usepackage{adjustbox}
 \usepackage{amsmath,amsfonts, amssymb}
 \usepackage{mdframed}
+\usepackage{relsize}
 
 \usepackage{tikz, skak}
 \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
@@ -234,6 +235,8 @@
 \end{frame}
 
 % % % % % % % % % % % % % % % % % % % % Deep Coherence Assessment
+\subsubsection{Deep External Coherence}
+
 \begin{frame}{Deep External Coherence}
   \begin{columns}
     \begin{column}{.8\textwidth}
@@ -396,8 +399,48 @@
 
 \end{frame}
 
+% % % % % % % % % % % % % % % % % % % % Disciplines Priority
+\subsubsection{Disciplines Priority}
 
-\subsubsection{Candidate ``Rareness''}
+\begin{frame}{Disciplines Priority}{Candidate ``Rarity''}
+  \begin{block}{Discipline ``Rarity'' / Priority}
+    \begin{columns}
+      \begin{column}{-.5cm}\end{column}
+      \begin{column}{.65\textwidth}\\
+        is ratio
+        \begin{itemize}
+          \item[of] groups enrolled to the discipline ($N_G$)
+          \item[to] professors able to teach it ($N_P$).
+        \end{itemize}
+      \end{column}
+      \begin{column}{.1\textwidth}
+        $$\rho^d = \dfrac{N_G}{N_P}$$
+      \end{column}
+      \begin{column}{.1\textwidth}\end{column}
+    \end{columns}
+    \bigskip
+    Discipline $d$ is considered \alert{``rare''} if its priority
+    $\rho_d$ is higher than some threshold
+  \end{block}
+  \begin{block}{Candidate ``Rarity''}
+    \begin{columns}
+      \begin{column}{.4\textwidth}
+        \bigskip
+        $$\rho_{\tilde{c}} = \sum\limits_{d \in D'_{\tilde{c}}}
+                \rho^d \cdot \mathsmaller{ \sum\limits_{c \in \tilde{c}'_d}
+                                     \mathit{duration}\, c }$$
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{align*}
+          D'_{\tilde{c}} &= \lbrace d ~|~ d ~\mathit{referenced\,by}~ \tilde{c};~
+                                        \rho_d > \rho_* \rbrace\\
+          \tilde{c}'_d &= \lbrace c ~|~ c \in \tilde{c};~ c ~\mathit{is\,class\,for}~ d \rbrace
+        \end{align*}
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
+
 
 
 % % % % % % % % % % % % % % % % % % % %
