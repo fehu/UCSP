@@ -1,0 +1,33 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VI
+\section{Agent Roles}
+
+\begin{frame}{Agent Roles}
+
+  \begin{center}
+  \begin{tikzpicture}[every node/.style={text width=1.5cm, align=center}]
+    \node[draw, rounded corners,dashed, inner sep=8pt] (C) {Controller};
+    \node[color=blue, below=2cm of C] (P) {Professors};
+    \node[color=blue, left=of P]  (G) {Groups};
+    \node[color=blue, right=of P] (H) {Schedule Holders};
+    \draw[->, >=stealth, dashed] (C) -- (G);
+    \draw[->, >=stealth, dashed] (C) -- (P);
+    \draw[->, >=stealth, dashed] (C) -- (H);
+    \node[color=blue, below=of H, xshift=-1cm] (HH) {Holders};
+    \node[color=blue, below=of H, xshift=1cm]  (HO) {Observer};
+    \draw[->, >=stealth, blue] (H) -- (HH);
+    \draw[->, >=stealth, blue] (H) -- (HO);
+  \end{tikzpicture}
+  \end{center}
+
+  \bigskip
+
+  \blue{Groups} and \blue{Observer} have \underline{active} behaviour, while \\
+  \blue{Professors} and \blue{Holders} exhibit only the \underline{reactive} one.
+
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\input{Agent-Roles/1-Group}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %

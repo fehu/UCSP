@@ -1,0 +1,315 @@
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Group}
+
+
+% % % % % % % % % % % % % % % % % % % % Candidates Creation
+
+\againframe{candidate-def}
+
+\begin{frame}{Group: Candidates Creation}
+  \centering
+  Each class consists of \emph{class-core} and \emph{instance} assignations
+
+  \bigskip \bigskip
+
+  \begin{block}{Class-Cores Pool}
+    is a lazy random sequence of class-cores,
+    that contain \underline{a class for each discipline}, needed by the group.
+
+    \medskip
+
+    \begin{enumerate}
+      \item For each discipline needed select professors, that can teach it.
+            Randomize professors lists.
+      \item Lazily generate all possible combinations \emph{professor} -- \emph{discipline}.
+      \item When getting next combination, assign the generating \emph{group}.
+    \end{enumerate}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Group: Candidates Creation}
+  \begin{block}{Day -- Time -- Room}
+    \begin{enumerate}
+      \item Generate random \emph{day}.
+      \item Select random \emph{classroom}.
+      \item Generate \emph{beginning time}.
+      \item Get class duration from the \emph{discipline}, contained in argument class-core.
+            Calculate \emph{end time}.
+      \item Test \emph{end time} consistency (upper bound).
+      \item Test \emph{time consistency} of the values from (1-4) using the history.
+      \item If new values are consistent, add them to history, assign to class-core
+            and return it.
+            Otherwise, repeat from (1).
+    \end{enumerate}
+    Assignation for classes of same possible candidate is done with same
+      history.
+  \end{block}
+\end{frame}
+
+
+% % % % % % % % % % % % % % % % % % % % Action Part I
+
+\begin{frame}{Group Action}
+  \marginbox{-30pt 0 0 0}{
+    \clipbox{-65pt 350 20 0}{ %{left bottom right top}
+      \resizebox{\textwidth}{!}{
+        \input{\rootdir/img/SolutionProcess-content.tikz}
+      }
+    }
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % Placement Intention
+
+\begin{frame}{Group: Candidate Placement}
+  If candidate was found coherent, try to put it in the \emph{common schedule}:
+  \begin{itemize}
+    \item \underline{Success} --- the agent ``goes to \green{sleep}'', until disturbed
+    \item \underline{Conflicts} --- try \alert{win competence} or change candidate
+  \end{itemize}
+  \begin{block}{Conflicts}
+    happen with candidates, already existing in current schedule
+  \end{block}
+  \centering
+  \marginbox{-30pt 0 0 0}{
+    \resizeinput[.5]{\rootdir/img/ConnectionMatrix/Conflict-content.tikz}
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % Action Part II
+
+\begin{frame}{Group Action}
+  \marginbox{-30pt 0 0 0}{
+    \clipbox{-65pt 0 20 180}{ %{left bottom right top}
+      \resizebox{\textwidth}{!}{
+        \input{\rootdir/img/SolutionProcess-content.tikz}
+      }
+    }
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % Conflicts Resolution
+
+\begin{frame}{Conflicts Resolution}
+  A conflict arises \underline{between groups}.
+  \\\medskip
+  The ``newcomer'' candidate must have better quality than \underline{any}
+  conflicting one.
+  \\\bigskip
+  \begin{block}{Quality Comparison}
+    \centering \bigskip
+    Ext. coherence $<$ Deep ext. coherence $<$ Disciplines priority
+  \end{block}
+  \medskip
+  \begin{block}{External Coherence Comparison}
+    \centering \bigskip
+    Preliminary mode $<$ Final mode
+  \end{block}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % Deep Coherence Assessment
+\subsubsection{Deep External Coherence}
+
+\begin{frame}{Deep External Coherence}
+  \begin{columns}
+    \begin{column}{.8\textwidth}
+      \begin{itemize}
+        \item[Depth 0:] internal coherence of the professors,
+                  mentioned by candidate $\tilde{c}_i$ are accumulated.
+        \item[Depth 1:] internal coherence of the group agents,
+                  that have created candidates, mentioning groups from depth 0.
+        \item[$\vdots$]
+        \item[Even depth $j$:] internal coherence of the professors,
+                  mentioned by candidates of the professors from depth $j-1$.
+        \item[Depth $j+1$:] internal coherence of the groups,
+                  that created candidates, mentioning of the professors from depth $j$.
+        \item[$\vdots$]
+        \item[Depth $N+1$:] Stop criterion.
+                  All ``new'' coherence values were already retrieved at some previous depth.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+\input{\rootdir/img/ConnectionMatrix/ConflictDeepCoherence.tikz.lib}
+
+\begin{frame}{Deep External Coherence}
+  \alert{No class} (or its references), \alert{belonging to conflicting candidate},
+        can be used in the evaluation.
+  \bigskip \bigskip
+  \begin{columns}
+    \begin{column}{.4\textwidth}
+      \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+          col-color/.style args = {####1=####2}{column ####1/.style={nodes={text=####2}}},
+          row-color/.style args = {####1=####2}{row ####1/.style={nodes={text=####2}}}
+          ]
+          \drawMatrix[col-color/.list={2=blue,4=blue,5=blue},
+                      row-color/.list={5=blue}]{0};
+          \fith{m0}{5}{blue}
+          \fitv[dashed]{m0}{2}{blue}
+          \fitv[dashed]{m0}{4}{blue}
+          \fitv[dashed]{m0}{5}{blue}
+          \showExtCoh{m0}{g_i}{0}{{p_1, p_*, p_k}}
+        \end{tikzpicture}
+        }
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+          col-color/.style args = {####1=####2}{column ####1/.style={nodes={text=####2}}},
+          row-color/.style args = {####1=####2}{row ####1/.style={nodes={text=####2}}}
+          ]
+          \drawMatrix[right=2cm of m0,
+                      col-color/.list={2=blue,4=blue,5=blue},
+                      row-color/.list={5=blue,3=blue,7=blue}]{1};
+          \fith[dotted]{m1}{5}{blue}
+          \fitv{m1}{2}{blue}
+          \fitv{m1}{4}{blue}
+          \fitv{m1}{5}{blue}
+          \fith[dashed]{m1}{3}{blue}
+          \fith[dashed]{m1}{7}{blue}
+          \showExtCoh{m1}{g_i}{1}{{p_1, p_*, p_k, g_2, g_n}}
+        \end{tikzpicture}
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Deep External Coherence}
+  \begin{columns}
+    \begin{column}{.4\textwidth}
+      \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+          col-color/.style args = {####1=####2}{column ####1/.style={nodes={text=####2}}},
+          row-color/.style args = {####1=####2}{row ####1/.style={nodes={text=####2}}}
+          ]
+          \drawMatrix[below=2cm of m0,
+                      col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue},
+                      row-color/.list={5=blue,3=blue,7=blue}]{2};
+          \fith[dotted]{m2}{5}{blue}
+          \fitv[dotted]{m2}{2}{blue}
+          \fitv[dotted]{m2}{4}{blue}
+          \fitv[dotted]{m2}{5}{blue}
+          \fith{m2}{3}{blue}
+          \fith{m2}{7}{blue}
+          \fitv[dashed]{m2}{6}{blue}
+          \fitv[dashed]{m2}{7}{blue}
+          \fitv[dashed]{m2}{8}{blue}
+          \showExtCoh{m2}{g_i}{2}{{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m}}
+        \end{tikzpicture}
+      }
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+          col-color/.style args = {####1=####2}{column ####1/.style={nodes={text=####2}}},
+          row-color/.style args = {####1=####2}{row ####1/.style={nodes={text=####2}}}
+          ]
+          \drawMatrix[below=2cm of m1,
+                      col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue},
+                      row-color/.list={5=blue,3=blue,7=blue,2=blue,4=blue}]{3};
+          \fith[dotted]{m3}{5}{blue}
+          \fitv[dotted]{m3}{2}{blue}
+          \fitv[dotted]{m3}{4}{blue}
+          \fitv[dotted]{m3}{5}{blue}
+          \fith[dotted]{m3}{3}{blue}
+          \fith[dotted]{m3}{7}{blue}
+          \fitv{m3}{6}{blue}
+          \fitv{m3}{7}{blue}
+          \fitv{m3}{8}{blue}
+          \fith[dashed]{m3}{2}{blue}
+          \fith[dashed]{m3}{4}{blue}
+          \showExtCoh{m3}{g_i}{3}{{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m, g_1, g_*}}
+        \end{tikzpicture}
+      }
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Deep External Coherence}
+  \begin{columns}
+    \begin{column}{.6\textwidth}
+      \resizebox{\textwidth}{!}{
+        \begin{tikzpicture}[
+          col-color/.style args = {####1=####2}{column ####1/.style={nodes={text=####2}}},
+          row-color/.style args = {####1=####2}{row ####1/.style={nodes={text=####2}}}
+          ]
+          \drawMatrix[below=2cm of m2,
+                      col-color/.list={2=blue,4=blue,5=blue,6=blue,7=blue,8=blue,3=blue},
+                      row-color/.list={5=blue,3=blue,7=blue,2=blue,4=blue}]{4};
+          \fith[dotted]{m4}{5}{blue}
+          \fitv[dotted]{m4}{2}{blue}
+          \fitv[dotted]{m4}{4}{blue}
+          \fitv[dotted]{m4}{5}{blue}
+          \fith[dotted]{m4}{3}{blue}
+          \fith[dotted]{m4}{7}{blue}
+          \fitv[dotted]{m4}{6}{blue}
+          \fitv[dotted]{m4}{7}{blue}
+          \fitv[dotted]{m4}{8}{blue}
+          \fith{m4}{2}{blue}
+          \fith{m4}{4}{blue}
+          \fitv[dashed]{m4}{3}{blue}
+          \showExtCoh{m4}{g_i}{4 (max)}
+            {{p_1, p_*, p_k, g_2, g_n}, {p_*, p_*, p_m, g_1, g_*, p_2}}
+        \end{tikzpicture}
+      }
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \begin{block}{Common Goal $\Gamma$}
+        combines coherence, making no difference between value origins
+      \end{block}
+      \begin{examples}
+        \begin{itemize}
+          \item \emph{arithmetic} mean $\frac{\sum_n}{n}$ \emph{mean}.
+          \item \emph{geometric}  mean $\sqrt[\leftroot{-2}\uproot{2}n]{\prod_n}$
+          \item $\dots$
+        \end{itemize}
+      \end{examples}
+    \end{column}
+  \end{columns}
+
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % Disciplines Priority
+\subsubsection{Disciplines Priority}
+
+\begin{frame}{Disciplines Priority}{Candidate ``Rarity''}
+  \begin{block}{Discipline ``Rarity'' / Priority}
+    \begin{columns}
+      \begin{column}{-.5cm}\end{column}
+      \begin{column}{.65\textwidth}\\
+        is ratio
+        \begin{itemize}
+          \item[of] groups enrolled to the discipline ($N_G$)
+          \item[to] professors able to teach it ($N_P$).
+        \end{itemize}
+      \end{column}
+      \begin{column}{.1\textwidth}
+        $$\rho^d = \dfrac{N_G}{N_P}$$
+      \end{column}
+      \begin{column}{.1\textwidth}\end{column}
+    \end{columns}
+    \bigskip
+    Discipline $d$ is considered \alert{``rare''} if its priority
+    $\rho_d$ is higher than some threshold
+  \end{block}
+  \begin{block}{Candidate ``Rarity''}
+    \begin{columns}
+      \begin{column}{.4\textwidth}
+        \bigskip
+        $$\rho_{\tilde{c}} = \sum\limits_{d \in D'_{\tilde{c}}}
+                \rho^d \cdot \mathsmaller{ \sum\limits_{c \in \tilde{c}'_d}
+                                     \mathit{duration}\, c }$$
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{align*}
+          D'_{\tilde{c}} &= \lbrace d ~|~ d ~\mathit{referenced\,by}~ \tilde{c};~
+                                        \rho_d > \rho_* \rbrace\\
+          \tilde{c}'_d &= \lbrace c ~|~ c \in \tilde{c};~ c ~\mathit{is\,class\,for}~ d \rbrace
+        \end{align*}
+      \end{column}
+    \end{columns}
+  \end{block}
+\end{frame}
