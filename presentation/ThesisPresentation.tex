@@ -25,8 +25,8 @@
 
 
 \newcommand{\red}[1]{{\color{red} #1}}
-\newcommand{\green}[1]{{\color{green} #1}}
-\newcommand{\yellow}[1]{{\color{yellow} #1}}
+\newcommand{\green}[1]{{\color{green!50!black} #1}}
+\newcommand{\orange}[1]{{\color{orange} #1}}
 \newcommand{\blue}[1]{{\color{blue} #1}}
 
 
@@ -81,22 +81,56 @@
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VI
 \section{Agent Roles}
 
-\subsection{Group}
-\subsubsection{Candidates Creation}
-\subsubsection{Propagation through Contexts}
-\subsubsection{Placement Intention and Conflicts}
-\subsubsection{Candidate Modification}
-\subsubsection{Sleep and Awake, Solution Improvement}
+\begin{frame}{Agent Roles}
+  % \begin{columns}[t]
+  %   \begin{column}{.1\textwidth}
+  %     \begin{block}{Groups}\end{block}
+  %   \end{column}
+  %   \begin{column}{.1\textwidth}
+  %     \begin{block}{Professors}\end{block}
+  %   \end{column}
+  %   \begin{column}{.2\textwidth}
+  %     \begin{block}{Schedule Holders}\end{block}
+  %   \end{column}
+  % \end{columns}
+  \centering
+  \begin{tikzpicture}[every node/.style={text width=1.5cm, align=center}]
+    \node[draw, rounded corners,dashed, inner sep=8pt] (C) {Controller};
+    \node[color=blue, below=2cm of C] (P) {Professors};
+    \node[color=blue, left=of P]  (G) {Groups};
+    \node[color=blue, right=of P] (H) {Schedule Holders};
+    \draw[->, >=stealth, dashed] (C) -- (G);
+    \draw[->, >=stealth, dashed] (C) -- (P);
+    \draw[->, >=stealth, dashed] (C) -- (H);
+    \node[color=blue, below=of H, xshift=-1cm] (HH) {Holders};
+    \node[color=blue, below=of H, xshift=1cm]  (HO) {Observer};
+    \draw[->, >=stealth, blue] (H) -- (HH);
+    \draw[->, >=stealth, blue] (H) -- (HO);
+  \end{tikzpicture}
+\end{frame}
 
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Group}
+% \subsubsection{Candidates Creation}
+% \subsubsection{Propagation through Contexts}
+% \subsubsection{Placement Intention and Conflicts}
+% \subsubsection{Candidate Modification}
+% \subsubsection{Sleep and Awake, Solution Improvement}
+
+
+
+% % % % % % % % % % % % % % % % % % % %
 \subsection{Professor}
 \subsubsection{Reactive}
 \subsubsection{Solution Improvement}
 
+% % % % % % % % % % % % % % % % % % % %
 \subsection{Schedule Holders}
 \subsubsection{Putting Candidates Together}
 \subsubsection{Conflicts and Forced Resolution}
 \subsubsection{Schedule Observation}
 
+% % % % % % % % % % % % % % % % % % % %
 \subsection{Common / Conflicts Resolution}
 \subsubsection{Deep Coherence Assessment}
 \subsubsection{Candidate ``Rareness''}
