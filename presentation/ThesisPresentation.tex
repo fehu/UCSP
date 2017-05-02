@@ -89,93 +89,15 @@
 \frame{\titlepage}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-% \input{1-UCSP}
-% \input{2-CSP}
-% \input{3-Definition}
-% \input{4-Coherence}
-% \input{5-Agents}
-% \input{6-Agent-Roles}
+\input{1-UCSP}
+\input{2-CSP}
+\input{3-Definition}
+\input{4-Coherence}
+\input{5-Agents}
+\input{6-Agent-Roles}
+\input{7-Results}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VII
-\section{Results}
-% % % % % % % % % % % % % % % % % % % % Data
-\subsection{Data}
-
-\begin{frame}{Data Definition}
-  \begin{mdframed}[leftmargin=1cm, hidealllines=true]
-    \begin{itemize}
-      \item[\underline{Institution:}]
-        \begin{itemize}
-          \item Static:
-                \begin{enumerate}
-                  \item[a.] \emph{timetable},
-                  \item[b.] \emph{disciplines},
-                  \item[c.] \emph{classrooms}.
-                \end{enumerate}
-          \item Participants --- for each \underline{group} and \underline{professor}:\\
-                \begin{enumerate}
-                  \item \emph{unique name},
-                  \item \emph{can teach} / \emph{need} disciplines
-                  \item \emph{obligations}
-                \end{enumerate}
-        \end{itemize}
-      \item[\underline{Personal:}]
-        \begin{itemize}
-          \item[] for each \underline{group} and \underline{professor}:
-          \begin{enumerate}
-            \item[4.] \emph{preferences}
-          \end{enumerate}
-        \end{itemize}
-    \end{itemize}
-  \end{mdframed}
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % %
-\subsubsection{Static Data}
-
-\begin{frame}{Test Data: Disciplines}
-  \centering
-  \resizeinput[.7]{\rootdir/TestResults/TestData/Disciplines}
-\end{frame}
-
-\begin{frame}{Test Data: Classrooms}
-  \begin{columns}
-    \begin{column}{.5\textwidth}
-      \resizeinput[.8]{\rootdir/TestResults/TestData/Classrooms}
-    \end{column}
-    \begin{column}{.4\textwidth}
-      \resizeinput{\rootdir/TestResults/TestData/Requirements}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{Test Data: Groups}{Part 1}
-  \resizeinput{\rootdir/TestResults/TestData/Groups-Static}
-\end{frame}
-
-\begin{frame}{Test Data: Professors}{Part 1}
-  \centering
-  \resizeinput[.65]{\rootdir/TestResults/TestData/Professors-Static}
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % %
-\subsubsection{Personal Data}
-
-\begin{frame}{Test Data: Groups \& Professors}{Part 2}
-  \begin{columns}[t]
-    \begin{column}{.5\textwidth}
-      \resizeinput{\rootdir/TestResults/TestData/Groups-Personal}
-    \end{column}
-    \begin{column}{.5\textwidth}
-      \resizeinput{\rootdir/TestResults/TestData/Professors-Personal}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % % Results
-\subsection{Results}
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VIII

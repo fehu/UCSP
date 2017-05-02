@@ -1,0 +1,171 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % VII
+\section{Results}
+
+% % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % Data
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Data}
+
+\begin{frame}{Data Definition}
+  \begin{mdframed}[leftmargin=1cm, hidealllines=true]
+    \begin{itemize}
+      \item[\underline{Institution:}]
+        \begin{itemize}
+          \item Static:
+                \begin{enumerate}
+                  \item[a.] \emph{timetable},
+                  \item[b.] \emph{disciplines},
+                  \item[c.] \emph{classrooms}.
+                \end{enumerate}
+          \item Participants --- for each \underline{group} and \underline{professor}:\\
+                \begin{enumerate}
+                  \item \emph{unique name},
+                  \item \emph{can teach} / \emph{need} disciplines
+                  \item \emph{obligations}
+                \end{enumerate}
+        \end{itemize}
+      \item[\underline{Personal:}]
+        \begin{itemize}
+          \item[] for each \underline{group} and \underline{professor}:
+          \begin{enumerate}
+            \item[4.] \emph{preferences}
+          \end{enumerate}
+        \end{itemize}
+    \end{itemize}
+  \end{mdframed}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\subsubsection{Static Data}
+
+\begin{frame}{Test Data: Disciplines}
+  \centering
+  \resizeinput[.7]{\rootdir/TestResults/TestData/Disciplines}
+\end{frame}
+
+\begin{frame}{Test Data: Classrooms}
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+      \resizeinput[.8]{\rootdir/TestResults/TestData/Classrooms}
+    \end{column}
+    \begin{column}{.4\textwidth}
+      \resizeinput{\rootdir/TestResults/TestData/Requirements}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Test Data: Groups}{Part 1}
+  \resizeinput{\rootdir/TestResults/TestData/Groups-Static}
+\end{frame}
+
+\begin{frame}{Test Data: Professors}{Part 1}
+  \centering
+  \resizeinput[.65]{\rootdir/TestResults/TestData/Professors-Static}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\subsubsection{Personal Data}
+
+\begin{frame}{Test Data: Groups \& Professors}{Part 2}
+  \begin{columns}[t]
+    \begin{column}{.5\textwidth}
+      \resizeinput{\rootdir/TestResults/TestData/Groups-Personal}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \resizeinput{\rootdir/TestResults/TestData/Professors-Personal}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+% % % % % % % % % % % % % % % % % % % % Results
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\subsection{Results}
+
+\begin{frame}{Execution}
+  The negotiation was executed 3 minutes, during which 17 schedules were reported.
+  \\\bigskip
+  The best (last) one had \textbf{\emph{total coherence} estimated }$\mathbf{0.7}$.
+  \\\bigskip
+  Total coherence was assessed as \emph{geometric mean}:
+  $$ \coh_\Pi = \sqrt[\leftroot{-2}\uproot{2}n]
+                     {\prod\limits_{a \in \{g\} \cup \{p\}}
+                           \coh_a (\mathit{schedule})
+                     }
+  $$
+  \\\bigskip
+  Preferences values were assigned as:
+  \begin{align*}
+    1   & \quad\text{if all the preferences were satisfied,} \\
+    0.6 & \quad\text{if some preferences were satisfied,}    \\
+    0.1 & \quad\text{if no preference was satisfied.}
+  \end{align*}
+\end{frame}
+
+\begin{frame}{Results}
+  \begin{block}{Groups}
+    \begin{itemize}
+      \item 6 groups have shown maximum coherence $1$,
+            that means that all their preferences
+            were satisfied (two of them had no preferences defined)
+      \item One group had its constraints satisfied partially
+      \item Resting 3 groups had no preference constraint satisfied
+    \end{itemize}
+  \end{block}
+  \begin{block}{Professors}
+    The professor agents had no preferences specified, so all of them have reported
+    maximum coherence 1.
+  \end{block}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\input{\rootdir/TestResults/PersonalSolution.lib}
+
+\begin{frame}{Results}{Best Group Schedules}
+  \begin{block}{Schedule for G-2A}
+    The preference (free Saturday) is satisfied \\\medskip
+    \centering
+    \resizeinput[.7]{\rootdir/TestResults/Results/Group-Best-2A}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results}{Best Group Schedules}
+  \begin{block}{Schedule for G-4B}
+    The preference (until 16:00) is satisfied \\\medskip
+    \centering
+    \resizeinput[.7]{\rootdir/TestResults/Results/Group-Best-4B}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results}{Worst Group Schedules}
+  \begin{block}{Schedule for G-5A}
+    Satisfies preferences only partially: Saturday is free, but not Friday.
+    \\\medskip
+    \centering
+    \resizeinput[.7]{\rootdir/TestResults/Results/Group-So-So-5A}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results}{Worst Group Schedules}
+  \begin{block}{Schedule for G-1A}
+    The preference (free Saturday) is not satisfied \\\medskip
+    \centering
+    \resizeinput[.7]{\rootdir/TestResults/Results/Group-Bad-1A}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results}{Professor Schedules}
+  \begin{block}{Schedule for P-4}
+    \centering \bigskip
+    \resizeinput[.7]{\rootdir/TestResults/Results/Prof-4}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Results}{Professor Schedules}
+  \begin{block}{Schedule for P-11}
+    \centering \bigskip
+    \resizeinput[.7]{\rootdir/TestResults/Results/Prof-11}
+  \end{block}
+\end{frame}
