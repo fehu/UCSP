@@ -11,10 +11,13 @@
 \usepackage{color}
 \usepackage{hhline}
 \usepackage{adjustbox}
+\usepackage{amsfonts, amssymb}
+\usepackage{mdframed}
+% \usepackage{enumitem}
 % \usepackage[utf8]{inputenc}
 % \usepackage[backend=biber]{biblatex}
 
-\usepackage{tikz} % , pgfplots, skak
+\usepackage{tikz, skak}
 \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
                 shapes.geometric, chains, arrows, calc }
 
@@ -22,6 +25,9 @@
 
 
 \newcommand{\red}[1]{{\color{red} #1}}
+\newcommand{\green}[1]{{\color{green} #1}}
+\newcommand{\yellow}[1]{{\color{yellow} #1}}
+\newcommand{\blue}[1]{{\color{blue} #1}}
 
 
 \newcommand{\resizeinput}[2][1]{%
@@ -52,252 +58,12 @@
 \begin{document}
 
 \frame{\titlepage}
-\frame{\tableofcontents} % \frametitle{Outline}
+% \frame{\tableofcontents} % \frametitle{Outline}
 
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % I
-\section{University Class Scheduling Problem (UCSP)}
-\subsection{The Problem}
-
-\begin{frame}{University Class Scheduling Problem}
-  \begin{block}{The Problem}
-    \textbf{U}niversity \textbf{C}lass \textbf{S}cheduling \textbf{P}roblem (UCSP)
-    consists in finding valid \alert{class} assignations for \underline{all} the
-    participants:
-    \begin{itemize}
-      \item Groups / Students
-      \item Professors
-    \end{itemize}
-  \end{block}
-  \begin{block}{Class}
-    A class is an educational event, that is formed with purpose of studying
-    some \alert{discipline}.
-    \begin{columns}
-      \begin{column}{4cm}
-        \\Takes place
-        \begin{itemize}
-          \item in a \underline{classroom}
-          \item on given \underline{day}
-          \item during given \underline{time}
-        \end{itemize}
-      \end{column}
-      \begin{column}{3cm}
-        Links together
-        \begin{itemize}
-          \item a \underline{group} and
-          \item a \underline{professor}
-        \end{itemize}
-      \end{column}
-    \end{columns}
-
-  \end{block}
-\end{frame}
-
-\begin{frame}
-  \begin{columns}
-    \begin{column}{4cm}
-      \begin{block}{Schedule}
-        The complete schedule consists of all the classes of all the participants,
-        that can be seen as points in 5-dimensional space. It can be decomposed
-        into a set of \alert{timetables}.
-      \end{block}
-    \end{column}
-    \begin{column}{7cm}
-        \resizeinput{\rootdir/img/ScheduleHypercube/GRPT-content.tikz}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}
-  \begin{block}{Timetable}
-    Timetable is projection of the schedule on the person/entity.
-    It is a 2-dimensional table, that contains \underline{only} the classes
-    of projection target.
-  \end{block}
-  \begin{columns}
-    \begin{column}{.5\textwidth}
-      \centering
-      \input{\rootdir/Improvements/Timetable-high-discr}
-    \end{column}
-    \begin{column}{.5\textwidth}
-      \centering
-      \input{\rootdir/Improvements/Timetable-spaces}
-    \end{column}
-  \end{columns}
-  % \centering
-  % \input{\rootdir/Improvements/Timetable-current}
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % %
-\subsection{Constraints}
-
-\begin{frame}{University Class Scheduling Constraints}
-  \fbox{
-    \begin{columns}[t]
-      ~~Independent
-      \begin{column}{.4\textwidth}
-        \begin{block}{Class}
-          \begin{itemize}
-            \item Group need
-            \item Professor can teach
-            \item Classroom is suitable
-          \end{itemize}
-        \end{block}
-      \end{column}
-      \begin{column}{.4\textwidth}
-        \begin{block}{Time}
-          \begin{itemize}
-            \item Classes non intersection
-          \end{itemize}
-        \end{block}
-      \end{column}
-    \end{columns}
-  }
-  \\[.7cm]
-  \fbox{
-    \begin{columns}[t]
-      Personal
-      \begin{column}{.4\textwidth}
-        \begin{block}{Obligations}
-          \begin{itemize}
-            \item Personal \alert{strong} restrictions
-          \end{itemize}
-        \end{block}
-      \end{column}
-      \begin{column}{.4\textwidth}
-        \begin{block}{Preferences}
-          \begin{itemize}
-            \item Personal \alert{weak} restrictions
-          \end{itemize}
-        \end{block}
-      \end{column}
-    \end{columns}
-  }
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % II
-\section{Constraint Satisfaction Problem (CSP)}
-% \subsection{CSP Definition}
-% \subsection{CSP Examples}
-% \subsection{CSP Solution Methods}
-
-\begin{frame}{Constraint Satisfaction Problem}
-  \begin{block}{Definition}
-
-  \end{block}
-  \begin{examples}
-    ???
-  \end{examples}
-\end{frame}
-
-\begin{frame}{CSP Solution Methods}
-  ???
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % III
-\section{Formal Definition}
-% \subsection{Define Entities and Constraints}
-% \subsection{Define Classes and Candidate}
-% \subsection{Partial and Complete Solutions}
-
-\begin{frame}{University Class Scheduling Problem}
-  \begin{columns}[t]
-    \begin{column}{.4\textwidth}
-      \begin{block}{Disciplines $\{d_i\}$}
-        \begin{itemize}
-          \item academic program
-          \item special requirements
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{.4\textwidth}
-      \begin{block}{Groups $\{g_i\}$}
-        \begin{itemize}
-          \item disciplines needed
-        \end{itemize}
-      \end{block}
-    \end{column}
-  \end{columns}
-  \begin{columns}[t]
-    \begin{column}{.4\textwidth}
-      \begin{block}{Classrooms $\{r_i\}$}
-        \begin{itemize}
-          \item capacity
-          \item equipment
-        \end{itemize}
-      \end{block}
-    \end{column}
-    \begin{column}{.4\textwidth}
-      \begin{block}{Professors $\{p_i\}$}
-        \begin{itemize}
-          \item able to teach (disciplines)
-        \end{itemize}
-      \end{block}
-    \end{column}
-  \end{columns}
-  \begin{columns}
-    \begin{column}{.4\textwidth}
-      \begin{block}{Working Days $\{\bar{d}_i\}$}\end{block}
-    \end{column}
-    \begin{column}{.4\textwidth}
-      \begin{block}{Discrete Time $\{\bar{t}_i\}$}\end{block}
-    \end{column}
-  \end{columns}
-\end{frame}
-
-\begin{frame}{University Class Scheduling Problem}
-  \begin{block}{Class Core $\mathrm{cc} \sim \left< d, g, p \right>$}
-    \emph{possible} class (of discipline $d$) for group $g$,
-    taught by professor $p$
-  \end{block}
-  \begin{block}{Class $ c \sim \left< \mathrm{cc}, r, \bar d, \bar t_b, \bar t_e \right> $}
-    \emph{concrete} class, with day, time (beginning \& end) and room
-  \end{block}
-  \begin{block}{Candidate $\tilde{c}=\{c\}$}
-    set of \alert{valid} classes, assessed using \underline{coherence}
-    %{Candidate $\tilde{c}_a=\{c\}$}
-    % set of \alert{valid} classes for agent $a$
-  \end{block}
-\end{frame}
-
-\frame{
-  \trimbox{30pt 0 0 0}{
-    \resizeinput{\rootdir/img/ConnectionMatrix/Candidates-content.tikz}
-  }
-}
-
-% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % IV
-\section{Coherence}
-% \subsection{Coherence Usage in Thesis}
-% \subsection{What is Coherence}
-% \subsection{Thagard, usage examples}
-% \subsection{Contexts Introduction}
-% \subsection{Contexts Usage}
-% \subsubsection{Independent}
-% \subsubsection{Internal}
-% \subsubsection{External}
-
-\begin{frame}
-  \begin{block}{Coherence}
-    In simple worlds, \emph{coherence} is a state or measure of some \emph{pieces}
-    fitting together into a whole. Coherence can be applied to almost any aspect of
-    the universe.
-  \end{block}
-  \begin{quote}
-    The consistency or \emph{coherence} within a logical or mathematical
-    system, means that $p$ and $\neg p$ must not be derivable from the
-    basic assumptions in accordance with the observance of the syntactical
-    rules \cite{Daya60}.
-  \end{quote}
-  \begin{quote}
-    Coherence theory is a psychologically motivated motivational cognitive theory with
-    foundations in philosophy that approaches problems in terms of the satisfaction
-    of multiple constraints within networks of highly interconnected elements
-    \cite[p.~19]{UAB-Thesis}.
-  \end{quote}
-\end{frame}
-
-% % % % % % % % % % % % % % % % % % % %
-\subsection{Contexts}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\input{Part-1} % I-II
+\input{Part-2} % III-IV
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % V
@@ -340,9 +106,5 @@
 %% ??? TODO ???
 
 
-
-\begin{frame}{References}
-
-\end{frame}
 
 \end{document}

@@ -1,0 +1,183 @@
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % I
+\section{University Class Scheduling Problem (UCSP)}
+\subsection{The Problem}
+
+\begin{frame}{University Class Scheduling Problem}
+  \begin{block}{The Problem}
+    \textbf{U}niversity \textbf{C}lass \textbf{S}cheduling \textbf{P}roblem (UCSP)
+    consists in finding valid \alert{class} assignations for \underline{all} the
+    participants:
+    \begin{itemize}
+      \item Groups / Students
+      \item Professors
+    \end{itemize}
+  \end{block}
+  \begin{block}{Class}
+    A class is an educational event, that is formed with purpose of studying
+    some \alert{discipline}.
+    \begin{columns}
+      \begin{column}{4cm}
+        \\Takes place
+        \begin{itemize}
+          \item in a \underline{classroom}
+          \item on given \underline{day}
+          \item during given \underline{time}
+        \end{itemize}
+      \end{column}
+      \begin{column}{3cm}
+        Links together
+        \begin{itemize}
+          \item a \underline{group} and
+          \item a \underline{professor}
+        \end{itemize}
+      \end{column}
+    \end{columns}
+
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \begin{columns}
+    \begin{column}{4cm}
+      \begin{block}{Schedule}
+        The complete schedule consists of all the classes of all the participants,
+        that can be seen as points in 5-dimensional space. It can be decomposed
+        into a set of \alert{timetables}.
+      \end{block}
+    \end{column}
+    \begin{column}{7cm}
+        \resizeinput{\rootdir/img/ScheduleHypercube/GRPT-content.tikz}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \begin{block}{Timetable}
+    Timetable is projection of the schedule on the person/entity.
+    It is a 2-dimensional table, that contains \underline{only} the classes
+    of projection target.
+  \end{block}
+  \begin{columns}
+    \begin{column}{.5\textwidth}
+      \centering
+      \input{\rootdir/Improvements/Timetable-high-discr}
+    \end{column}
+    \begin{column}{.5\textwidth}
+      \centering
+      \input{\rootdir/Improvements/Timetable-spaces}
+    \end{column}
+  \end{columns}
+  % \centering
+  % \input{\rootdir/Improvements/Timetable-current}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % %
+\subsection{Constraints}
+
+\begin{frame}[label=constraints]{University Class Scheduling Constraints}
+  \fbox{
+    \begin{columns}[t]
+      ~~Independent
+      \begin{column}{.4\textwidth}
+        \begin{block}{Class}
+          \begin{itemize}
+            \item Group need
+            \item Professor can teach
+            \item Classroom is suitable
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Time}
+          \begin{itemize}
+            \item Classes non intersection
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+  }
+  \\[.7cm]
+  \fbox{
+    \begin{columns}[t]
+      Personal
+      \begin{column}{.4\textwidth}
+        \begin{block}{Obligations}
+          \begin{itemize}
+            \item Personal \alert{strong} restrictions
+          \end{itemize}
+        \end{block}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \begin{block}{Preferences}
+          \begin{itemize}
+            \item Personal \alert{weak} restrictions
+          \end{itemize}
+        \end{block}
+      \end{column}
+    \end{columns}
+  }
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % II
+\section{Constraint Satisfaction Problem (CSP)}
+% \subsection{CSP Definition}
+% \subsection{CSP Examples}
+% \subsection{CSP Solution Methods}
+
+\begin{frame}{Constraint Satisfaction Problem}
+  \begin{examples}
+    \begin{columns}
+      \begin{column}{.4\textwidth}
+        \centering
+        Queen moves/attacks\\ \medskip
+        \resizeinput{\rootdir/img/NQueens/Restrictions-content.tikz}
+      \end{column}
+      \begin{column}{.6\textwidth}
+        \centering
+        \resizebox{\textwidth}{!}{%
+        $\xi_2(\left<x_1,y_1\right>, \left<x_2,y_2\right>) =
+            \begin{cases}
+              0 & \mbox{if } \begin{cases}
+                                &      x_1 = x_2  \lor y_1 = y_2 \\
+                                \lor~& x_1 = y_2 \land x_2 = y_1 \\
+                                \lor~& x_1-y_1 = x_2-y_2\\
+                                \lor~& x_1+y_1 = x_2+y_2
+                             \end{cases} \\
+             1 & \text{otherwise}
+            \end{cases}
+        $}%
+      \end{column}
+    \end{columns}
+  \end{examples}
+\end{frame}
+
+\begin{frame}{Constraint Satisfaction Problem}
+  \begin{examples}
+    \begin{columns}[t]
+      \begin{column}{.4\textwidth}
+        \centering
+        Part of Central Europe\\ \medskip
+        \includegraphics[trim=100 260 370 370, clip, width=.7\textwidth]
+                        {\rootdir/img/easteuro}
+      \end{column}
+      \begin{column}{.4\textwidth}
+        \input{\rootdir/img/ColorMap/CEUMapGraph.tikz.lib}
+        \centering
+        Graph coloring problem\\ \medskip
+        \resizebox{.7\textwidth}{!}{\mkCEUMapGraph}
+      \end{column}
+    \end{columns}
+    \centering \bigskip
+    \resizebox{.7\textwidth}{!}{%
+    $\xi_2(x,y)= \begin{cases}
+      0 & \mbox{if } \exists \text{~edge~} x \leftrightarrow y
+                    ~\land \text{~color~} x = \text{color~} y \\
+      1 & \text{otherwise}
+    \end{cases}
+    $}%
+  \end{examples}
+\end{frame}
+
+% \begin{frame}{CSP Solution Methods}
+%   ???
+% \end{frame}
