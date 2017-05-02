@@ -1,44 +1,9 @@
 \documentclass[../../header]{subfiles}
 
 \providecommand{\rootdir}{../..}
-\input{\rootdir/img/ConnectionMatrix.tikz}
+\input{\rootdir/img/ConnectionMatrix/ConflictDeepCoherence.tikz.lib}
 
 \begin{document}
-\newcommand*{\drawMatrix}[2][]{
-  \def\d{#2}
-  \connectionsMatrix[
-      % row 5/.style={nodes={text=\Green}},
-      row 6/.style={nodes={text=red}},
-      #1]{m\d};
-  \node[draw, color=blue, circle, thick, inner sep=5pt] at (m\d-5-1) {};
-  \fith[dashed]{m\d}{6}{red}
-  \usedh{m\d}{6}{red}
-}
-
-\newcommand{\cohs}{}
-
-\newcommand*{\showExtCoh}[5][]{
-  \def\m{#2}
-  \def\a{#3}
-  \def\d{#4}
-  \def\pss{#5}
-
-  \gdef\cohs{}
-  \gdef\first{1}
-  \foreach \ps in \pss
-    { \ifthenelse{\first=1}
-          {\numgdef\first{0}}
-          {\xappto\cohs{\noexpand\\[-4pt]}}
-      \foreach \x in \ps {\xappto\cohs{, coh[\x]}}
-     }
-  \node[below=1em of \m, text width=9cm, align=center, #1]
-      {External coherence of depth \d\ by $\a$:
-       \begin{gather*}
-         \Gamma\big( coh[\a] \cohs \big)
-       \end{gather*}
-       };
-}
-
 \begin{tikzpicture}[trim left, trim right=12cm,
   col-color/.style args = {#1=#2}{column #1/.style={nodes={text=#2}}},
   row-color/.style args = {#1=#2}{row #1/.style={nodes={text=#2}}}
