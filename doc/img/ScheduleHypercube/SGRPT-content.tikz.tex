@@ -1,0 +1,66 @@
+\input{\rootdir/img/ScheduleHypercube.tikz}
+
+%from http://www.texample.net/tikz/examples/sudoku-3d-cube/
+
+\begin{tikzpicture}[
+  sideXS/.style={yslant=-0.4},
+  sideYS/.style={yslant=0.6},
+  sideZS/.style={yslant=0.6,xslant=-1},
+  sideWS/.style={yslant=0.6, xslant=-1, yslant=0.5},
+  sideX/.style={every node/.append style={sideXS}, sideXS},
+  sideY/.style={every node/.append style={sideYS}, sideYS},
+  sideZ/.style={every node/.append style={sideZS}, sideZS},
+  sideW/.style={every node/.append style={sideWS}, sideWS},
+  ]
+
+
+\begin{scope}[sideX]
+  \mkInnerSide[top color=brown, bottom color=brown!50]{G}{t}{*}
+\end{scope}
+\begin{scope}[xshift=5cm, yshift=-2cm, sideY]
+  \mkInnerSide{P}{k}{K}
+\end{scope}
+\begin{scope}[xshift=5cm, yshift=3cm, sideZ]
+  \mkInnerSide{R}{j}{M}
+\end{scope}
+
+\begin{scope}[xshift=-5cm, sideX, yshift=-1.5cm, xshift=1.2cm]
+  \mkOuterSide{blue}{red}{G}
+  \draw (G-bottom-right) node[midway,yslant=1.35, red, yshift=1em]
+                             {\Huge Day $\times$ Time}
+        -- (10,-5);
+\end{scope}
+\begin{scope}[xshift=5cm, yshift=-6.7cm, sideY, xshift=6.2cm]
+  \mkOuterSide{blue}{red}{P}
+\end{scope}
+\begin{scope}[xshift=5cm, yshift=8.3cm, sideZ, xshift=1.2cm]
+  \mkOuterSide{blue}{red}{R}
+\end{scope}
+
+\begin{scope}[sideW, xshift=-5cm, yshift=-5cm]
+  \shade[left color=green!30, right color=gray!10, shading angle=-22]
+        (-2,0) rectangle +(7,5);
+  \draw (-2,0) grid (5,5);
+  \foreach \i/\x in {1/S_1,   2/\dots, 3/\dots ,4/S_i
+                    ,5/\dots, 6/\dots, 7/S_N
+          } { \node at (\i-2.5, 4.5) (S-header-\i) {$\x$};
+              \node[inner sep=0pt] (S-center-\i) at (\i-2.5,1.5) {};
+            }
+\end{scope}
+
+
+\begin{scope}[
+    Green/.style={green!40!black},
+    arr/.style={->, Green},
+    proxy/.style={arr, thick, >=stealth},
+  ]
+  \foreach \i in {2,3,5,6} {
+    \draw ($(G-header-4)-(0,0.3cm)$) edge[proxy, bend right] (S-center-\i);
+    \draw[arr, dotted] (S-center-\i) -- (S-header-\i);
+    }
+  \node[sideW, Green, below=-6pt of S-center-4, xshift=-6pt]
+    {\Large \textbf{Proxy coherence evaluation}};
+
+\end{scope}
+
+\end{tikzpicture}
