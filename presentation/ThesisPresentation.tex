@@ -14,6 +14,7 @@
 \usepackage{amsmath,amsfonts, amssymb}
 \usepackage{mdframed}
 \usepackage{relsize}
+\usepackage{enumerate}
 
 \usepackage{tikz, skak}
 \usetikzlibrary{fit, matrix, positioning, shapes, decorations.pathreplacing,
@@ -89,13 +90,46 @@
 \frame{\titlepage}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+
+\begin{frame}{Index}
+  \begin{enumerate}[I]
+    \item University Class Scheduling Problem
+    \item Constraint Satisfaction Problem
+    \item Scheduling Problem Definition
+    \item Coherence
+    \item Agents
+    \item Solution
+    \item Results
+    \item Improvements
+  \end{enumerate}
+\end{frame}
+
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{1-UCSP}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{frame}{Objectives}
+  \begin{itemize}
+    \item \underline{Personalizable} Negotiation
+    \item Usage of Coherence
+    \item Parallel Execution
+  \end{itemize}
+\end{frame}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{2-CSP}
 \input{3-Definition}
 \input{4-Coherence}
 \input{5-Agents}
 \input{6-Agent-Roles}
 \input{7-Results}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
+\begin{frame}{Conclusions}
+  \centering
+  \begin{itemize}
+    % \item The results are adequate considering execution time
+    \item The objectives were mostly satisfied
+  \end{itemize}
+\end{frame}
+% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \input{8-Improvements}
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 
