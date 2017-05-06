@@ -70,6 +70,7 @@ TODO
 ### Style
 
 - [ ] Line spacing.
+- [ ] Changes to the style are necessary
 
 
 ## From Comments
@@ -91,5 +92,9 @@ TODO
 - [ ] En la sección 4.2 “PHD Tesis [7]” pag 19 está mal referenciado
 - [ ] Incluir una sección de conclusiones
 
-- [ ] Fix title
-- [ ] First pages
+- [ ] Title and first pages
+
+Conclusions must include:
+  - [ ] Discussion about my work
+  - [ ] Contribution
+  - [ ] Possibly part/all of the Improvements
