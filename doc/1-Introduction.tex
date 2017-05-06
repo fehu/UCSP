@@ -83,8 +83,8 @@ and \emph{professors} in certain \emph{classroom} at given \emph{day} and
 In chapter \ref{chapter:improvements} some extensions of the generic problem
 are provided, including, most importantly, \emph{students representation}
 (section \ref{sec:improvements-students}). This extension adds a preliminary
-stage --- group formation, and bases coherence estimation, performed by groups,
-on the coherence of underlying students.
+stage --- group formation. Groups become \emph{proxies}: coherence estimation,
+performed by a group, would actually be done by its underlying students.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
 \section{Solution Overview}
@@ -102,7 +102,7 @@ in \emph{internal} and \emph{external}. The former evaluate the underlying
 constraints using only agent's own knowledge, while the latter, external context,
 works towards the \emph{common goal}, by combining internal coherence of several
 agents.
-During internal coherence evaluation, an agents considers only the
+During internal coherence evaluation, an agent considers only the
 classes that \emph{mention it} (that the agent is part of). In the same manner,
 an agent proposes only the classes that it needs --- \emph{personal schedules}.
 The schedules are then united and any arising conflict is resolved by comparing
