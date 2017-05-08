@@ -77,9 +77,7 @@ TODO
 
 - [x] Incluir un capítulo de estado del arte en donde contraste su propuesta con
       las ya existentes mencionando especialmente los pros y contras de todas.
-- [ ] Seguir APA para las referencias y citas  
-      (si deciden utilizar IEEE o algún otro estándar esta bien pero que sea consistente)
-- [ ] Incluir el objetivo general y los específicos.  Tienen que empezar con verbo de acción
+- [x] Incluir el objetivo general y los específicos.  Tienen que empezar con verbo de acción
 - [ ] Reescribir el abstract,  cuando se lea debería quedar claro el problema,
       la solución propuesta y los resultados
 
@@ -91,6 +89,8 @@ TODO
       de donde lo obtuvo,  adicional requiere comentar porque no utilizó
       algoritmos genéticos (lo mencionó en el examen)
 - [ ] En la sección 4.2 “PHD Tesis [7]” pag 19 está mal referenciado
+- [ ] Seguir APA para las referencias y citas  
+      (si deciden utilizar IEEE o algún otro estándar esta bien pero que sea consistente)
 
 - [ ] Incluir una sección de conclusiones
 
