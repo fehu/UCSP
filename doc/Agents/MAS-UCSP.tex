@@ -1,0 +1,60 @@
+\documentclass[../header]{subfiles}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+\subsection{Solving UCSP with Agents Negotiation}
+\label{sec:MAS-UCSP}
+
+Agents negotiation was already used to solve University Class Scheduling Problem,
+while the problem itself wasn't the researchers main objective \cite{MAS-UCSP}.
+Mainly, the authors have developed a negotiation where the agents try to better
+understand each others' needs and preferences, that permits to select proposals,
+that are more likely to be accepted by the counterparts/
+
+The UCSP problem itself is defined rather simply, but it allows the professors,
+represented by agents in the negotiations, to establish their
+own constraints, called User Belief --- \underline{personalize} agents' behaviour.
+
+\begin{displayquote}
+  The System obtains the User Belief from each agent, then generates
+  numbers of different proposals through the Proposal Generator
+  according to agents' various preferences and enters the
+  Negotiation Process phase. During the negotiation process,
+  each agent will select the acceptable proposal from all the
+  proposals. The agents then submit this proposal and make
+  efforts to reach a consensus with other agents. If there is a
+  consensus among all the agents on a specific proposal, this
+  proposal becomes the final agreement proposal and the
+  Negotiation ends. If the attempt to reach a consensus has been
+  unsuccessful, the System goes to Argumentation process where
+  agents create arguments according to their own beliefs, and
+  proceed with Argumentation with other agents. After the
+  Argumentation phase comes the Belief Evolution, where
+  beliefs are updated and intensified according to the outcome of
+  Argumentation. The system then goes back to the start and
+  proceeds with the next negotiation, re-evaluating proposals
+  until a general consensus is reached.
+  $\dots$ The agent belief includes its preffered time and the school timetable.
+  \cite{MAS-UCSP}
+\end{displayquote}
+
+
+\noindent
+Some notable features:
+\begin{itemize}
+  \item In order to select which agent should concede during the negotiation,
+    the lowest risk value --- how much utility an agent
+    will lose during the concession, is used.
+  \item Agents \emph{priority} is based assigned according to the teacher's
+    teaching years and job title.
+  \item The purpose of the argumentation system is to provide
+    agents with the ability to evaluate and generate arguments.
+  \item During the argumentation process, the agents pass on the
+    argument to each other. The loosing agents  get persuaded,
+    and their beliefs must be evolved.
+\end{itemize}
+
+
+
+\end{document}

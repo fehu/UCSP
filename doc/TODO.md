@@ -75,13 +75,14 @@ TODO
 
 ## From Comments
 
-- [ ] Incluir un capítulo de estado del arte en donde contraste su propuesta con
+- [x] Incluir un capítulo de estado del arte en donde contraste su propuesta con
       las ya existentes mencionando especialmente los pros y contras de todas.
 - [ ] Seguir APA para las referencias y citas  
       (si deciden utilizar IEEE o algún otro estándar esta bien pero que sea consistente)
 - [ ] Incluir el objetivo general y los específicos.  Tienen que empezar con verbo de acción
 - [ ] Reescribir el abstract,  cuando se lea debería quedar claro el problema,
       la solución propuesta y los resultados
+
 - [ ] Revisar la numeración de las fórmulas porque no es consistente
 - [ ] Tiene varias figuras a las que no hace referencia en el texto
       p/e Figure 2.1:CSP Examples,  la incluye pero no hace referencia a ella
@@ -90,6 +91,7 @@ TODO
       de donde lo obtuvo,  adicional requiere comentar porque no utilizó
       algoritmos genéticos (lo mencionó en el examen)
 - [ ] En la sección 4.2 “PHD Tesis [7]” pag 19 está mal referenciado
+
 - [ ] Incluir una sección de conclusiones
 
 - [ ] Title and first pages
