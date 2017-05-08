@@ -5,15 +5,27 @@
 
 \begin{document}
 
-\chapter{ Assumptions and Improvements }
+\chapter{ Conclusions and Improvements }
 \label{chapter:improvements}
+
+\section{ Conclusions }
+
+This work proposes flexible solution to university class scheduling problems,
+providing means to personalize (adopt to one's needs) the negotiation process and
+therefore the resulting schedule.
+
+\begin{center}
+  \Huge \red{???}
+\end{center}
+
+\section{ Improvements }
 
 In the solution, presented by this \thisdoc\ some assumptions and
 simplifications were made. In this section they are discussed and some
 improvement/extension propositions are made.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Timetable}
+\subsection{Timetable}
 In current implementation time slots have no spaces between them and it is
 assumed that each class includes the time needed by the persons to
 move from room to room.
@@ -50,7 +62,7 @@ Time margins around classes can be added in two ways:
 \end{figure}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Classes Splitting}
+\subsection{Classes Splitting}
 
 In current implementation a \underline{single class} is created for each
 group's discipline, without considering the resulting length
@@ -67,7 +79,7 @@ both possibly dependent on the discipline.
 The classes for same discipline then should be assigned to the cores all together.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Obligations and Preferences Descriptions}
+\subsection{Obligations and Preferences Descriptions}
 
 The implementation of personal contexts' relations is based on functions,
 described in section \ref{sec:solution-contexts}, that work with classes
@@ -86,7 +98,7 @@ Such language must \underline{provide expressions} for:
 \end{enumerate}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Default Preference Rules}
+\subsection{Default Preference Rules}
 Some personal preferences should be provided by default and used by the agents
 unless overridden. Such preferences should be established by the institution and
 might be:
@@ -101,7 +113,7 @@ might be:
 Those preferences reflect institution scheduling policy.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Full-/Part- Time Professors}
+\subsection{Full-/Part- Time Professors}
 Apart from \emph{full-time} working professors, many universities contract
 \emph{part-time} professors, that work only some pre-established hours.
 Such professors can have different rules for classes assignment, depending on
@@ -120,7 +132,7 @@ it can be achieved by extending \texttt{Professor} role constructor and matching
 concrete role in agents' behavior functions.
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Students Representation}
+\subsection{Students Representation}
 \label{sec:improvements-students}
 
 The biggest assumption made in this \thisdoc\ is that the groups are preformed
@@ -204,7 +216,7 @@ some tests are needed to make further implementation suggestions.
 \end{figure}
 
 % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % %
-\section{Classrooms Representation}
+\subsection{Classrooms Representation}
 It is possible to make the classrooms a represented entity, by creating
 corresponding agent \emph{role} and changing the \emph{class-cores}.
 Then the classrooms can have internal contexts of their own, and their
