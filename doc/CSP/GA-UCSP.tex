@@ -1,0 +1,58 @@
+\documentclass[../header]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+
+\subsubsection{Solving UCSP with Genetic Algorithm}
+Genetic algorithm was used to optimize university schedules at Tabriz university
+\cite{UCSP-GA}. The scheduling was done for four groups, considering
+\underline{some opinions} of the institution and the professors.
+
+The problem at the article is defined by:
+\begin{enumerate}
+  \item a set of lectures;
+  \item a set of subjects;
+  \item a set of timeslots, where each timeslot consists of
+    \begin{enumerate*}[1)]
+      \item day of week (6 days),
+      \item item period (4 per day) and
+      \item classroom (6 rooms);
+    \end{enumerate*}
+  \item a set of constraints;
+  \item a set of weights (penalties) for the constraints.
+\end{enumerate}
+
+The constraints are divided into hard and soft (determined by the corresponding
+weight) \cite{UCSP-GA}.
+The \emph{hard} ones are \emph{time constraints} for professors, classrooms and
+students/groups.
+\emph{Soft} constraints include:
+\begin{enumerate}
+  \item A subject should not be repeated on the same day.
+  \item A subject should not be repeated on the consequent day.
+  \item No subject should be allocated to a time period that
+        heads of department/professors don't demand or find inconvenient.
+\end{enumerate}
+
+
+
+\bigskip\noindent
+A chromosome encodes class instances for the lecturers and is divided in two equal
+parts, that represent the first and second class of given subject.
+The subjects from the second part correspond to those of the first.
+The genes of the first part store the subject and the timeslot assigned, while
+those from the second part defined only the timeslot. Genes are ordered by
+lecturer and it is known how many classes one gives.
+
+The fitness function used depends heavily on the provided constraint weights:
+$\sum\limits_{i=1}^m w_i \delta_i$, where $w_i$ is the constraint weight and
+$\begin{cases}
+  \delta_i = 0 & \text{if constraint is satisfied}\\
+  \delta_i = 1 & \text{if constraint is violated}
+\end{cases}$
+The task therefore is \underline{minimizing} population fitness.
+
+\end{document}

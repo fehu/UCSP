@@ -1,0 +1,37 @@
+\documentclass[../header]{subfiles}
+
+\begin{document}
+
+\providecommand{\rootdir}{..}
+\input{\rootdir/MathDefs}
+
+
+\subsection{Selective Hyper-Heuristic}
+The main idea of the method is dynamic selection of the most suitable solution method
+from a set of algorithms or heuristics \cite{CSPhypHeur}. It is achieved
+using Learning Classifier Systems (LCS), that are
+\begin{quote}
+  $\dots$ adaptive rule-based systems that automatically build the set of rules
+  they manipulate. These rules are called classifiers, and they
+  allow the system to respond to different situations of the
+  environment \cite{CSPhypHeur}.
+\end{quote}
+
+The authors use rather simple \emph{Arc Consistency Algorithm \#3} (AC3), noting
+that other constraint propagation method can be used instead.
+The classifiers serve to \underline{dynamically select} one of four
+\emph{variable ordering heuristics} for the algorithm.
+\emph{Hyper-heuristic} is the set of classifiers in the system \cite{CSPhypHeur}.
+
+In short, AC3 operates \emph{variables} and their \emph{domain}. The former are
+represented by graph \underline{nodes}. Graph edges represent constraint. The
+algorithm checks variables (nodes of the graph) one-by-one, trying to assign a value,
+consistent with the existing nodes assignation (pruning its domain).
+A similar technique, applied to agents, is described in section \label{sec:CSP-Agents}.
+
+The hyper-heuristic is used to select \underline{next variable}, that AC3 should
+process. Value assignment is done according to the Min-Conflicts heuristic \cite{CSPhypHeur}.
+
+
+
+\end{document}
