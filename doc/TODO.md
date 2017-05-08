@@ -70,7 +70,7 @@ TODO
 ### Style
 
 - [ ] Line spacing.
-- [ ] Changes to the style are necessary
+- [x] Changes to the style are necessary
 
 
 ## From Comments
@@ -94,7 +94,7 @@ TODO
 
 - [ ] Incluir una sección de conclusiones
 
-- [ ] Title and first pages
+- [x] Title and first pages
 
 Conclusions must include:
   - [ ] Discussion about my work

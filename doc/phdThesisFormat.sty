@@ -7,8 +7,9 @@
 \typeout{** Updated by: José Carlos Ortiz Bayliss}
 \typeout{** Overleaf template by: Carl W. Handlin}
 \typeout{** Center for Intelligent Systems}
-\typeout{** ITESM - Monterrey Campus}
-\typeout{** Version 1.2 - Feb 2015}
+\typeout{** Updated by: Dmitry Kovalev}
+\typeout{** ITESM - Puebla Campus}
+\typeout{** Version 1.3 - May 2017}
 \typeout{******************************************************}
 
 %%  Checks if the report style is being used
@@ -66,7 +67,7 @@
 \def\major#1{\gdef\@major{#1}}
 	\major{Intelligent Systems}
 \def\campus#1{\gdef\@campus{#1}}
-	\campus{Monterrey}
+	\campus{Puebla}
 \def\researchCenter#1{\gdef\@researchCenter{#1}}
 	\researchCenter{CSI}
 
@@ -93,6 +94,8 @@
   \committeeMemberDInstitution{Member's Institution}
 \def\graduateProgramDirector#1{\gdef\@graduateProgramDirector{#1}}
   \graduateProgramDirector{Dr.~Jorge Welti Chanes.}
+\def\graduateProgramDirectorPosition#1{\gdef\@graduateProgramDirectorPosition{#1}}
+	\graduateProgramDirectorPosition{Program Director}
 
 %% Defines the commands to generate the first pages of the dissertation
 \def\abstractFile#1{\gdef\@abstractFile{#1}}
@@ -148,7 +151,7 @@
 			\vspace*{0.5cm}
 		    {\@major}\\
 			\vfill
-    		Monterrey, Nuevo Le\'{o}n, {\@dissertationMonth}, {\@dissertationYear}
+    		Puebla, Puebla, {\@dissertationMonth}, {\@dissertationYear}
   		\end{center}
   		\if@twoside
 			\pagestyle{empty}
@@ -212,11 +215,12 @@
 	\begin{center}
     	\hspace*{1.5in} \hrulefill \hspace*{1.5in} \\
     	{\@graduateProgramDirector}\\
-    	Associate Dean of Graduate Studies \\
-    	School of Engineering and Sciences
+			{\small \@graduateProgramDirectorPosition} \\[1em]
+			Master of Science in \@major \\
+    	{\@researchCenter}
 	\end{center}
 	\begin{center}
-		Monterrey, Nuevo Le\'{o}n, {\@dissertationMonth}, {\@dissertationYear}
+		Puebla, Puebla, {\@dissertationMonth}, {\@dissertationYear}
 	\end{center}
 	\if@twoside
 		\clearemptydoublepage
@@ -244,7 +248,7 @@
 	\vspace*{1.5in}
 	\hspace*{3.45in}\hrulefill\\
 	\hspace*{0cm} \hfill {\@doctoralStudent}\\
-	\hspace*{0cm} \hfill Monterrey, Nuevo Le\'{o}n, {\@dissertationMonth}, {\@dissertationYear}\\
+	\hspace*{0cm} \hfill Puebla, Puebla, {\@dissertationMonth}, {\@dissertationYear}\\
 	\vfill
 	\begin{center}
 		\copyright {\@dissertationYear} by {\@doctoralStudent}\\
@@ -359,7 +363,7 @@
 
 	\vfill
 
-	This document was typed in using {\LaTeXe}\footnote{The style file \texttt{phdThesisFormat.sty} used to set up this thesis was prepared by the Center of Intelligent Systems of the {\@tecdemonterrey}, Monterrey Campus} by {\@doctoralStudent}.
+	This document was typed in using {\LaTeXe}\footnote{The style file \texttt{phdThesisFormat.sty} used to set up this thesis was prepared by the Center of Intelligent Systems of the {\@tecdemonterrey}, Puebla Campus} by {\@doctoralStudent}.
 	\if@twoside
 		\clearemptydoublepage
 	\fi
