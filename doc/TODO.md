@@ -81,14 +81,14 @@ TODO
 - [x] Reescribir el abstract,  cuando se lea debería quedar claro el problema,
       la solución propuesta y los resultados
 
-- [ ] Revisar la numeración de las fórmulas porque no es consistente
-- [ ] Tiene varias figuras a las que no hace referencia en el texto
+- [x] Revisar la numeración de las fórmulas porque no es consistente
+- [x] Tiene varias figuras a las que no hace referencia en el texto
       p/e Figure 2.1:CSP Examples,  la incluye pero no hace referencia a ella
       en el texto inmediato
 - [ ] Incluye el concepto de algoritmo genético pag. 7 pero no hace referencia
       de donde lo obtuvo,  adicional requiere comentar porque no utilizó
       algoritmos genéticos (lo mencionó en el examen)
-- [ ] En la sección 4.2 “PHD Tesis [7]” pag 19 está mal referenciado
+- [x] En la sección 4.2 “PHD Tesis [7]” pag 19 está mal referenciado
 - [ ] Seguir APA para las referencias y citas  
       (si deciden utilizar IEEE o algún otro estándar esta bien pero que sea consistente)
 
