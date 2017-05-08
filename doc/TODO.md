@@ -78,7 +78,7 @@ TODO
 - [x] Incluir un capítulo de estado del arte en donde contraste su propuesta con
       las ya existentes mencionando especialmente los pros y contras de todas.
 - [x] Incluir el objetivo general y los específicos.  Tienen que empezar con verbo de acción
-- [ ] Reescribir el abstract,  cuando se lea debería quedar claro el problema,
+- [x] Reescribir el abstract,  cuando se lea debería quedar claro el problema,
       la solución propuesta y los resultados
 
 - [ ] Revisar la numeración de las fórmulas porque no es consistente
