@@ -15,7 +15,7 @@
 
 module AUCSP.Agent.Predef0 (
 
-  CoherenceSetup(..)
+  CoherenceSetup(..), CoherenceConstraints
 
 , AgentRef', NegotiatorConstraint, NegotiatorsConstraint
 
@@ -23,9 +23,8 @@ module AUCSP.Agent.Predef0 (
 
 ) where
 
-import CSP.Coherence          as Export
 import AUCSP.Classes          as Export
-import AUCSP.Context          as Export
+import AUCSP.Contexts         as Export
 import AUCSP.NegotiationRoles as Export
 import AUCSP.AgentsInterface  as Export
 import AgentSystem.Generic    as Export
@@ -35,6 +34,9 @@ import Data.Typeable
 -----------------------------------------------------------------------------
 
 class CoherenceSetup where type Coherence :: *
+
+type CoherenceConstraints = ( Num Coherence, Ord Coherence
+                            , Show Coherence, Typeable Coherence)
 
 -----------------------------------------------------------------------------
 

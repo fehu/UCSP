@@ -14,6 +14,7 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE ExistentialQuantification #-}
+{-# LANGUAGE ConstraintKinds #-}
 
 module AUCSP.Agent.SharedSchedule.Interface where
 
@@ -46,16 +47,30 @@ deriving instance NegotiatorsConstraint => Show Schedule
 
 -----------------------------------------------------------------------------
 
-newtype ScheduleInterface = ScheduleInterface {
-  tryPutCandidate :: forall a d . ( Typeable a, Typeable d
-                                  , Show (Candidate a d)
-                                    ) =>
-                     Candidate a d -> IO (Response PutCandidateResult)
+-- | Should be hidden, replaced by 'NegotiationRole'
+type NegotiatorRoleConstraint r = ( NegotiatorOfRole r
+                                  , RoleResult r ~ ()
+                                  , RoleRef r ~ AgentRef () )
+
+-- | Should be hidden, replaced by 'NegotiationRoles'
+type DefaultNegotiatorsConstraints = ( NegotiatorRoleConstraint Group
+                                     , NegotiatorRoleConstraint Professor)
+
+data ScheduleInterface = ScheduleInterface {
+    getClassesOf    :: forall r . NegotiatorRoleConstraint r =>
+                       KnownAgent r -> IO (Response (Set Class))
+  , tryPutCandidate :: forall a d . ( Typeable a, Typeable d
+                                    , Show (Candidate a d)
+                                      ) =>
+                       Candidate a d -> IO (Response PutCandidateResult)
   }
 
-newScheduleInterface :: AgentRef' -> ScheduleInterface
-newScheduleInterface ref = ScheduleInterface $
-                         \c -> ref `ask` TryPutCandidate (SomeCandidate c)
+newScheduleInterface :: (NegotiatorOfRole Group, NegotiatorOfRole Professor) =>
+                        AgentRef' -> ScheduleInterface
+newScheduleInterface ref = ScheduleInterface{
+    getClassesOf    = \k -> ref `ask` GetClassesOf k
+  , tryPutCandidate = \c -> ref `ask` TryPutCandidate (SomeCandidate c)
+  }
 
 
 -----------------------------------------------------------------------------
@@ -106,14 +121,13 @@ type instance ExpectedResponse TryPutCandidate = PutCandidateResult
 
 -----------------------------------------------------------------------------
 
-newtype GetClassesOfGroup = GetClassesOfGroup (AgentRefOfRole Group)
-  deriving (Typeable, Show)
-newtype ClassesOfGroup = ClassesOfGroup { classesOfGroup :: Set Class }
+data GetClassesOf = forall r . NegotiatorRoleConstraint r =>
+     GetClassesOf (KnownAgent r)
   deriving Typeable
+instance Show GetClassesOf where
+  show (GetClassesOf k) = "GetClassesOf " ++ knownAgentId k
 
-deriving instance NegotiatorsConstraint => Show ClassesOfGroup
-
-type instance ExpectedResponse GetClassesOfGroup = ClassesOfGroup
+type instance ExpectedResponse GetClassesOf = Set Class
 
 -----------------------------------------------------------------------------
 
@@ -139,14 +153,15 @@ instance RoleName SharedSchedule where roleName = show
 instance AgentRole SharedSchedule where
   type RoleResult SharedSchedule = ()
   type RoleState  SharedSchedule = SharedScheduleState
-  type RoleArgs   SharedSchedule = ( Map Classroom AgentRef'
-                                   , AgentRefOfRole ScheduleObserver)
+  type RoleSysArgs SharedSchedule = ( Map Classroom AgentRef'
+                                    , AgentRefOfRole ScheduleObserver)
+  type RoleArgs   SharedSchedule = ()
 
 
-sharedScheduleDescriptor :: NegotiatorsConstraint =>
+sharedScheduleDescriptor :: DefaultNegotiatorsConstraints =>
                             Bool -> Int -> GenericRoleDescriptor SharedSchedule
 sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
-  $ \args -> return GenericAgentDescriptor {
+  $ \args _ -> return GenericAgentDescriptor {
       agName = "SharedSchedule-Interface-" ++ show n
     , agDebug = debug
     , initialState = return $ uncurry SharedScheduleState args
@@ -164,13 +179,12 @@ sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
 -- | A candidate of some GROUP agent is a Set of group's classes. Not assessed.
 -- 1. Ask each holder to report group's classes.
 -- 2. Combine classes into candidate.
-sharedScheduleTryGetCandidate :: NegotiatorsConstraint =>
+sharedScheduleTryGetCandidate :: DefaultNegotiatorsConstraints =>
   SharedScheduleState -> KnownAgent Group -> IO SomeCandidate
 sharedScheduleTryGetCandidate (SharedScheduleState refByRoom _) g =
-  do resps <- forM (Map.elems refByRoom)
-            $ \holder -> holder `ask` GetClassesOfGroup (knownRef g)
-     mbClasses <- waitResponses resps
-     let classes = maybe Set.empty (Set.unions . map classesOfGroup) mbClasses
+  do resps <- forM (Map.elems refByRoom) (`ask` GetClassesOf g)
+     mbClasses <- waitResponse $ sequence resps
+     let classes = maybe Set.empty Set.unions mbClasses
      return . SomeCandidate $ Candidate (Set.map SomeInformationPiece classes)
                               Nothing (0 :: Int) NoDetails []
 
@@ -181,7 +195,7 @@ sharedScheduleTryGetCandidate (SharedScheduleState refByRoom _) g =
 -- 3. Collect results.
 -- 4. Get conflicting groups.
 -- 5. Get their candidates and return as response.
-sharedScheduleTryPutCandidate :: NegotiatorsConstraint =>
+sharedScheduleTryPutCandidate :: DefaultNegotiatorsConstraints =>
   SharedScheduleState -> SomeCandidate -> IO PutCandidateResult
 sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom o) c =
   do let classesByRoom = groupBy classRoom $ someCandidateClasses c
@@ -205,7 +219,7 @@ sharedScheduleTryPutCandidate s@(SharedScheduleState refByRoom o) c =
      resps <- forM classesByRoom $
               \(r, cs) -> let Just holder = Map.lookup r refByRoom
                           in holder `ask` TryPutClasses (Set.fromList cs)
-     result <- mapM combineResponses =<< waitResponses resps
+     result <- mapM combineResponses =<< waitResponse (sequence resps)
      maybe err return result
 
 

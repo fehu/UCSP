@@ -17,7 +17,7 @@ module AUCSP.Context.External (
 , newExternalContext, opinionRelation
 
 , OpinionEstimation(..), OpinionDetails(..)
-, SomeCoherence, getSomeCoherence
+, SomeCoherence, someCoherence, someCoherence', getSomeCoherence
 
 , module Export
 
@@ -67,6 +67,14 @@ data OpinionEstimation = OpinionEstimation { opinionEstimatedBy :: SomeAgent
 data SomeCoherence = forall a . (Fractional a, Show a, Ord a, Typeable a) =>
     SomeCoherence (InUnitInterval a)
 instance Show SomeCoherence where show (SomeCoherence x) = show x
+
+someCoherence :: (Fractional a, Show a, Ord a, Typeable a) =>
+                 a -> Maybe SomeCoherence
+someCoherence = fmap SomeCoherence . inInterval
+
+someCoherence' :: (Fractional a, Show a, Ord a, Typeable a) =>
+                 a -> SomeCoherence
+someCoherence' = fromJust . someCoherence
 
 getSomeCoherence :: (Fractional a, Ord a, Typeable a) =>
                     SomeCoherence -> InUnitInterval a

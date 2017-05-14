@@ -21,7 +21,7 @@ module AUCSP.Agent.NegotiatingAgent.State (
   AgentState(..), StateExtra, newAgentState
 
 , CandidateDetails(..), CandidateCreationDetails(..)
-, ACandidate
+, ACandidate, CandidateCreator
 
 , MutableKnownAgents(..), newMutableKnownAgents, mkKnownAgents
 , addKnownAgents, addKnownAgents'
@@ -60,10 +60,11 @@ import Control.Concurrent.STM
 data AgentState r = AgentState{
    contexts        :: Contexts Coherence,
    bestInternalCoh :: TVar Coherence,
+   stateExtra      :: StateExtra r,
 
    knownAgentsVars :: MutableKnownAgents,
    knownAgents'    :: KnownAgents,
-   stateExtra      :: StateExtra r
+   scheduleHolder  :: ScheduleInterface
  }
 
 type family StateExtra r :: *
@@ -100,11 +101,14 @@ addKnownAgents' mKnown selVar new  =
 
 -----------------------------------------------------------------------------
 
-newAgentState :: (Num Coherence) => StateExtra r -> Contexts Coherence -> IO (AgentState r)
-newAgentState extra cxts = do bestVar   <- newTVarIO 0
-                              knownVar  <- newMutableKnownAgents
-                              return $ AgentState cxts bestVar knownVar
-                                       (mkKnownAgents knownVar) extra
+newAgentState :: (Num Coherence) => ScheduleInterface -> StateExtra r
+                                 -> Contexts Coherence -> IO (AgentState r)
+newAgentState schi extra cxts = do
+  bestVar   <- newTVarIO 0
+  knownVar  <- newMutableKnownAgents
+  return $ AgentState cxts bestVar extra
+                      knownVar (mkKnownAgents knownVar)
+                      schi
 
 
 -----------------------------------------------------------------------------
@@ -117,6 +121,6 @@ data CandidateDetails = CandidateDetails CandidateCreationDetails
 newtype CandidateCreationDetails = CandidateCreationDetails SomeClassesGenerator
 instance Show CandidateCreationDetails where show _ = "CandidateCreationDetails"
 
-type CandidateCreator = AgentRefOfRole Group
+type CandidateCreator = AgentRef'
 
 -----------------------------------------------------------------------------

@@ -60,3 +60,6 @@ compareSomeInformationPiece (SomeInformationPiece i1) (SomeInformationPiece i2) 
 -----------------------------------------------------------------------------
 
 class IsInformation a where asInformation :: a -> Information
+
+instance (InformationPiece i) => IsInformation (Set i) where
+  asInformation = Set.map SomeInformationPiece

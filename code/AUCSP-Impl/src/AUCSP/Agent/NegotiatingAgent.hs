@@ -16,6 +16,5 @@ module AUCSP.Agent.NegotiatingAgent (
 
 import AUCSP.Agent.NegotiatingAgent.Roles as Export
 import AUCSP.Agent.NegotiatingAgent.Descriptor as Export
-import AUCSP.Agent.NegotiatingAgent.DisciplinePriority as Export
 
 -----------------------------------------------------------------------------

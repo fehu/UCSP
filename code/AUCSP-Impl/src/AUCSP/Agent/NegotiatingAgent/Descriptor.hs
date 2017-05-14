@@ -48,6 +48,7 @@ data RoleBehaviour r = RoleBehaviour {
   , initialContexts   :: IO ObligationsContext
                       -> IO (PreferencesContext Coherence)
                       -> IO (Contexts Coherence)
+  , initialExtraState :: IO (StateExtra r)
   }
 
 class RoleBehaviourDef r where
@@ -64,32 +65,38 @@ type NegotiationRole r =  ( AgentRole r
                           , RoleResult r ~ ()
                           , RoleState  r ~ AgentState r
                           , RoleArgs   r ~ NegotiatorData r
+                          , RoleSysArgs r ~ ScheduleInterface
                           , RoleRef    r ~ AgentRef'
                           , RoleSystemIntegration r
                           , Typeable r, Typeable Coherence, Num Coherence
                           )
 
-negotiatingAgentDescriptor :: NegotiationRole r =>
+negotiatingAgentDescriptor :: ( NegotiationRole r
+                              , RoleSysArgs r ~ ScheduleInterface
+                                ) =>
                               RoleBehaviour r -> GenericRoleDescriptor r
 negotiatingAgentDescriptor b =
-  genericRoleDescriptor (theRole b) (return . negotiatingGenericAgentDescriptor b)
+  genericRoleDescriptor (theRole b) ((return .) . negotiatingGenericAgentDescriptor b)
 
 
-negotiatingGenericAgentDescriptor :: NegotiationRole r =>
+negotiatingGenericAgentDescriptor :: ( NegotiationRole r
+                                     , RoleSysArgs r ~ ScheduleInterface
+                                      ) =>
                                RoleBehaviour r
+                            -> ScheduleInterface
                             -> NegotiatorData r
                             -> GenericAgentOfRoleDescriptor r
-negotiatingGenericAgentDescriptor b d = GenericAgentDescriptor{
+negotiatingGenericAgentDescriptor b i d = GenericAgentDescriptor{
     agName  = uniqueAgentName d
   , agDebug = debugAgent d
   , emptyResult = EmptyResult :: EmptyResult ()
   , messageHandling = combineMessageHandling handleSystemMessages
                                             (handleNegotiation b)
   , action = proaction b
-  , initialState = do extra <- initialExtraState d
+  , initialState = do extra <- initialExtraState b
                       ctxs  <- initialContexts b (personalObligations d)
                                                  (personalPreferences d)
-                      newAgentState extra ctxs
+                      newAgentState i extra ctxs
   }
 
 ---------------------------------------------------------------------------

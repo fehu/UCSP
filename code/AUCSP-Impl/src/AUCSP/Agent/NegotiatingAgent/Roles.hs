@@ -29,7 +29,6 @@ data NegotiatorData r = NegotiatorData {
   , personalObligations :: IO ObligationsContext
   , personalPreferences :: IO (PreferencesContext Coherence)
   , roleNegotiatorData  :: RoleData r
-  , initialExtraState   :: IO (StateExtra r)
   }
 
 -----------------------------------------------------------------------------
@@ -40,6 +39,7 @@ instance AgentRole Group where
   type RoleResult Group = ()
   type RoleState  Group = AgentState Group
   type RoleArgs   Group = NegotiatorData Group
+  type RoleSysArgs Group = ScheduleInterface
 
 
 instance RoleName Professor where roleName = show
@@ -47,6 +47,7 @@ instance AgentRole Professor where
   type RoleResult Professor = ()
   type RoleState  Professor = AgentState Professor
   type RoleArgs   Professor = NegotiatorData Professor
+  type RoleSysArgs Professor = ScheduleInterface
 
 -----------------------------------------------------------------------------
 

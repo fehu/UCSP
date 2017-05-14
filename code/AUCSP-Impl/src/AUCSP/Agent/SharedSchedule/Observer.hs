@@ -47,7 +47,7 @@ instance RoleName ScheduleObserver where roleName = show
 instance AgentRole ScheduleObserver where
   type RoleResult ScheduleObserver = (Schedule, Coherence)
   type RoleState  ScheduleObserver = ScheduleCompleteness
-  type RoleArgs   ScheduleObserver = ( SharedScheduleHolders
-                                     , TotalCoherenceThresholdFilter)
+  type RoleSysArgs ScheduleObserver = SharedScheduleHolders
+  type RoleArgs   ScheduleObserver = TotalCoherenceThresholdFilter
 
 -----------------------------------------------------------------------------

@@ -14,7 +14,7 @@
 
 module CSP.Coherence.Candidate(
 
-  Candidate(..)
+  Candidate(..), newCandidate
 , CtxAssessment(..)
 
 ) where
@@ -45,4 +45,7 @@ instance Show a => Show (CtxAssessment a) where
 
 -----------------------------------------------------------------------------
 
--- assessCandidate
+newCandidate :: (Num a) => Information -> d -> Candidate a d
+newCandidate inf noDetails = Candidate inf Nothing 0 noDetails []
+
+-----------------------------------------------------------------------------

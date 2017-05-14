@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 --
--- Module      :  AUCSP.Agent.ProfessorNegotiator
+-- Module      :  AUCSP.Agent.NegotiatorProfessor
 -- License     :  MIT
 --
 -- Maintainer  :  kdn.kovalev@gmail.com
@@ -9,7 +9,7 @@
 
 -----------------------------------------------------------------------------
 
-module AUCSP.Agent.ProfessorNegotiator where
+module AUCSP.Agent.NegotiatorProfessor where
 
 
 -----------------------------------------------------------------------------

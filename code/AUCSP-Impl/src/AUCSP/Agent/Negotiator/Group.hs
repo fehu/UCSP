@@ -1,6 +1,6 @@
 -----------------------------------------------------------------------------
 --
--- Module      :  AUCSP.Agent.GroupNegotiator
+-- Module      :  AUCSP.Agent.Negotiator.Group
 -- License     :  MIT
 --
 -- Maintainer  :  kdn.kovalev@gmail.com
@@ -11,9 +11,10 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
 
-module AUCSP.Agent.GroupNegotiator where
+module AUCSP.Agent.Negotiator.Group where
 
-import AUCSP.Agent.NegotiatingAgent.NegotiationDefinition
+import AUCSP.Agent.NegotiatingAgent
+import AUCSP.AgentsInterface.RoleData
 
 import Data.Set (Set)
 
@@ -21,9 +22,9 @@ import Data.Set (Set)
 
 -----------------------------------------------------------------------------
 
-type instance StateExtra (RoleT Group a) a = GroupExtraState a
+type instance StateExtra Group = GroupExtraState
 
-data GroupExtraState a = GroupExtraState {
+data GroupExtraState = GroupExtraState {
     classroomSet          :: Set Classroom
   , timeDescriptor        :: SomeDiscreteTimeDescriptor
   , groupRoleData         :: RoleData' Group
@@ -32,22 +33,17 @@ data GroupExtraState a = GroupExtraState {
 
 -----------------------------------------------------------------------------
 
-groupRoleDescriptor :: NegotiationRole Group a =>
-                       GenericRoleDescriptor (RoleT Group a)
-groupRoleDescriptor = negotiatingAgentDescriptor Group
+groupRoleDescriptor :: NegotiationRole Group => GenericRoleDescriptor Group
+groupRoleDescriptor = negotiatingAgentDescriptor groupBehavior
 
-
--- groupNegotiatorData :: NegotiatorDefinition Group a
-groupNegotiatorData name debug = NegotiatorDefinition{
-    uniqueAgentName   = name
-  , debugAgent        = debug
+groupBehavior :: RoleBehaviour Group
+groupBehavior = RoleBehaviour{
+    theRole = Group
   , handleNegotiation = undefined
-  , proaction         = undefined
-  , initialContexts   = undefined
-  , roleNegotiatorData  = undefined
+  , proaction = undefined
+  , initialContexts = undefined
   , initialExtraState = undefined
   }
-
 
 
 -----------------------------------------------------------------------------

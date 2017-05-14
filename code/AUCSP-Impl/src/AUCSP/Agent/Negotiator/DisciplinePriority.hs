@@ -1,7 +1,7 @@
 
 -----------------------------------------------------------------------------
 --
--- Module      :  AUCSP.Agent.NegotiatingAgent.DisciplinePriority
+-- Module      :  AUCSP.Agent.Negotiator.DisciplinePriority
 -- License     :  MIT
 --
 -- Maintainer  :  kdn.kovalev@gmail.com
@@ -12,7 +12,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleInstances #-}
 
-module AUCSP.Agent.NegotiatingAgent.DisciplinePriority(
+module AUCSP.Agent.Negotiator.DisciplinePriority(
 
   DisciplinePriorities(priorityDisciplines), assessDisciplinePriorities
 

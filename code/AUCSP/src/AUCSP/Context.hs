@@ -40,6 +40,10 @@ import Control.Arrow (first, second)
 
 data ContextMode = ContextModePreliminary | ContextModeFinal
 
+instance Show ContextMode where
+  show ContextModePreliminary = "Preliminary"
+  show ContextModeFinal       = "Final"
+
 -----------------------------------------------------------------------------
 
 newtype SelfAgent = SelfAgent SomeAgent

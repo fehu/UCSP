@@ -19,19 +19,19 @@ library
         AUCSP.Agent.NegotiatingAgent.State
         AUCSP.Agent.NegotiatingAgent.Roles
         AUCSP.Agent.NegotiatingAgent.Descriptor
-        AUCSP.Agent.NegotiatingAgent.DisciplinePriority
         AUCSP.Agent.NegotiatingAgent
         AUCSP.Agent.NegotiationEnvironment.Integration
         AUCSP.Agent.NegotiationEnvironment.Controller
         AUCSP.Agent.NegotiationEnvironment
-        -- AUCSP.Agent.GroupNegotiator
-        -- AUCSP.Agent.ProfessorNegotiator
+        AUCSP.Agent.Negotiator.DisciplinePriority
+        AUCSP.Agent.Negotiator.Group
+        -- AUCSP.Agent.NegotiatorProfessor
 
 
     build-depends:
         base >=4.9 && <4.10,
         Thesis-AUCSP -any,
-        feh-agents >= 0.0.3.5,
+        feh-agents >= 0.0.4.3,
         stm ==2.4.4.*,
         containers ==0.5.*
         -- time == 1.7.*

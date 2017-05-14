@@ -36,7 +36,7 @@ scheduleObserverDescriptor :: (Typeable Coherence, NegotiatorsConstraint) =>
                         Bool -> GenericRoleDescriptor ScheduleObserver
 scheduleObserverDescriptor debug =
    genericRoleDescriptor ScheduleObserver $
-   \(holders, threshold) -> return GenericAgentDescriptor{
+   \_ (holders, threshold) -> return GenericAgentDescriptor{
         agName = "ScheduleObserver"
       , agDebug = debug
       , initialState = newScheduleCompleteness
@@ -87,7 +87,7 @@ isScheduleComplete (ScheduleCompleteness cs) = fmap (and . Map.elems)
 listAndReset :: NegotiatorsConstraint => SharedScheduleHolders -> IO (Set Class)
 listAndReset (SharedScheduleHolders hs) =
     fmap (Set.unions . maybe [] (map scheduleHolderClasses))
-  . waitResponses =<< mapM (`ask` ScheduleHolderListAndReset) hs
+  . waitResponse . sequence =<< mapM (`ask` ScheduleHolderListAndReset) hs
 
 totalCoherence :: Set Class -> IO Coherence
 totalCoherence cs = undefined

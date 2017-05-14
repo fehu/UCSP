@@ -18,9 +18,11 @@ import AUCSP.Agent.Predef0
 import AUCSP.Agent.SharedSchedule.Interface
 import AUCSP.Agent.SharedSchedule.Internal.Messages
 
-import Data.Maybe (fromJust, isJust, catMaybes)
+import Data.Maybe (fromJust, isJust, catMaybes, fromMaybe)
+import Data.Typeable (gcast)
 
 import Control.Monad (forM)
+import Control.Applicative (Alternative(..))
 
 import Data.Map.Strict (Map)
 import Data.Set        (Set)
@@ -54,13 +56,14 @@ instance RoleName ScheduleHolder where roleName = show
 instance AgentRole ScheduleHolder where
   type RoleResult ScheduleHolder = ()
   type RoleState  ScheduleHolder = (Timetable, Classroom)
-  type RoleArgs   ScheduleHolder = (SomeDiscreteTimeDescriptor, Classroom)
+  type RoleArgs   ScheduleHolder = ()
+  type RoleSysArgs ScheduleHolder = (SomeDiscreteTimeDescriptor, Classroom)
 
-scheduleHolderDescriptor :: NegotiatorsConstraint =>
+scheduleHolderDescriptor :: DefaultNegotiatorsConstraints =>
                             Bool -> GenericRoleDescriptor ScheduleHolder
 scheduleHolderDescriptor debug =
   genericRoleDescriptor ScheduleHolder $
-    \(td, room) -> return GenericAgentDescriptor{
+    \(td, room) _ -> return GenericAgentDescriptor{
         agName = "ScheduleHolder[" ++ show room ++ "]"
       , agDebug = debug
       , initialState = (,) <$> newTimetable td <*> return room
@@ -69,8 +72,8 @@ scheduleHolderDescriptor debug =
           , msgRespond = selectResponse [
               mbResp $ \i (TryPutClasses cs) -> scheduleHolderTryPutClasses
                                                 (agentState i) cs
-            , mbResp $ \i (GetClassesOfGroup g) -> scheduleHolderGetClassesOfGroup
-                                                   (agentState i) g
+            , mbResp $ \i (GetClassesOf a) -> scheduleHolderGetClassesOf
+                                                (agentState i) a
             , mbResp $ \i ScheduleHolderListAndReset -> listAndResetTimetable
                                                         (agentState i)
             ]
@@ -145,13 +148,20 @@ timetableClasses (Timetable cmap) = fmap (Set.fromList . catMaybes)
                                   . atomically . mapM readSlot
                                   $ Map.elems cmap
 
-scheduleHolderGetClassesOfGroup :: NegotiatorsConstraint =>
-                                   (Timetable, Classroom)
-                                -> AgentRefOfRole Group
-                                -> IO (MsgResponse ClassesOfGroup)
-scheduleHolderGetClassesOfGroup (tt, _) g =
-       respond . ClassesOfGroup
-     . Set.filter ((g ==) . knownRef . classGroup)
-   =<< timetableClasses tt
+scheduleHolderGetClassesOf :: ( Typeable r, Show r, NegotiatorRoleConstraint r
+                              , DefaultNegotiatorsConstraints
+                                ) =>
+                              (Timetable, Classroom)
+                           -> KnownAgent r
+                           -> IO (MsgResponse (Set Class))
+scheduleHolderGetClassesOf (tt, _) a =
+  let mbGroup = gcast a :: Maybe (KnownAgent Group)
+      mbProf  = gcast a :: Maybe (KnownAgent Professor)
+      getRef  = fromMaybe (error $ "unknown agent role: " ++ show (roleOf a))
+                   $ fmap (const $ knownRef . classGroup) mbGroup
+                 <|> fmap (const $ knownRef . classProfessor) mbProf
+
+  in respond . Set.filter  ((knownRef a ==) . getRef)
+           =<< timetableClasses tt
 
 -----------------------------------------------------------------------------
