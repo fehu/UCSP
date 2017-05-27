@@ -56,14 +56,14 @@ instance RoleName ScheduleHolder where roleName = show
 instance AgentRole ScheduleHolder where
   type RoleResult ScheduleHolder = ()
   type RoleState  ScheduleHolder = (Timetable, Classroom)
-  type RoleArgs   ScheduleHolder = ()
-  type RoleSysArgs ScheduleHolder = (SomeDiscreteTimeDescriptor, Classroom)
+  type RoleArgs   ScheduleHolder = Classroom
+  type RoleSysArgs ScheduleHolder = SomeDiscreteTimeDescriptor
 
 scheduleHolderDescriptor :: DefaultNegotiatorsConstraints =>
                             Bool -> GenericRoleDescriptor ScheduleHolder
 scheduleHolderDescriptor debug =
   genericRoleDescriptor ScheduleHolder $
-    \(td, room) _ -> return GenericAgentDescriptor{
+    \td room -> return GenericAgentDescriptor{
         agName = "ScheduleHolder[" ++ show room ++ "]"
       , agDebug = debug
       , initialState = (,) <$> newTimetable td <*> return room

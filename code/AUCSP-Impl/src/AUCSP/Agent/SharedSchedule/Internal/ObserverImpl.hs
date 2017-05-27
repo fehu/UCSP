@@ -36,7 +36,7 @@ scheduleObserverDescriptor :: (Typeable Coherence, NegotiatorsConstraint) =>
                         Bool -> GenericRoleDescriptor ScheduleObserver
 scheduleObserverDescriptor debug =
    genericRoleDescriptor ScheduleObserver $
-   \_ (holders, threshold) -> return GenericAgentDescriptor{
+   \threshold holders -> return GenericAgentDescriptor{
         agName = "ScheduleObserver"
       , agDebug = debug
       , initialState = newScheduleCompleteness

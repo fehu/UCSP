@@ -43,28 +43,22 @@ import Control.Monad (forM)
 
 -----------------------------------------------------------------------------
 
-createSharedSchedule :: ( AgentSystem sys, NegotiationRoles
+createSharedSchedule :: ( AgentSystem sys
+                        , AgentSystemArgsProvider sys SomeDiscreteTimeDescriptor
+                        , AgentSystemArgsProvider sys TotalCoherenceThresholdFilter
                         , Typeable Coherence, Show Coherence
-                        , RoleResult ScheduleObserver ~ (Schedule, Coherence)
                         ) =>
-                        sys
-                     -> SomeDiscreteTimeDescriptor
-                     -> Set Classroom
-                     -> TotalCoherenceThresholdFilter
-                     -> Int -> Bool
-                     -> IO (AgentRefOfRole ScheduleObserver, [ScheduleInterface])
-
-createSharedSchedule sys td rooms totalFilter nInterfaces debug = do
-  holders <- forM (Set.toList rooms) $
-              \room -> (,) room <$>
-                       newAgentOfRole sys (scheduleHolderDescriptor debug)
-                                          (return (td, room))
+                         sys -> Set Classroom -> Int -> Bool
+                     ->  IO (AgentRefOfRole ScheduleObserver, [ScheduleInterface])
+createSharedSchedule sys rooms nInterfaces debug = do
+  holders <- forM (Set.toList rooms)
+           $ \r -> (,) r <$> newAgentOfRole sys (scheduleHolderDescriptor debug)
+                                                (return r)
   observer <- newAgentOfRole sys (scheduleObserverDescriptor debug)
-            $ return ( SharedScheduleHolders $ map snd holders, totalFilter )
+                                 (return . SharedScheduleHolders $ map snd holders)
   interfaces <- forM [1..nInterfaces] $
-                 \n -> newAgentOfRole sys (sharedScheduleDescriptor debug n)
-                     $ return (Map.fromList holders, observer)
+                \n -> newAgentOfRole sys (sharedScheduleDescriptor debug n)
+                    $ return (Map.fromList holders, observer)
   return (observer, map newScheduleInterface interfaces)
-
 
 -----------------------------------------------------------------------------

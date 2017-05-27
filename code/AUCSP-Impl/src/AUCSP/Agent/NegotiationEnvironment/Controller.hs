@@ -10,24 +10,25 @@
 
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE ExistentialQuantification #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module AUCSP.Agent.NegotiationEnvironment.Controller(
 
-  NegotiationController, ctrlKnownAgents
-, newNegotiationController, newDefaultNegotiationController
-, shareKnownAgents
+  NegotiationController, ctrlKnownAgents, ctrlScheduleObserver
 
-, ControllerForRole(addNegotiators)
+, newNegotiationController
+, setupSharedSchedule, TotalCoherenceThresholdFilter(..)
+
+, createNegotiators
+, shareKnownAgents
 
 ) where
 
-import AgentSystem.Generic
+import AgentSystem.Simple.Template
 import AUCSP.Agent.NegotiatingAgent
 import AUCSP.Agent.NegotiationEnvironment.Integration
+import AUCSP.Agent.SharedSchedule
 
 import Data.Typeable (Typeable)
 import Data.Maybe (fromJust)
@@ -47,69 +48,83 @@ import Control.Concurrent.STM
 -----------------------------------------------------------------------------
 
 data NegotiationController = NegotiationController {
-    _ctrlSystem             :: SimpleAgentSystem ()
-  -- , _ctrlScheduleInterfaces :: TVar [ScheduleInterface]
-  , _ctrlScheduleHolders  :: Map Classroom AgentRef'
-  , _ctrlScheduleObserver :: AgentRefOfRole ScheduleObserver
-  , _ctrlKnownAgents'     :: MutableKnownAgents
+    _ctrlRegisters        :: RoleRegistersVar
+  , _ctrlSchedule         :: TVar [ScheduleInterface]
+  , _ctrlScheduleObserver :: TVar (AgentRefOfRole ScheduleObserver)
+  , _ctrlKnownAgents      :: MutableKnownAgents
   , ctrlKnownAgents       :: KnownAgents
+  , _ctrlDiscreteTimeD    :: SomeDiscreteTimeDescriptor
+  , _ctrlTotalCohThresh   :: TotalCoherenceThresholdFilter
   }
 
+ctrlScheduleObserver = readTVarIO . _ctrlScheduleObserver
 
--- newNegotiationController :: (AgentSystem sys) => IO sys -> IO NegotiationController
--- newDefaultNegotiationController :: IO NegotiationController
+-----------------------------------------------------------------------------
+
+genAgentSystemInstances "NegotiationController" "_ctrlRegisters"
+
+-----------------------------------------------------------------------------
+
+instance AgentSystemArgsProvider NegotiationController SomeDiscreteTimeDescriptor
+  where agentSysArgs = return . _ctrlDiscreteTimeD
+instance AgentSystemArgsProvider NegotiationController TotalCoherenceThresholdFilter
+  where agentSysArgs = return . _ctrlTotalCohThresh
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+
+newNegotiationController :: SomeDiscreteTimeDescriptor
+                         -> TotalCoherenceThresholdFilter
+                         -> IO NegotiationController
+newNegotiationController td cf = do
+  regs <- simpleRoleRegistersVar
+  sch  <- newTVarIO $ error "SharedSchedule isn't set up"
+  scho <- newTVarIO $ error "SharedSchedule isn't set up"
+  mKnown <- newMutableKnownAgents
+
+  return NegotiationController{
+    _ctrlDiscreteTimeD    = td
+  , _ctrlTotalCohThresh   = cf
+  , _ctrlRegisters        = regs
+  , _ctrlSchedule         = sch
+  , _ctrlScheduleObserver = scho
+  , _ctrlKnownAgents      = mKnown
+  , ctrlKnownAgents       = mkKnownAgents mKnown
+  }
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+
+setupSharedSchedule :: (Typeable Coherence, Show Coherence) =>
+                       NegotiationController -> Set Classroom -> Int -> Bool
+                    -> IO ()
+setupSharedSchedule ctrl rooms nInterfaces debug = do
+  (observer, interfaces) <- createSharedSchedule ctrl rooms nInterfaces debug
+  atomically $ do writeTVar (_ctrlSchedule ctrl)         interfaces
+                  writeTVar (_ctrlScheduleObserver ctrl) observer
+
+----------------------------------------------------------------------------
+
+instance AgentSystemArgsProvider NegotiationController ScheduleInterface
+  where agentSysArgs sys = atomically $ do h:t <- readTVar $ _ctrlSchedule sys
+                                           writeTVar (_ctrlSchedule sys)
+                                                     (t ++ [h])
+                                           return h
+
+----------------------------------------------------------------------------
+
+-- | Should fail if any agent already exsits
+createNegotiators :: (NegotiationRole r, RoleBehaviourDef r) =>
+                     NegotiationController -> r -> [NegotiatorData r] -> IO [KnownAgent r]
+createNegotiators ctrl r rdataList =
+  forM rdataList $ \rdata -> newKnownAgent r (roleNegotiatorData rdata)
+                         <$> newAgentOfRole ctrl d (return rdata)
+  where d = negotiatingAgentDescriptor $ roleBehaviour' r
+
+----------------------------------------------------------------------------
 
 -- | shareKnownAgents and await all agents done
 shareKnownAgents :: NegotiationController -> IO (Response Done)
-
-
-_ctrlNextSchedule :: NegotiationController -> IO ScheduleInterface
-
------------------------------------------------------------------------------
-
-class ControllerForRole r where
-  -- | Creates agents and adds them to underlying `MutableKnownAgents`.
-  addNegotiators  :: NegotiationController -> r -> [NegotiatorData r]
-                                           -> IO [KnownAgent r]
-  listNegotiators :: NegotiationController -> r -> IO [KnownAgent r]
-
--- data ControllerRole = forall r . (NegotiationRole r, ControllerForRole r) =>
---                       ControllerRole r
-
--- instance RoleName ControllerRole where roleName (ControllerRole r) = roleName r
--- instance Eq ControllerRole where (==) = roleEq
--- instance Ord ControllerRole where compare = roleCmp
-
------------------------------------------------------------------------------
-
-instance AgentsManager NegotiationController where
-  listAgents = listAgents . _ctrlSystem
-  findAgent  = findAgent  . _ctrlSystem
-instance AgentSystem NegotiationController where
-  listAgentsByRole  = listAgentsByRole  . _ctrlSystem
-  listAgentsOfRole  = listAgentsOfRole  . _ctrlSystem
-  listAgentsOfRoles = listAgentsOfRoles . _ctrlSystem
-  findAgentOfRole   = findAgentOfRole   . _ctrlSystem
-
------------------------------------------------------------------------------
-
-instance SystemRoleArgsProvider NegotiationController r ScheduleInterface
-
------------------------------------------------------------------------------
-
-instance -- (SystemArgsProvider NegotiationController) =>
-  SystemAgentsCreation NegotiationController where
-    
-----------------------------------------------------------------------------
-----------------------------------------------------------------------------
-
--- newNegotiationController createSys = do
---   sys <- createSys
---   mKnown <- newMutableKnownAgents
---   return $ NegotiationController (KnownAgentSystem sys) mKnown
---                                  (mkKnownAgents mKnown)
---
--- newDefaultNegotiationController = newNegotiationController newSimpleAgentSystem
 
 shareKnownAgents sys = do
   groups <- knownGroups     $ ctrlKnownAgents sys
@@ -142,42 +157,4 @@ updateKnownAgents groups profs = flip send (KnownAgentsUpdate groups profs)
 -- getFromCache :: KnownAgentCache -> ControllerRole -> SomeKnonAge
 
 ----------------------------------------------------------------------------
-
-_ctrlNextSchedule = undefined
-
-----------------------------------------------------------------------------
-
--- instance (Typeable Coherence, Num Coherence, RoleBehaviourDef Group) =>
---   ControllerForRole Group where
---     addNegotiators = createAndAddNegotiators varKnownGroups
---     listNegotiators sys _ = knownGroups $ ctrlKnownAgents sys
---
--- instance (Typeable Coherence, Num Coherence, RoleBehaviourDef Professor) =>
---   ControllerForRole Professor where
---     addNegotiators = createAndAddNegotiators varKnownProfessors
---     listNegotiators sys _ = knownProfessors $ ctrlKnownAgents sys
-
-
--- createAndAddNegotiators :: ( Typeable Coherence, Num Coherence
---                            , NegotiationRole r, RoleBehaviourDef r
---                             ) =>
---                            (MutableKnownAgents -> TVar (Set (KnownAgent r)))
---                         -> NegotiationController -> r -> [NegotiatorData r]
---                         -> IO [KnownAgent r]
--- createAndAddNegotiators selVar sys r = remember <=< createNegotiators sys r
---   where remember new = addKnownAgents' (_ctrlKnownAgents' sys) selVar new
---                     >> return new
-
-
-
--- -- | Should fail if any agent already exsits
--- createNegotiators :: ( SystemAgentsCreation sys
---                      , SystemArgsProvider sys ScheduleInterface
---                      , NegotiationRole r, RoleBehaviourDef r
---                       ) =>
---                      sys -> r -> [NegotiatorData r] -> IO [KnownAgent r]
--- createNegotiators sys r = mapM $ \rdata -> newKnownAgent r (roleNegotiatorData rdata)
---                                        <$> newAgentOfRole sys d (return rdata)
---   where d = negotiatingAgentDescriptor $ roleBehaviour' r
-
 ----------------------------------------------------------------------------

@@ -15,6 +15,7 @@ module AUCSP.Agent.Negotiator.Group where
 
 import AUCSP.Agent.NegotiatingAgent
 import AUCSP.AgentsInterface.RoleData
+import AUCSP.Agent.Negotiator.DisciplinePriority
 
 import Data.Set (Set)
 

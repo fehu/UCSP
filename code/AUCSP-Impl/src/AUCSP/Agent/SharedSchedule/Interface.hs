@@ -153,15 +153,15 @@ instance RoleName SharedSchedule where roleName = show
 instance AgentRole SharedSchedule where
   type RoleResult SharedSchedule = ()
   type RoleState  SharedSchedule = SharedScheduleState
-  type RoleSysArgs SharedSchedule = ( Map Classroom AgentRef'
+  type RoleSysArgs SharedSchedule = ()
+  type RoleArgs   SharedSchedule = ( Map Classroom AgentRef'
                                     , AgentRefOfRole ScheduleObserver)
-  type RoleArgs   SharedSchedule = ()
 
 
 sharedScheduleDescriptor :: DefaultNegotiatorsConstraints =>
                             Bool -> Int -> GenericRoleDescriptor SharedSchedule
 sharedScheduleDescriptor debug n = genericRoleDescriptor SharedSchedule
-  $ \args _ -> return GenericAgentDescriptor {
+  $ \_ args -> return GenericAgentDescriptor {
       agName = "SharedSchedule-Interface-" ++ show n
     , agDebug = debug
     , initialState = return $ uncurry SharedScheduleState args
